@@ -1,113 +1,1599 @@
 {% extends 'base.html' %}
+{% block title %}Create Form | Google Forms Engine | CBS 3i-cell{% endblock %}
+{% block page_title %}Form Builder Studio{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL GOOGLE FORMS STUDIO (Google Material Forms Design)
+     ============================================================ */
+
+  :root {
+    --gf-purple: #673ab7;
+    --gf-purple-dark: #512da8;
+    --gf-purple-light: #ede7f6;
+    --gf-purple-glow: rgba(103, 58, 183, 0.18);
+    --gf-bg: #f0ebf8;
+    --gf-card-bg: #ffffff;
+    --gf-border: #dadce0;
+    --gf-text-main: #202124;
+    --gf-text-muted: #5f6368;
+    --gf-hover-bg: #f8f9fa;
+  }
+
+  body {
+    background-color: var(--gf-bg) !important;
+  }
+
+  .google-forms-studio {
+    max-width: 860px;
+    margin: 1.5rem auto 5rem auto;
+    padding: 0 1rem;
+    position: relative;
+  }
+
+  /* 1. Studio Top Navigation Bar */
+  .studio-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 0.85rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.75rem;
+    border: 1px solid var(--gf-border);
+  }
+
+  .nav-left-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand-logo-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--gf-purple);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+  }
+
+  .brand-title-box h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    margin: 0;
+  }
+
+  .brand-title-box p {
+    font-size: 0.75rem;
+    color: var(--gf-text-muted);
+    margin: 0;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .btn-gf-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--gf-text-muted);
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-gf-secondary:hover {
+    background: var(--gf-hover-bg);
+    color: var(--gf-text-main);
+  }
+
+  .btn-gf-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.35rem;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #ffffff;
+    background: var(--gf-purple);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--gf-purple-glow);
+    transition: all 0.2s ease;
+  }
+
+  .btn-gf-primary:hover {
+    background: var(--gf-purple-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px var(--gf-purple-glow);
+  }
+
+  /* 2. Template Gallery Accordion */
+  .template-gallery-panel {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--gf-border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+
+  .gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .gallery-header h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .gallery-toggle-btn {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gf-purple);
+    background: var(--gf-purple-light);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: none;
+    cursor: pointer;
+  }
+
+  .gallery-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .template-thumb-card {
+    background: #ffffff;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .template-thumb-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gf-purple);
+    box-shadow: 0 8px 18px rgba(103, 58, 183, 0.15);
+  }
+
+  .template-thumb-card.active-tpl {
+    border-color: var(--gf-purple);
+    box-shadow: 0 0 0 2px var(--gf-purple);
+  }
+
+  .template-preview-canvas {
+    height: 95px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid #e0e0e0;
+    overflow: hidden;
+  }
+
+  .template-preview-canvas .blank-plus-icon {
+    font-size: 2.5rem;
+    color: var(--gf-purple);
+    transition: transform 0.2s ease;
+  }
+
+  .template-thumb-card:hover .blank-plus-icon {
+    transform: scale(1.15);
+  }
+
+  .template-accent-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: var(--gf-purple);
+  }
+
+  .template-mock-lines {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mock-line {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 4px;
+  }
+
+  .mock-line.short { width: 50%; }
+  .mock-line.purple { background: rgba(103, 58, 183, 0.4); }
+
+  .template-card-footer {
+    padding: 0.75rem 0.85rem;
+    background: #ffffff;
+  }
+
+  .template-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0.2rem;
+  }
+
+  .template-badge {
+    font-size: 0.7rem;
+    color: var(--gf-text-muted);
+    font-weight: 600;
+  }
+
+  /* 3. Form Title Header Card (Google Forms Signature) */
+  .gf-header-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--gf-border);
+    border-top: 10px solid var(--gf-purple);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12), 0 2px 8px 2px rgba(60, 64, 67, 0.06);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .gf-header-card:focus-within {
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15), 0 4px 12px 3px rgba(103, 58, 183, 0.15);
+  }
+
+  .gf-title-input {
+    width: 100%;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.4rem 0;
+    outline: none;
+    box-sizing: border-box;
+    background: transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .gf-title-input:focus {
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  .gf-desc-input {
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--gf-text-muted);
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.5rem 0;
+    outline: none;
+    box-sizing: border-box;
+    background: transparent;
+    resize: none;
+    min-height: 50px;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .gf-desc-input:focus {
+    border-bottom: 2px solid var(--gf-purple);
+    color: var(--gf-text-main);
+  }
+
+  .header-banner-preview-box {
+    margin-bottom: 1.25rem;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 180px;
+    display: none;
+  }
+
+  .header-banner-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .remove-header-img-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 4. Question Cards (Google Forms Style) */
+  .questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .gf-question-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--gf-border);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+    padding: 1.5rem 1.75rem;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .gf-question-card.active-card {
+    border-left: 6px solid var(--gf-purple);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15), 0 4px 14px 2px rgba(60, 64, 67, 0.1);
+  }
+
+  .q-top-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.25rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .q-title-input {
+    width: 100%;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    background: #f8f9fa;
+    border: none;
+    border-bottom: 1px solid #bdc1c6;
+    padding: 0.75rem 0.85rem;
+    border-radius: 4px 4px 0 0;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .q-title-input:focus {
+    background: #ffffff;
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  .q-type-select {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+    background: #ffffff;
+    color: var(--gf-text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    min-width: 180px;
+    transition: border-color 0.2s ease;
+  }
+
+  .q-type-select:focus {
+    border-color: var(--gf-purple);
+  }
+
+  /* Question Attached Image View */
+  .q-attached-image-box {
+    margin-bottom: 1.25rem;
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .q-attached-image-box img {
+    max-height: 220px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+  }
+
+  .q-remove-img-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  /* Question Options List (For Radio, Checkbox, Dropdown) */
+  .q-options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .q-option-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .q-opt-indicator {
+    color: #9aa0a6;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .q-opt-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.92rem;
+    color: var(--gf-text-main);
+    outline: none;
+    background: transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .q-opt-input:focus {
+    border-bottom: 1px solid var(--gf-purple);
+  }
+
+  .q-opt-delete-btn {
+    background: transparent;
+    border: none;
+    color: #9aa0a6;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .q-opt-delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .add-option-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5f6368;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.4rem 0.25rem;
+    transition: color 0.2s ease;
+    width: fit-content;
+  }
+
+  .add-option-prompt:hover {
+    color: var(--gf-purple);
+  }
+
+  /* Question Preview Dummy (Short Answer, Paragraph, File) */
+  .q-dummy-preview {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px dotted #bdc1c6;
+    color: #80868b;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+    background: #fafafa;
+    border-radius: 4px;
+  }
+
+  /* Card Bottom Action Toolbar (Duplicate, Delete, Required) */
+  .q-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1.25rem;
+    border-top: 1px solid var(--gf-border);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .q-tool-btn {
+    background: transparent;
+    border: none;
+    color: #5f6368;
+    font-size: 1.25rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .q-tool-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--gf-text-main);
+  }
+
+  .q-tool-btn.q-delete-btn:hover {
+    color: #e11d48;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .q-footer-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--gf-border);
+  }
+
+  /* Google Forms Required Toggle */
+  .q-required-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    user-select: none;
+  }
+
+  .q-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+  }
+
+  .q-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .q-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #bdc1c6;
+    transition: .25s ease;
+    border-radius: 34px;
+  }
+
+  .q-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .25s ease;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .q-toggle-switch input:checked + .q-toggle-slider {
+    background-color: var(--gf-purple);
+  }
+
+  .q-toggle-switch input:checked + .q-toggle-slider:before {
+    transform: translateX(16px);
+  }
+
+  /* 5. Floating Sidebar Toolbar */
+  .gf-floating-dock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    margin: 1.5rem auto 2.5rem auto;
+    width: fit-content;
+  }
+
+  .dock-btn {
+    background: transparent;
+    border: none;
+    color: var(--gf-text-muted);
+    font-size: 1.35rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dock-btn:hover {
+    background: var(--gf-purple-light);
+    color: var(--gf-purple);
+    transform: scale(1.1);
+  }
+
+  .dock-btn.primary-add {
+    background: var(--gf-purple);
+    color: #ffffff;
+    box-shadow: 0 4px 12px var(--gf-purple-glow);
+  }
+
+  .dock-btn.primary-add:hover {
+    background: var(--gf-purple-dark);
+    transform: scale(1.12);
+  }
+
+  /* Bottom Submit Row */
+  .studio-bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    border-radius: 16px;
+    padding: 1.25rem 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
-    <h2 class="mb-4" style="color: var(--primary);">Create New Form</h2>
-    
-    <form action="{{ url_for('dynamic_forms.create_form') }}" method="POST" id="createForm">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="form-group mb-4">
-        <label class="form-label">Form Title</label>
-        <input type="text" name="title" class="form-control" required placeholder="e.g., Placement Survey 2024">
-      </div>
-      
-      <div class="form-group mb-4">
-        <label class="form-label">Description</label>
-        <textarea name="description" class="form-control" rows="3" placeholder="Brief description of the form..."></textarea>
-      </div>
-      
-      <hr style="border-color: var(--border); margin: 2rem 0;">
-      
-      <h4 class="mb-3">Form Fields</h4>
-      <div id="fieldsContainer">
-        <!-- Dynamic fields will appear here -->
-      </div>
-      
-      <button type="button" class="btn-secondary w-100 mb-4" onclick="addField()">
-        <i class="ph-bold ph-plus"></i> Add Field
-      </button>
+<div class="google-forms-studio">
 
-      <!-- Hidden input to store JSON structure -->
-      <input type="hidden" name="fields_data" id="fieldsData">
-      
-      <div class="d-flex gap-4" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
-        <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-secondary w-50" style="text-align: center; text-decoration: none;">Back</a>
-        <button type="submit" class="btn-primary w-50">Create Form</button>
+  <!-- 1. Top Navigation Bar -->
+  <div class="studio-nav-bar">
+    <div class="nav-left-brand">
+      <div class="brand-logo-icon">
+        <i class="ph-bold ph-file-text"></i>
       </div>
-    </form>
+      <div class="brand-title-box">
+        <h2>Google Forms Engine</h2>
+        <p>Dynamic Placement &amp; Campus Form Builder</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-gf-secondary">
+        <i class="ph-bold ph-arrow-left"></i> Manage Forms
+      </a>
+      <button type="button" class="btn-gf-primary" onclick="submitStudioForm()">
+        <i class="ph-bold ph-paper-plane-tilt"></i> Create &amp; Publish Form
+      </button>
+    </div>
   </div>
+
+  <!-- 2. Template Gallery Ribbon (16 Placement & Campus Templates + Blank) -->
+  <div class="template-gallery-panel">
+    <div class="gallery-header" onclick="toggleGallery()">
+      <h3>
+        <i class="ph-bold ph-shapes" style="color: var(--gf-purple);"></i>
+        Template Gallery (16 Pre-built Templates + Blank Form)
+      </h3>
+      <button type="button" class="gallery-toggle-btn" id="galleryToggleBtn">
+        <span id="galleryToggleText">Collapse</span>
+        <i class="ph-bold ph-caret-up" id="galleryToggleIcon"></i>
+      </button>
+    </div>
+
+    <div class="gallery-cards-grid" id="galleryCardsGrid">
+      <!-- 0. Blank Form -->
+      <div class="template-thumb-card active-tpl" onclick="loadTemplate('blank')" id="tpl-card-blank">
+        <div class="template-preview-canvas">
+          <i class="ph-bold ph-plus-circle blank-plus-icon"></i>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Blank Form</div>
+          <div class="template-badge">Start from scratch</div>
+        </div>
+      </div>
+
+      <!-- 1. Placement Drive Registration -->
+      <div class="template-thumb-card" onclick="loadTemplate('placement_reg')" id="tpl-card-placement_reg">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line purple"></div>
+            <div class="mock-line short"></div>
+            <div class="mock-line"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Drive Registration</div>
+          <div class="template-badge">8 fields • Mandatory</div>
+        </div>
+      </div>
+
+      <!-- 2. Company Drive Eligibility & Consent -->
+      <div class="template-thumb-card" onclick="loadTemplate('drive_consent')" id="tpl-card-drive_consent">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #2563eb;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(37,99,235,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Eligibility &amp; Consent</div>
+          <div class="template-badge">Slot choice &amp; rules</div>
+        </div>
+      </div>
+
+      <!-- 3. Internship & PPO Review -->
+      <div class="template-thumb-card" onclick="loadTemplate('internship_ppo')" id="tpl-card-internship_ppo">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #059669;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(5,150,105,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Internship &amp; PPO Review</div>
+          <div class="template-badge">Stipend &amp; feedback</div>
+        </div>
+      </div>
+
+      <!-- 4. Technical Skill Matrix -->
+      <div class="template-thumb-card" onclick="loadTemplate('skill_matrix')" id="tpl-card-skill_matrix">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #7c3aed;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(124,58,237,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Coding Skill Matrix</div>
+          <div class="template-badge">LeetCode &amp; GitHub</div>
+        </div>
+      </div>
+
+      <!-- 5. Mock Interview Booking -->
+      <div class="template-thumb-card" onclick="loadTemplate('mock_interview')" id="tpl-card-mock_interview">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #ea580c;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(234,88,12,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Mock Interview Slot</div>
+          <div class="template-badge">SDE / Core / Data</div>
+        </div>
+      </div>
+
+      <!-- 6. Off-Campus Offer Verification -->
+      <div class="template-thumb-card" onclick="loadTemplate('offer_verify')" id="tpl-card-offer_verify">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #0891b2;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(8,145,178,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Offer Letter Upload</div>
+          <div class="template-badge">CTC &amp; Verification</div>
+        </div>
+      </div>
+
+      <!-- 7. Higher Education Survey -->
+      <div class="template-thumb-card" onclick="loadTemplate('higher_studies')" id="tpl-card-higher_studies">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #db2777;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(219,39,119,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Higher Studies (GATE)</div>
+          <div class="template-badge">Exam aspirations</div>
+        </div>
+      </div>
+
+      <!-- 8. Alumni Mentorship Connect -->
+      <div class="template-thumb-card" onclick="loadTemplate('alumni_mentorship')" id="tpl-card-alumni_mentorship">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #4f46e5;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(79,70,229,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Alumni Mentorship</div>
+          <div class="template-badge">Domain guidance</div>
+        </div>
+      </div>
+
+      <!-- 9. Drive Absence / Leave -->
+      <div class="template-thumb-card" onclick="loadTemplate('drive_leave')" id="tpl-card-drive_leave">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #ef4444;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(239,68,68,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Drive Absence Leave</div>
+          <div class="template-badge">Medical proof</div>
+        </div>
+      </div>
+
+      <!-- 10. Pre-Placement Talk Attendance -->
+      <div class="template-thumb-card" onclick="loadTemplate('ppt_attendance')" id="tpl-card-ppt_attendance">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #14b8a6;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(20,184,166,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">PPT Attendance &amp; Q&amp;A</div>
+          <div class="template-badge">Company feedback</div>
+        </div>
+      </div>
+
+      <!-- 11. Hackathon / Project Showcase -->
+      <div class="template-thumb-card" onclick="loadTemplate('hackathon')" id="tpl-card-hackathon">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #8b5cf6;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(139,92,246,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Hackathon Showcase</div>
+          <div class="template-badge">GitHub &amp; Demo</div>
+        </div>
+      </div>
+
+      <!-- 12. Aptitude & Soft Skills Needs -->
+      <div class="template-thumb-card" onclick="loadTemplate('training_needs')" id="tpl-card-training_needs">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #f59e0b;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(245,158,11,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Training Needs Assessment</div>
+          <div class="template-badge">Quant &amp; Verbal</div>
+        </div>
+      </div>
+
+      <!-- 13. Hostel & Logistics for Drive -->
+      <div class="template-thumb-card" onclick="loadTemplate('logistics')" id="tpl-card-logistics">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #0284c7;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(2,132,199,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Hostel &amp; Transport</div>
+          <div class="template-badge">Drive day stay</div>
+        </div>
+      </div>
+
+      <!-- 14. Student KYC & ID Photo Upload -->
+      <div class="template-thumb-card" onclick="loadTemplate('kyc_verify')" id="tpl-card-kyc_verify">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #10b981;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(16,185,129,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">KYC &amp; ID Photo Upload</div>
+          <div class="template-badge">College card &amp; Govt ID</div>
+        </div>
+      </div>
+
+      <!-- 15. Placement Coordinator Application -->
+      <div class="template-thumb-card" onclick="loadTemplate('coordinator_app')" id="tpl-card-coordinator_app">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #6366f1;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(99,102,241,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Coordinator Application</div>
+          <div class="template-badge">Student team hiring</div>
+        </div>
+      </div>
+
+      <!-- 16. Placed Graduate Exit Survey -->
+      <div class="template-thumb-card" onclick="loadTemplate('exit_survey')" id="tpl-card-exit_survey">
+        <div class="template-preview-canvas">
+          <div class="template-accent-top" style="background: #16a34a;"></div>
+          <div class="template-mock-lines">
+            <div class="mock-line" style="background: rgba(22,163,74,0.4);"></div>
+            <div class="mock-line short"></div>
+          </div>
+        </div>
+        <div class="template-card-footer">
+          <div class="template-name">Graduate Exit Survey</div>
+          <div class="template-badge">Placed package &amp; tips</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Submission Wrapper -->
+  <form id="studioForm" action="{{ url_for('dynamic_forms.create_form') }}" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="fields_data" id="fieldsData"/>
+    <input type="hidden" name="header_image_id" id="headerImageId"/>
+
+    <!-- Hidden file input for header image upload -->
+    <input type="file" id="headerImageFileInput" accept="image/*" style="display: none;" onchange="handleHeaderImageUpload(this)">
+
+    <!-- 3. Form Title & Description Header Card -->
+    <div class="gf-header-card">
+      <div class="header-banner-preview-box" id="headerBannerPreviewBox">
+        <img id="headerBannerImg" src="" alt="Header Banner">
+        <button type="button" class="remove-header-img-btn" onclick="removeHeaderImage()" title="Remove Banner">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <input
+        type="text"
+        name="title"
+        id="formTitleInput"
+        class="gf-title-input"
+        placeholder="Untitled Form"
+        value="Campus Placement Drive Registration 2026"
+        required
+      />
+
+      <textarea
+        name="description"
+        id="formDescInput"
+        class="gf-desc-input"
+        placeholder="Form description or instructions for students..."
+      >Please complete this form accurately. The information provided will be directly utilized for company eligibility shortlisting and recruitment drive passes.</textarea>
+    </div>
+
+    <!-- 4. Questions List Container -->
+    <div class="questions-list" id="questionsContainer">
+      <!-- Dynamic Google Forms style question cards rendered here -->
+    </div>
+
+    <!-- 5. Floating Dock Toolbar (Add Question, Add Image, Scroll to Top) -->
+    <div class="gf-floating-dock">
+      <button type="button" class="dock-btn primary-add" onclick="addQuestionCard()" title="Add Question">
+        <i class="ph-bold ph-plus"></i>
+      </button>
+      <button type="button" class="dock-btn" onclick="triggerHeaderImageUpload()" title="Add Header Banner Image">
+        <i class="ph-bold ph-image"></i>
+      </button>
+      <button type="button" class="dock-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Scroll to Top">
+        <i class="ph-bold ph-arrow-up"></i>
+      </button>
+    </div>
+
+    <!-- 6. Studio Action Footer -->
+    <div class="studio-bottom-actions">
+      <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-gf-secondary">
+        ← Cancel &amp; Back to Forms
+      </a>
+      <button type="button" class="btn-gf-primary" onclick="submitStudioForm()">
+        <i class="ph-bold ph-check-circle"></i> Save &amp; Publish Form
+      </button>
+    </div>
+  </form>
+
 </div>
 
-<template id="fieldTemplate">
-  <div class="field-item glass-card-heavy p-3 mb-3" style="border-left: 4px solid var(--primary);">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h5 class="m-0">Field <span class="field-index"></span></h5>
-      <button type="button" class="btn-sm btn-danger remove-btn" style="background:none; border:none; color: var(--accent);">
-        <i class="ph-bold ph-trash"></i>
-      </button>
-    </div>
-    
-    <div class="grid-2">
-      <div class="form-group">
-        <label>Label</label>
-        <input type="text" class="form-control field-label" required placeholder="Question/Label">
-      </div>
-      <div class="form-group">
-        <label>Type</label>
-        <select class="form-control field-type">
-          <option value="text">Text Input</option>
-          <option value="textarea">Long Text</option>
-          <option value="number">Number</option>
-          <option value="date">Date</option>
-          <option value="file">File Upload</option>
-        </select>
-      </div>
-    </div>
-  </div>
-</template>
-
+<!-- 16 Built-in High-Fidelity Placement Templates Definition in Javascript -->
 <script>
-let fieldCount = 0;
-
-function addField() {
-  fieldCount++;
-  const container = document.getElementById('fieldsContainer');
-  const template = document.getElementById('fieldTemplate');
-  const clone = template.content.cloneNode(true);
-  
-  clone.querySelector('.field-index').textContent = fieldCount;
-  clone.querySelector('.remove-btn').onclick = function(e) {
-    e.target.closest('.field-item').remove();
-    updateJson();
+  const TEMPLATE_PRESETS = {
+    blank: {
+      title: "Untitled Form",
+      description: "Form description",
+      fields: [
+        { label: "Untitled Question", type: "text", required: false, options: [] }
+      ]
+    },
+    placement_reg: {
+      title: "Campus Placement Drive Registration 2026",
+      description: "Official recruitment drive registration form. Please verify your academic scores and resume link before final submission.",
+      fields: [
+        { label: "Full Name (as per matriculation records)", type: "text", required: true, options: [] },
+        { label: "University Roll Number / PRN", type: "text", required: true, options: [] },
+        { label: "Degree & Specialization Branch", type: "select", required: true, options: ["Computer Engineering", "Information Technology", "AI & Data Science", "Electronics & Telecommunication", "Mechanical Engineering", "Civil Engineering"] },
+        { label: "Current Aggregate CGPA (till latest semester)", type: "number", required: true, options: [] },
+        { label: "Number of Active / Standing Backlogs", type: "number", required: true, options: [] },
+        { label: "Primary Technical Skillsets & Frameworks", type: "textarea", required: true, options: [] },
+        { label: "Updated ATS-Compliant Resume (PDF format)", type: "file", required: true, options: [] },
+        { label: "Preferred Job Location Preferences", type: "checkbox", required: true, options: ["Bangalore", "Pune", "Hyderabad", "Mumbai", "Delhi NCR", "Chennai", "Remote / Flexible"] }
+      ]
+    },
+    drive_consent: {
+      title: "Company Drive Consent & Online Assessment Booking",
+      description: "Confirm your attendance for the upcoming recruitment assessment. Unexcused absence will impact your active placement drive eligibility.",
+      fields: [
+        { label: "Hiring Company Name", type: "text", required: true, options: [] },
+        { label: "Candidate Roll Number", type: "text", required: true, options: [] },
+        { label: "Do you give full consent to attend the Online Assessment?", type: "radio", required: true, options: ["Yes, I will attend on campus in the computer lab", "Yes, I will attend remotely with video proctoring", "No, I am placed or declining this opportunity"] },
+        { label: "Preferred Online Test Time Slot", type: "radio", required: true, options: ["Morning Slot (09:00 AM - 11:00 AM)", "Afternoon Slot (01:00 PM - 03:00 PM)", "Evening Slot (04:30 PM - 06:30 PM)"] },
+        { label: "I confirm that I possess a working webcam, stable WiFi, and will adhere to TPO integrity guidelines", type: "checkbox", required: true, options: ["I Agree and Acknowledge"] }
+      ]
+    },
+    internship_ppo: {
+      title: "Summer Internship Experience & Pre-Placement Offer (PPO) Audit",
+      description: "Submit details regarding your completed internship tenure, stipends received, and any potential PPO conversions.",
+      fields: [
+        { label: "Company / Organization Name", type: "text", required: true, options: [] },
+        { label: "Internship Role & Department", type: "text", required: true, options: [] },
+        { label: "Monthly Stipend Amount (in INR)", type: "number", required: true, options: [] },
+        { label: "Did the company extend a Full-Time Pre-Placement Offer (PPO)?", type: "radio", required: true, options: ["Yes, Official PPO extended", "Offer under HR evaluation", "No PPO offered"] },
+        { label: "PPO Package in LPA (if applicable)", type: "text", required: false, options: [] },
+        { label: "Brief Summary of Technologies & Projects Handled", type: "textarea", required: true, options: [] }
+      ]
+    },
+    skill_matrix: {
+      title: "Candidate Coding Profiles & Technical Skill Matrix",
+      description: "Centralized skill repository to help the placement cell curate shortlisted applicant lists for niche developer roles.",
+      fields: [
+        { label: "Primary Programming Language", type: "select", required: true, options: ["C++", "Java", "Python", "JavaScript / TypeScript", "Go", "Rust"] },
+        { label: "LeetCode Profile URL (or HackerRank/CodeChef)", type: "text", required: true, options: [] },
+        { label: "GitHub Profile URL", type: "text", required: true, options: [] },
+        { label: "Backend / Frontend Framework Expertise", type: "checkbox", required: true, options: ["React.js", "Node.js / Express", "Django / FastAPI", "Spring Boot", "Flutter / React Native", "Docker & Kubernetes"] },
+        { label: "Highest LeetCode Contest Rating or Problem Count", type: "number", required: false, options: [] },
+        { label: "Describe your best full-stack or system design project", type: "textarea", required: true, options: [] }
+      ]
+    },
+    mock_interview: {
+      title: "Mock Technical & HR Interview Slot Booking",
+      description: "Schedule your one-on-one technical mock interview session with alumni and industry leaders.",
+      fields: [
+        { label: "Candidate Full Name & Roll Number", type: "text", required: true, options: [] },
+        { label: "Target Interview Track", type: "radio", required: true, options: ["Software Development Engineer (SDE)", "Data Analyst / Data Engineer", "Core Engineering Domain", "Product / Business Analyst"] },
+        { label: "Preferred Mock Interview Date", type: "date", required: true, options: [] },
+        { label: "Share your Google Drive Resume Link (Must be publicly viewable)", type: "text", required: true, options: [] },
+        { label: "Specific focus areas you want the interviewer to drill into", type: "textarea", required: false, options: [] }
+      ]
+    },
+    offer_verify: {
+      title: "Off-Campus Placement & Offer Letter Verification",
+      description: "Mandatory official verification of off-campus employment offers for placement cell records and NIRF reporting.",
+      fields: [
+        { label: "Hiring Organization Name", type: "text", required: true, options: [] },
+        { label: "Designation / Role Title", type: "text", required: true, options: [] },
+        { label: "Total Cost to Company (CTC in LPA)", type: "text", required: true, options: [] },
+        { label: "Upload Official Offer Letter / Intent Letter (PDF or Clear Image)", type: "file", required: true, options: [] },
+        { label: "Expected Joining Date", type: "date", required: true, options: [] },
+        { label: "I certify that the compensation and document uploaded are genuine", type: "checkbox", required: true, options: ["I Certify"] }
+      ]
+    },
+    higher_studies: {
+      title: "Higher Studies & Competitive Exam Aspirant Registry",
+      description: "Survey for students aspiring for GATE, CAT, GRE, GMAT, or UPSC to facilitate specialized guidance seminars.",
+      fields: [
+        { label: "Target Competitive Examination", type: "select", required: true, options: ["GATE (Engineering)", "CAT / XAT (Management)", "GRE / TOEFL (MS Abroad)", "UPSC / Civil Services", "Other Examination"] },
+        { label: "Target Specialization or Country (e.g. USA, Germany, IIT)", type: "text", required: true, options: [] },
+        { label: "Anticipated Exam Sitting Month/Year", type: "text", required: true, options: [] },
+        { label: "Do you require Letter of Recommendation (LOR) assistance from TPO?", type: "radio", required: true, options: ["Yes, immediate LOR required", "Yes, in upcoming semester", "No, not required"] },
+        { label: "Any special academic counseling support needed?", type: "textarea", required: false, options: [] }
+      ]
+    },
+    alumni_mentorship: {
+      title: "Alumni Mentorship Connect & 1-on-1 Guidance Request",
+      description: "Get connected with university alumni currently working in Tier-1 product tech firms and Fortune 500 enterprises.",
+      fields: [
+        { label: "Target Industry Domain", type: "select", required: true, options: ["Cloud Computing & DevOps", "Artificial Intelligence & ML", "Investment Banking & FinTech", "Cybersecurity", "Automotive & Embedded Systems"] },
+        { label: "Preferred Mentorship Focus", type: "radio", required: true, options: ["Resume & Portfolio Critique", "System Design & DSA Prep Strategy", "Company-specific Interview Insights", "Overseas Career Roadmap"] },
+        { label: "LinkedIn Profile URL", type: "text", required: true, options: [] },
+        { label: "Top 2 specific technical questions you want your mentor to address", type: "textarea", required: true, options: [] }
+      ]
+    },
+    drive_leave: {
+      title: "Campus Recruitment Drive Absence & Leave Request",
+      description: "Formal application for unavoidable absence from a scheduled on-campus company recruitment process.",
+      fields: [
+        { label: "Scheduled Company Drive Name", type: "text", required: true, options: [] },
+        { label: "Date of Scheduled Assessment", type: "date", required: true, options: [] },
+        { label: "Genuine Reason for Absence", type: "select", required: true, options: ["Medical Emergency / Hospitalization", "University Examination Clash", "Immediate Family Emergency", "Already Placed in Higher Tier Company"] },
+        { label: "Attach Medical Certificate or Valid Proof (PDF/Image)", type: "file", required: true, options: [] },
+        { label: "Do you request the company recruiter to consider you in alternate slot?", type: "radio", required: true, options: ["Yes, request alternate slot if possible", "No, withdrawing from this drive"] }
+      ]
+    },
+    ppt_attendance: {
+      title: "Pre-Placement Talk (PPT) Attendance & Recruiter Query Log",
+      description: "Attendance logging and question submission for company presentation and orientation talks.",
+      fields: [
+        { label: "Company Delivering Presentation", type: "text", required: true, options: [] },
+        { label: "Key Learnings & Role Expectations Understood", type: "textarea", required: true, options: [] },
+        { label: "Questions You Asked (or wish to ask) to the HR Panel", type: "textarea", required: false, options: [] },
+        { label: "Based on the talk, are you keen on sitting for the technical round?", type: "radio", required: true, options: ["Yes, very interested", "Neutral / Considering", "No, role does not match expectations"] },
+        { label: "Rate the presentation clarity and company appeal (1 to 5)", type: "select", required: true, options: ["5 - Outstanding", "4 - Very Good", "3 - Average", "2 - Below Expectations", "1 - Poor"] }
+      ]
+    },
+    hackathon: {
+      title: "Campus Hackathon & Engineering Project Submission",
+      description: "Register your capstone or hackathon project for corporate sponsorship and incubator showcase awards.",
+      fields: [
+        { label: "Project Title", type: "text", required: true, options: [] },
+        { label: "Team Leader Name & Roll Number", type: "text", required: true, options: [] },
+        { label: "Full Names of Team Members", type: "textarea", required: true, options: [] },
+        { label: "GitHub Code Repository (Public Link)", type: "text", required: true, options: [] },
+        { label: "Live Deployment or YouTube Demo Link", type: "text", required: false, options: [] },
+        { label: "Upload System Architecture Diagram or Poster (Image/PDF)", type: "image", required: true, options: [] }
+      ]
+    },
+    training_needs: {
+      title: "Campus Aptitude & Placement Training Needs Assessment",
+      description: "Help the TPO tailor high-impact training bootcamps for upcoming mass hiring and product recruitment drives.",
+      fields: [
+        { label: "Areas where you feel you need the most preparation", type: "checkbox", required: true, options: ["Quantitative Aptitude & Mathematics", "Logical & Analytical Reasoning", "Verbal Ability & English Comprehension", "Live Coding / Data Structures", "Group Discussion & Extempore", "HR Personal Interview Confidence"] },
+        { label: "Preferred Daily Bootcamp Timing", type: "radio", required: true, options: ["Morning (07:30 AM - 09:00 AM)", "Evening (05:00 PM - 07:00 PM)", "Weekends Only (Intensive 4-hour sessions)"] },
+        { label: "Specific companies you want targeted mock tests for", type: "textarea", required: true, options: [] }
+      ]
+    },
+    logistics: {
+      title: "Drive Day Campus Stay & Transport Logistics Survey",
+      description: "Arrangements for early-morning written tests, overnight hackathons, and multi-day corporate recruitment drives.",
+      fields: [
+        { label: "Student Accommodation Status", type: "radio", required: true, options: ["Day Scholar (Commuting from Home)", "College Campus Hosteller", "Private PG / Flat nearby campus"] },
+        { label: "Will you require overnight campus accommodation during multi-day drive?", type: "radio", required: true, options: ["Yes, overnight stay required", "No, commuting daily"] },
+        { label: "Arrival Date at Campus", type: "date", required: true, options: [] },
+        { label: "Emergency Contact Parent / Guardian Phone Number", type: "number", required: true, options: [] },
+        { label: "Any special medical condition or dietary requirements", type: "text", required: false, options: [] }
+      ]
+    },
+    kyc_verify: {
+      title: "Student Identity & KYC Verification Form",
+      description: "Mandatory campus identity audit to ensure authenticated registration across all hiring portals.",
+      fields: [
+        { label: "Official College ID Card Photo (Front side)", type: "image", required: true, options: [] },
+        { label: "Government ID Proof (Aadhaar or Passport)", type: "file", required: true, options: [] },
+        { label: "Permanent Residential Address", type: "textarea", required: true, options: [] },
+        { label: "Blood Group", type: "select", required: true, options: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] },
+        { label: "I certify that all uploaded credentials belong to me", type: "checkbox", required: true, options: ["Verified and Acknowledged"] }
+      ]
+    },
+    coordinator_app: {
+      title: "Placement Cell Student Coordinator Application",
+      description: "Apply to become a student placement officer / drive manager for CBS 3i-cell recruitment operations.",
+      fields: [
+        { label: "Department & Year of Study", type: "text", required: true, options: [] },
+        { label: "Why are you interested in joining the Placement Cell team?", type: "textarea", required: true, options: [] },
+        { label: "Prior event organization or corporate liaison experience", type: "textarea", required: true, options: [] },
+        { label: "Weekly Commitment You Can Offer", type: "radio", required: true, options: ["10-15 hours per week", "15-20 hours per week", "Flexible / On-call during drive days"] },
+        { label: "Recommendation Letter or Resume (Optional)", type: "file", required: false, options: [] }
+      ]
+    },
+    exit_survey: {
+      title: "Final Year Placed Student Exit Review & Wisdom Bank",
+      description: "Congratulations on your campus offer! Share your placement journey and insights to guide junior batches.",
+      fields: [
+        { label: "Final Placed Company Name", type: "text", required: true, options: [] },
+        { label: "Offered CTC Package (in LPA)", type: "text", required: true, options: [] },
+        { label: "Key factors that helped you crack the interview rounds", type: "textarea", required: true, options: [] },
+        { label: "Tips and preparation advice for junior engineering students", type: "textarea", required: true, options: [] },
+        { label: "Are you willing to participate in future alumni mock interviews?", type: "radio", required: true, options: ["Yes, absolutely", "Yes, on weekends", "No, not at this moment"] }
+      ]
+    }
   };
-  
-  // Attach listeners to update JSON on change
-  clone.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('input', updateJson);
-  });
-  
-  container.appendChild(clone);
-}
 
-function updateJson() {
-  const fields = [];
-  document.querySelectorAll('.field-item').forEach(item => {
-    fields.push({
-      label: item.querySelector('.field-label').value,
-      type: item.querySelector('.field-type').value
-    });
-  });
-  document.getElementById('fieldsData').value = JSON.stringify(fields);
-}
+  // State
+  let questionsData = [];
 
-document.getElementById('createForm').onsubmit = function() {
-  updateJson(); // Ensure latest data
-  if (document.getElementById('fieldsData').value === '[]') {
-    alert("Please add at least one field.");
-    return false;
+  // Toggle template gallery collapse
+  function toggleGallery() {
+    const grid = document.getElementById('galleryCardsGrid');
+    const text = document.getElementById('galleryToggleText');
+    const icon = document.getElementById('galleryToggleIcon');
+    if (grid.style.display === 'none') {
+      grid.style.display = 'grid';
+      text.textContent = 'Collapse';
+      icon.className = 'ph-bold ph-caret-up';
+    } else {
+      grid.style.display = 'none';
+      text.textContent = 'Expand';
+      icon.className = 'ph-bold ph-caret-down';
+    }
   }
-  return true;
-};
+
+  // Load Preset Template
+  function loadTemplate(key) {
+    // Highlight active card
+    document.querySelectorAll('.template-thumb-card').forEach(c => c.classList.remove('active-tpl'));
+    const targetCard = document.getElementById('tpl-card-' + key);
+    if (targetCard) targetCard.classList.add('active-tpl');
+
+    const tpl = TEMPLATE_PRESETS[key];
+    if (!tpl) return;
+
+    document.getElementById('formTitleInput').value = tpl.title;
+    document.getElementById('formDescInput').value = tpl.description;
+
+    // Deep copy fields
+    questionsData = JSON.parse(JSON.stringify(tpl.fields));
+    renderQuestions();
+  }
+
+  // Add a new blank question
+  function addQuestionCard() {
+    questionsData.push({
+      label: "Untitled Question",
+      type: "text",
+      required: false,
+      options: ["Option 1"]
+    });
+    renderQuestions();
+    
+    // Smooth scroll to the newly added question card
+    setTimeout(() => {
+      const cards = document.querySelectorAll('.gf-question-card');
+      if (cards.length > 0) {
+        cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
+
+  // Duplicate a question
+  function duplicateQuestion(index) {
+    if (index >= 0 && index < questionsData.length) {
+      const copy = JSON.parse(JSON.stringify(questionsData[index]));
+      questionsData.splice(index + 1, 0, copy);
+      renderQuestions();
+    }
+  }
+
+  // Delete a question
+  function deleteQuestion(index) {
+    if (questionsData.length <= 1) {
+      alert("A form must have at least one question.");
+      return;
+    }
+    questionsData.splice(index, 1);
+    renderQuestions();
+  }
+
+  // Render All Question Cards
+  function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+
+    questionsData.forEach((q, idx) => {
+      const card = document.createElement('div');
+      card.className = 'gf-question-card active-card';
+      card.id = `qCard_${idx}`;
+
+      // Build Options HTML if applicable
+      const hasOptions = ['radio', 'checkbox', 'select'].includes(q.type);
+      let optionsHtml = '';
+      if (hasOptions) {
+        if (!q.options || q.options.length === 0) {
+          q.options = ['Option 1'];
+        }
+        let rows = q.options.map((opt, optIdx) => `
+          <div class="q-option-row">
+            <span class="q-opt-indicator">
+              ${q.type === 'radio' ? '<i class="ph-bold ph-circle"></i>' : (q.type === 'checkbox' ? '<i class="ph-bold ph-square"></i>' : '<i class="ph-bold ph-list-numbers"></i>')}
+            </span>
+            <input type="text" class="q-opt-input" value="${escapeHtml(opt)}" oninput="updateOptionValue(${idx}, ${optIdx}, this.value)" placeholder="Option ${optIdx + 1}">
+            ${q.options.length > 1 ? `<button type="button" class="q-opt-delete-btn" onclick="removeOption(${idx}, ${optIdx})" title="Remove Option"><i class="ph-bold ph-x"></i></button>` : ''}
+          </div>
+        `).join('');
+
+        optionsHtml = `
+          <div class="q-options-container">
+            ${rows}
+            <div class="add-option-prompt" onclick="addOption(${idx})">
+              <span class="q-opt-indicator"><i class="ph-bold ph-plus-circle" style="color: var(--gf-purple);"></i></span>
+              <span>Add option</span>
+            </div>
+          </div>
+        `;
+      } else if (q.type === 'text') {
+        optionsHtml = `<div class="q-dummy-preview">Short answer text (one-line input)</div>`;
+      } else if (q.type === 'textarea') {
+        optionsHtml = `<div class="q-dummy-preview">Long answer text (multi-line paragraph response)</div>`;
+      } else if (q.type === 'file') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-upload-simple"></i> File Upload box (PDF, DOCX, ZIP, Max 5MB)</div>`;
+      } else if (q.type === 'image') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-image"></i> Image Upload box (JPG, PNG, WebP)</div>`;
+      } else if (q.type === 'date') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-calendar"></i> Date Picker (Day, Month, Year)</div>`;
+      } else if (q.type === 'number') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-hash"></i> Numerical integer or decimal input</div>`;
+      }
+
+      // Attached Image HTML
+      let imgHtml = '';
+      if (q.image_url) {
+        imgHtml = `
+          <div class="q-attached-image-box">
+            <img src="${q.image_url}" alt="Question Image">
+            <button type="button" class="q-remove-img-btn" onclick="removeQuestionImage(${idx})" title="Remove Image">
+              <i class="ph-bold ph-x"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="q-top-row">
+          <input
+            type="text"
+            class="q-title-input"
+            value="${escapeHtml(q.label)}"
+            placeholder="Question"
+            oninput="updateQuestionLabel(${idx}, this.value)"
+          />
+          <select class="q-type-select" onchange="updateQuestionType(${idx}, this.value)">
+            <option value="text" ${q.type === 'text' ? 'selected' : ''}>Short answer</option>
+            <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>Paragraph</option>
+            <option value="radio" ${q.type === 'radio' ? 'selected' : ''}>Multiple choice</option>
+            <option value="checkbox" ${q.type === 'checkbox' ? 'selected' : ''}>Checkboxes</option>
+            <option value="select" ${q.type === 'select' ? 'selected' : ''}>Dropdown</option>
+            <option value="file" ${q.type === 'file' ? 'selected' : ''}>File upload</option>
+            <option value="image" ${q.type === 'image' ? 'selected' : ''}>Image upload</option>
+            <option value="date" ${q.type === 'date' ? 'selected' : ''}>Date</option>
+            <option value="number" ${q.type === 'number' ? 'selected' : ''}>Number</option>
+          </select>
+        </div>
+
+        ${imgHtml}
+        ${optionsHtml}
+
+        <div class="q-card-footer">
+          <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #5f6368; cursor: pointer;">
+            <i class="ph-bold ph-image"></i>
+            <span>Attach Image</span>
+            <input type="file" accept="image/*" style="display: none;" onchange="handleQuestionImageUpload(${idx}, this)">
+          </label>
+
+          <button type="button" class="q-tool-btn" onclick="duplicateQuestion(${idx})" title="Duplicate Question">
+            <i class="ph-bold ph-copy"></i>
+          </button>
+          
+          <button type="button" class="q-tool-btn q-delete-btn" onclick="deleteQuestion(${idx})" title="Delete Question">
+            <i class="ph-bold ph-trash"></i>
+          </button>
+
+          <div class="q-footer-divider"></div>
+
+          <div class="q-required-wrap">
+            <span>Required</span>
+            <label class="q-toggle-switch">
+              <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestionRequired(${idx}, this.checked)">
+              <span class="q-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  // Helper Mutators
+  function updateQuestionLabel(idx, val) {
+    if (questionsData[idx]) questionsData[idx].label = val;
+  }
+
+  function updateQuestionType(idx, val) {
+    if (questionsData[idx]) {
+      questionsData[idx].type = val;
+      if (['radio', 'checkbox', 'select'].includes(val) && (!questionsData[idx].options || questionsData[idx].options.length === 0)) {
+        questionsData[idx].options = ['Option 1'];
+      }
+      renderQuestions();
+    }
+  }
+
+  function updateQuestionRequired(idx, isReq) {
+    if (questionsData[idx]) questionsData[idx].required = isReq;
+  }
+
+  function updateOptionValue(qIdx, optIdx, val) {
+    if (questionsData[qIdx] && questionsData[qIdx].options) {
+      questionsData[qIdx].options[optIdx] = val;
+    }
+  }
+
+  function addOption(qIdx) {
+    if (questionsData[qIdx]) {
+      if (!questionsData[qIdx].options) questionsData[qIdx].options = [];
+      questionsData[qIdx].options.push(`Option ${questionsData[qIdx].options.length + 1}`);
+      renderQuestions();
+    }
+  }
+
+  function removeOption(qIdx, optIdx) {
+    if (questionsData[qIdx] && questionsData[qIdx].options) {
+      questionsData[qIdx].options.splice(optIdx, 1);
+      renderQuestions();
+    }
+  }
+
+  // Image Upload for Question
+  async function handleQuestionImageUpload(qIdx, input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('csrf_token', '{{ csrf_token() }}');
+
+      try {
+        const res = await fetch("{{ url_for('dynamic_forms.upload_form_image') }}", {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          questionsData[qIdx].image_url = data.url;
+          questionsData[qIdx].image_id = data.file_id;
+          renderQuestions();
+        } else {
+          alert("Image upload failed: " + (data.error || 'Server error'));
+        }
+      } catch(err) {
+        alert("Upload error: " + err.message);
+      }
+    }
+  }
+
+  function removeQuestionImage(qIdx) {
+    if (questionsData[qIdx]) {
+      delete questionsData[qIdx].image_url;
+      delete questionsData[qIdx].image_id;
+      renderQuestions();
+    }
+  }
+
+  // Header Banner Image
+  function triggerHeaderImageUpload() {
+    document.getElementById('headerImageFileInput').click();
+  }
+
+  async function handleHeaderImageUpload(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('csrf_token', '{{ csrf_token() }}');
+
+      try {
+        const res = await fetch("{{ url_for('dynamic_forms.upload_form_image') }}", {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('headerImageId').value = data.file_id;
+          document.getElementById('headerBannerImg').src = data.url;
+          document.getElementById('headerBannerPreviewBox').style.display = 'block';
+        } else {
+          alert("Banner upload failed: " + (data.error || 'Server error'));
+        }
+      } catch(err) {
+        alert("Upload error: " + err.message);
+      }
+    }
+  }
+
+  function removeHeaderImage() {
+    document.getElementById('headerImageId').value = '';
+    document.getElementById('headerBannerPreviewBox').style.display = 'none';
+    document.getElementById('headerBannerImg').src = '';
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Final Form Submission
+  function submitStudioForm() {
+    const title = document.getElementById('formTitleInput').value.trim();
+    if (!title) {
+      alert("Please provide a form title.");
+      document.getElementById('formTitleInput').focus();
+      return;
+    }
+
+    if (questionsData.length === 0) {
+      alert("Please add at least one question to the form.");
+      return;
+    }
+
+    // Validate that questions have non-empty labels
+    for (let i = 0; i < questionsData.length; i++) {
+      if (!questionsData[i].label || !questionsData[i].label.trim()) {
+        alert(`Question #${i + 1} has an empty title. Please enter a question prompt.`);
+        return;
+      }
+    }
+
+    // Pack into JSON
+    document.getElementById('fieldsData').value = JSON.stringify(questionsData);
+    document.getElementById('studioForm').submit();
+  }
+
+  // Initialize on page load with Placement Drive Registration Template
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTemplate('placement_reg');
+  });
 </script>
 {% endblock %}

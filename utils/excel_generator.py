@@ -110,14 +110,36 @@ def generate_application_export(applications, job_title="All_Applications"):
     cw.writerow(headers)
     
     for app in applications:
-        # Extract student info
-        student_info = app.get('student_info', [{}])[0] if app.get('student_info') else {}
-        user_info = app.get('user_info', [{}])[0] if app.get('user_info') else {}
-        job_info = app.get('job_info', [{}])[0] if app.get('job_info') else {}
-        
+        # Safely extract student info (can be dict or list of dicts)
+        si_raw = app.get('student_info')
+        if isinstance(si_raw, list):
+            student_info = si_raw[0] if si_raw else {}
+        elif isinstance(si_raw, dict):
+            student_info = si_raw
+        else:
+            student_info = {}
+
+        # Safely extract user info
+        ui_raw = app.get('user_info')
+        if isinstance(ui_raw, list):
+            user_info = ui_raw[0] if ui_raw else {}
+        elif isinstance(ui_raw, dict):
+            user_info = ui_raw
+        else:
+            user_info = {}
+
+        # Safely extract job info
+        ji_raw = app.get('job_info')
+        if isinstance(ji_raw, list):
+            job_info = ji_raw[0] if ji_raw else {}
+        elif isinstance(ji_raw, dict):
+            job_info = ji_raw
+        else:
+            job_info = {}
+
         # Multiple application flag
         is_multiple = 'YES' if app.get('is_multiple_applicant') else 'NO'
-        
+
         # Response handling
         response = app.get('student_response', 'Pending')
         response_date = app.get('response_at', '')
@@ -126,29 +148,41 @@ def generate_application_export(applications, job_title="All_Applications"):
                 response_date = response_date.strftime('%Y-%m-%d %H:%M')
         else:
             response_date = 'N/A'
-        
+
         applied_date = app.get('applied_at', '')
         if applied_date:
             if hasattr(applied_date, 'strftime'):
                 applied_date = applied_date.strftime('%Y-%m-%d %H:%M')
         else:
             applied_date = 'N/A'
-        
+
+        # Resolve field values with full fallbacks
+        student_name = app.get('student_name') or student_info.get('name') or user_info.get('name') or 'N/A'
+        student_id_val = app.get('student_id_code') or student_info.get('student_id') or app.get('student_id') or 'N/A'
+        email_val = app.get('student_email') or user_info.get('email') or 'N/A'
+        phone_val = app.get('student_phone') or student_info.get('phone') or 'N/A'
+        branch_val = app.get('branch') or student_info.get('branch') or 'N/A'
+        cgpa_val = app.get('cgpa') or student_info.get('cgpa') or 0.0
+        company_val = (job_info.get('company_name') if isinstance(job_info, dict) else None) or app.get('company_name') or 'N/A'
+        role_val = (job_info.get('role') if isinstance(job_info, dict) else None) or app.get('job_role') or app.get('role') or 'N/A'
+        skills_raw = app.get('skills') or student_info.get('skills', [])
+        skills_str = ", ".join(skills_raw) if isinstance(skills_raw, list) else str(skills_raw)
+
         cw.writerow([
-            app.get('student_name', 'N/A'),
-            student_info.get('student_id', 'N/A'),
-            user_info.get('email', 'N/A'),
-            student_info.get('phone', 'N/A'),
-            student_info.get('branch', 'N/A'),
-            student_info.get('cgpa', 0.0),
-            job_info.get('company_name', 'N/A'),
-            job_info.get('role', 'N/A'),
+            student_name,
+            student_id_val,
+            email_val,
+            phone_val,
+            branch_val,
+            cgpa_val,
+            company_val,
+            role_val,
             applied_date,
             app.get('status', 'Pending'),
             response,
             response_date,
             is_multiple,
-            ", ".join(student_info.get('skills', []))
+            skills_str
         ])
         
     output = make_response(si.getvalue())

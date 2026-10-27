@@ -8,8 +8,8 @@
 
   <a
     href="{{ url_for('admin_dashboard') }}"
-    class="btn-secondary"
-    style="margin-bottom: 1rem"
+    class="btn-back"
+    style="margin-bottom: 1.5rem"
     >← Back to Dashboard</a
   >
 
@@ -21,7 +21,9 @@
             <th style="padding: 0.75rem; text-align: left">Email</th>
             <th style="padding: 0.75rem; text-align: left">Role</th>
             <th style="padding: 0.75rem; text-align: left">Login Time</th>
-            <th style="padding: 0.75rem; text-align: left">IP Address</th>
+            <th style="padding: 0.75rem; text-align: left" title="IP Address represents the unique network identifier of the user’s device when they log in. It helps in tracking login location and improving system security.">
+              IP Address <i class="ph ph-info" style="font-size: 0.8rem; opacity: 0.7;"></i>
+            </th>
           </tr>
         </thead>
         <tbody>

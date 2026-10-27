@@ -1,213 +1,919 @@
-{% extends 'base.html' %} {% block title %}Town Hall - CBS 3i-cell{% endblock %}
-{% block content %}
-<div class="section-card glass-card">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    "
-  >
-    <h2>
-      <i
-        class="ph-bold ph-megaphone"
-        style="color: var(--primary); margin-right: 0.5rem"
-      ></i>
-      Town Hall & Announcements
-    </h2>
-    <a href="{{ url_for('student_dashboard') }}" class="btn-secondary">
-      <i class="ph ph-arrow-left"></i> Dashboard
-    </a>
-  </div>
+{% extends 'base.html' %}
+{% block title %}Town Hall & Circulars - CBS 3i-cell{% endblock %}
+{% block page_title %}Town Hall{% endblock %}
 
-  {% if announcements %}
-  <div class="announcements-grid" style="display: grid; gap: 1.5rem">
-    {% for ann in announcements %}
-    <div class="glass-panel announcement-card priority-{{ ann.priority }}">
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 0.5rem;
-        "
-      >
-        <span
-          class="badge"
-          style="background: var(--surface-input); color: var(--text-muted)"
-          >{{ ann.category }}</span
-        >
-        <small style="color: var(--text-muted)">
-          {% if ann.created_at %} {{ ann.created_at.strftime('%d %b %Y') }} {%
-          endif %}
-        </small>
-      </div>
+{% block head %}
+<style>
+  :root {
+    --th-indigo: #4f46e5;
+    --th-blue: #2563eb;
+    --th-emerald: #059669;
+    --th-amber: #d97706;
+    --th-rose: #dc2626;
+  }
 
-      <h3 style="margin-bottom: 1rem; font-size: 1.25rem">{{ ann.title }}</h3>
+  .townhall-wrapper {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding-bottom: 3.5rem;
+  }
 
-      <div
-        class="announcement-content"
-        style="
-          color: var(--text-main);
-          font-size: 0.95rem;
-          line-height: 1.6;
-          margin-bottom: 1.5rem;
-          white-space: pre-wrap;
-        "
-      >
-        {{ ann.content }}
-      </div>
+  /* 1. Town Hall Hero Banner */
+  .th-hero-banner {
+    position: relative;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.25);
+  }
 
-      <div
-        style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center"
-      >
-        {% if ann.attachment_id %}
-        <button
-          onclick="previewDocument('{{ url_for('file_serving.serve_file', file_id=ann.attachment_id) }}', '{{ ann.title }}')"
-          class="btn-secondary btn-sm"
-        >
-          <i class="ph-bold ph-file-preview"></i> Preview Document
-        </button>
-        <a
-          href="{{ url_for('file_serving.serve_file', file_id=ann.attachment_id) }}"
-          download
-          class="btn-secondary btn-sm"
-        >
-          <i class="ph-bold ph-download"></i> Download
-        </a>
-        {% endif %} {% if ann.external_url %}
-        <a
-          href="{{ ann.external_url }}"
-          target="_blank"
-          class="btn-secondary btn-sm"
-        >
-          <i class="ph-bold ph-link"></i> Open Link
-        </a>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted)">
-    <i
-      class="ph-duotone ph-megaphone"
-      style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5"
-    ></i>
-    <h3>No Announcements</h3>
-    <p>Check back later for updates from the placement cell.</p>
-  </div>
-  {% endif %}
-</div>
+  .th-hero-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
+    pointer-events: none;
+  }
 
-<!-- Document Preview Modal -->
-<div
-  id="docPreviewModal"
-  class="modal"
-  style="
-    display: none;
-    position: fixed;
-    z-index: 1000;
+  .th-hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .th-hero-left h1 {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    font-weight: 900;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .th-hero-left p {
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    margin: 0;
+    max-width: 620px;
+    line-height: 1.55;
+  }
+
+  .th-stats-cluster {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .th-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .th-stat-pill.urgent {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  /* 2. Control Toolbar (Search & Category Chips) */
+  .th-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .th-category-ribbon {
+    display: inline-flex;
+    gap: 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.35rem;
+    border-radius: 9999px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+
+  [data-theme="dark"] .th-category-ribbon {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(99, 102, 241, 0.22);
+  }
+
+  .th-cat-btn {
+    border: none;
+    background: transparent;
+    padding: 0.55rem 1.15rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .th-cat-btn:hover {
+    color: var(--text-main);
+  }
+
+  .th-cat-btn.active {
+    background: var(--th-indigo);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+  }
+
+  .th-search-box {
+    position: relative;
+    min-width: 260px;
+  }
+
+  .th-search-input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.4rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+
+  .th-search-input:focus {
+    outline: none;
+    border-color: var(--th-indigo);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+
+  .th-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+
+  /* 3. Circular Feed Cards */
+  .th-stream-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .th-notice-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .th-notice-card::before {
+    content: '';
+    position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-  "
->
-  <div
-    class="modal-content"
-    style="
-      background-color: #fefefe;
-      margin: 2% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 90%;
-      max-width: 1000px;
-      height: 90%;
-      border-radius: 12px;
-    "
-  >
-    <div
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-      "
-    >
-      <h3 style="margin: 0" id="previewTitle">Document Preview</h3>
-      <span
-        onclick="closePreview()"
-        style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer"
-        >&times;</span
-      >
-    </div>
-    <div
-      id="previewContainer"
-      style="height: calc(100% - 60px); overflow: auto"
-    >
-      <iframe
-        id="previewFrame"
-        src=""
-        style="width: 100%; height: 100%; border: none"
-      ></iframe>
-    </div>
-  </div>
-</div>
+    bottom: 0;
+    width: 6px;
+    background: var(--th-indigo);
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+  }
 
-<style>
-  .announcement-card {
-    padding: 1.5rem;
-    border-left: 4px solid var(--primary);
+  .th-notice-card.urgent::before {
+    background: linear-gradient(180deg, #dc2626, #ef4444);
+  }
+
+  .th-notice-card.high::before {
+    background: linear-gradient(180deg, #d97706, #f59e0b);
+  }
+
+  [data-theme="dark"] .th-notice-card {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(99, 102, 241, 0.18);
+  }
+
+  .th-notice-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+
+  .th-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .th-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .th-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .th-badge.placement {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
+  .th-badge.academic {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  .th-badge.general {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .th-badge.priority-urgent {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    animation: gentlePulse 2.5s infinite;
+  }
+
+  .th-badge.priority-high {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+  }
+
+  .th-date-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .th-notice-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.35;
+    margin: 0 0 0.85rem 0;
+    letter-spacing: -0.015em;
+  }
+
+  .th-notice-content {
+    font-size: 0.94rem;
+    line-height: 1.7;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    opacity: 0.92;
+    margin-bottom: 1.5rem;
+  }
+
+  /* 4. Rich Media & Attachment Showcase */
+  .th-attachment-preview-box {
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Image Attachment Preview */
+  .th-image-preview-container {
     position: relative;
-  }
-  .announcement-card.priority-urgent {
-    border-left-color: #ef4444; /* Red */
-  }
-  .announcement-card.priority-high {
-    border-left-color: #f59e0b; /* Amber */
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, border-color 0.25s ease;
   }
 
-  /* Modal Animation */
-  .modal {
-    animation: fadeIn 0.3s;
+  .th-image-preview-container:hover {
+    border-color: var(--th-indigo);
+    transform: scale(1.01);
   }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
+
+  .th-image-preview-container img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .th-image-overlay-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* PDF Attachment Document Card */
+  .th-pdf-doc-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 1.35rem;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .th-pdf-doc-card {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .th-pdf-doc-card:hover {
+    border-color: var(--th-indigo);
+    background: var(--surface);
+  }
+
+  .th-doc-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    min-width: 0;
+  }
+
+  .th-doc-icon-disc {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+
+  .th-doc-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.15rem;
+  }
+
+  .th-doc-meta {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  .th-doc-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .th-btn-doc {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .th-btn-doc:hover {
+    border-color: var(--th-indigo);
+    color: var(--th-indigo);
+    transform: translateY(-1px);
+  }
+
+  .th-btn-doc.primary {
+    background: var(--th-indigo);
+    color: #ffffff;
+    border-color: var(--th-indigo);
+  }
+
+  .th-btn-doc.primary:hover {
+    background: #4338ca;
+    color: #ffffff;
+  }
+
+  /* 5. Card Footer */
+  .th-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .th-author-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .th-author-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--th-indigo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  /* 6. Preview Modal */
+  .th-modal-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .th-modal-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    width: 95%;
+    max-width: 1000px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4);
+  }
+
+  .th-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.15rem 1.65rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .th-modal-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .th-modal-body {
+    flex: 1;
+    min-height: 0;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .th-notice-card {
+      padding: 1.35rem 1.25rem;
     }
-    to {
-      opacity: 1;
+    .th-pdf-doc-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .th-doc-actions {
+      justify-content: flex-end;
+    }
+    .th-hero-banner {
+      padding: 1.75rem 1.5rem;
     }
   }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="townhall-wrapper">
+
+  <!-- ============================================================
+       1. HERO BANNER
+       ============================================================ -->
+  {% set urgent_count = announcements|selectattr('priority', 'equalto', 'urgent')|list|length %}
+  <section class="th-hero-banner">
+    <div class="th-hero-content">
+      <div class="th-hero-left">
+        <h1>
+          <i class="ph-fill ph-megaphone" style="color: #60a5fa;"></i>
+          <span>Placement Town Hall &amp; Notices</span>
+        </h1>
+        <p>Official announcements, assessment invitations, corporate recruitments, and schedule updates direct from the Training &amp; Placement Office.</p>
+      </div>
+
+      <div class="th-stats-cluster">
+        <div class="th-stat-pill">
+          <i class="ph-bold ph-newspaper"></i>
+          <span>{{ announcements|length }} Active Circulars</span>
+        </div>
+        {% if urgent_count > 0 %}
+        <div class="th-stat-pill urgent">
+          <i class="ph-bold ph-warning-circle"></i>
+          <span>{{ urgent_count }} Priority Action Required</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. CONTROL TOOLBAR (Category Filter & Live Search)
+       ============================================================ -->
+  <div class="th-toolbar">
+    <div class="th-category-ribbon">
+      <button class="th-cat-btn active" onclick="filterCategory('all')">
+        All ({{ announcements|length }})
+      </button>
+      <button class="th-cat-btn" onclick="filterCategory('placement')">
+        Placement Drives
+      </button>
+      <button class="th-cat-btn" onclick="filterCategory('academic')">
+        Academic &amp; Training
+      </button>
+      {% if urgent_count > 0 %}
+      <button class="th-cat-btn" onclick="filterCategory('urgent')" style="color: #dc2626;">
+        <i class="ph-bold ph-warning"></i> Urgent
+      </button>
+      {% endif %}
+      <button class="th-cat-btn" onclick="filterCategory('general')">
+        General
+      </button>
+    </div>
+
+    <div class="th-search-box">
+      <i class="ph-bold ph-magnifying-glass th-search-icon"></i>
+      <input 
+        type="text" 
+        id="circularSearch" 
+        class="th-search-input" 
+        placeholder="Search notices..." 
+        onkeyup="filterBySearch()"
+      />
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3. ANNOUNCEMENTS STREAM
+       ============================================================ -->
+  {% if announcements %}
+  <div class="th-stream-container" id="noticesContainer">
+    {% for ann in announcements %}
+    {% set cat = (ann.category or 'General')|lower %}
+    {% set priority = ann.priority or 'normal' %}
+
+    <article 
+      class="th-notice-card {{ priority }} notice-item"
+      data-category="{{ cat }}"
+      data-priority="{{ priority }}"
+      data-text="{{ (ann.title ~ ' ' ~ ann.content ~ ' ' ~ (ann.category or ''))|lower }}"
+    >
+      <!-- Card Top Metadata Header -->
+      <div class="th-card-header">
+        <div class="th-badges-row">
+          <span class="th-badge {% if cat == 'placement' %}placement{% elif cat == 'academic' %}academic{% else %}general{% endif %}">
+            <i class="ph-bold ph-tag"></i> {{ ann.category or 'General' }}
+          </span>
+
+          {% if priority == 'urgent' %}
+          <span class="th-badge priority-urgent">
+            <i class="ph-fill ph-warning-circle"></i> Urgent Action
+          </span>
+          {% elif priority == 'high' %}
+          <span class="th-badge priority-high">
+            <i class="ph-bold ph-warning"></i> High Priority
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="th-date-time">
+          <i class="ph-bold ph-calendar-blank"></i>
+          <span>
+            {% if ann.created_at %}
+              {{ ann.created_at.strftime('%d %B %Y') if ann.created_at.strftime is defined else (ann.created_at|string)[:10] }}
+            {% else %}
+              Recently
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h2 class="th-notice-title">{{ ann.title }}</h2>
+
+      <!-- Notice Content -->
+      <div class="th-notice-content">{{ ann.content }}</div>
+
+      <!-- Visual Attachment Showcase (Images & PDFs) -->
+      {% if ann.attachment_id %}
+      <div class="th-attachment-preview-box">
+        {% if ann.attachment_type == 'image' %}
+        <!-- Image Preview Card with Click to Zoom -->
+        <div 
+          class="th-image-preview-container" 
+          onclick="openLightbox('{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}', '{{ ann.title|replace('\'', '\\\'') }}', 'image')"
+        >
+          <img 
+            src="{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}" 
+            alt="{{ ann.attachment_filename or 'Official Circular' }}"
+            loading="lazy"
+          />
+          <div class="th-image-overlay-badge">
+            <i class="ph-bold ph-arrows-out-simple"></i>
+            <span>Click to Enlarge</span>
+          </div>
+        </div>
+
+        {% else %}
+        <!-- PDF Document Showcase Card -->
+        <div class="th-pdf-doc-card">
+          <div class="th-doc-identity">
+            <div class="th-doc-icon-disc">
+              <i class="ph-bold ph-file-pdf"></i>
+            </div>
+            <div style="min-width: 0;">
+              <div class="th-doc-name">{{ ann.attachment_filename or 'Official Circular Document.pdf' }}</div>
+              <div class="th-doc-meta">{{ ann.attachment_size_kb or 180 }} KB · PDF Document</div>
+            </div>
+          </div>
+
+          <div class="th-doc-actions">
+            <button 
+              type="button" 
+              onclick="openLightbox('{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}', '{{ ann.title|replace('\'', '\\\'') }}', 'pdf')" 
+              class="th-btn-doc primary"
+            >
+              <i class="ph-bold ph-eye"></i>
+              <span>Preview</span>
+            </button>
+            <a 
+              href="{{ url_for('file_serving.serve_file', file_id=ann.attachment_id) }}" 
+              download 
+              class="th-btn-doc"
+              title="Download file"
+            >
+              <i class="ph-bold ph-download-simple"></i>
+              <span>Download</span>
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- External Web Link (if provided) -->
+      {% if ann.external_url %}
+      <div style="margin-bottom: 1.25rem;">
+        <a 
+          href="{{ ann.external_url }}" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="th-btn-doc" 
+          style="display: inline-flex; background: rgba(37, 99, 235, 0.08); color: var(--th-blue); border-color: rgba(37, 99, 235, 0.25);"
+        >
+          <i class="ph-bold ph-arrow-square-out"></i>
+          <span>Official Link: {{ ann.external_url|truncate(45) }}</span>
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Card Footer Attribution -->
+      <footer class="th-card-footer">
+        <div class="th-author-info">
+          <div class="th-author-avatar">
+            <i class="ph-bold ph-shield-check"></i>
+          </div>
+          <span>Issued by: <strong>Training &amp; Placement Office (3i-cell)</strong></span>
+        </div>
+
+        <div>
+          <span>Target Audience: <strong>{{ 'All Registered Candidates' if ann.target_all_students else 'Eligible Batch' }}</strong></span>
+        </div>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+
+  <!-- Empty Search Result Fallback -->
+  <div id="noSearchMatchAlert" class="card" style="display: none; padding: 4rem 1.5rem; text-align: center; border-radius: 20px; border: 1.5px dashed var(--border); margin-top: 1.5rem;">
+    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); color: var(--th-indigo); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+      <i class="ph-duotone ph-magnifying-glass"></i>
+    </div>
+    <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">No Matching Notices</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.25rem;">No circulars or announcements matched your active search query or filter selection.</p>
+    <button onclick="clearSearchAndFilters()" class="btn btn-secondary btn-sm" style="padding: 0.55rem 1.25rem; font-weight: 700;">
+      Reset Filters
+    </button>
+  </div>
+
+  {% else %}
+  <!-- Empty State when 0 Announcements Exist -->
+  <div class="card" style="padding: 4.5rem 1.5rem; text-align: center; border-radius: 24px; border: 1.5px dashed var(--border); margin-top: 1rem;">
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); color: var(--th-indigo); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 1.25rem;">
+      <i class="ph-duotone ph-megaphone"></i>
+    </div>
+    <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">No Active Circulars</h3>
+    <p style="color: var(--text-muted); max-width: 460px; margin: 0 auto 1.5rem;">All campus recruitment notices and official guidelines will be posted here in real-time by the placement cell.</p>
+    <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-sm" style="padding: 0.65rem 1.4rem;">
+      Return to Dashboard
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Interactive Document / Image Lightbox Modal -->
+<div id="thLightboxModal" class="th-modal-lightbox" onclick="if(event.target===this) closeLightbox();">
+  <div class="th-modal-panel">
+    <div class="th-modal-header">
+      <h3 class="th-modal-title" id="lightboxTitle">
+        <i class="ph-bold ph-file-text" style="color: var(--th-indigo);"></i>
+        <span>Document Preview</span>
+      </h3>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <a id="lightboxDownloadBtn" href="" download class="th-btn-doc" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;">
+          <i class="ph-bold ph-download-simple"></i> Download
+        </a>
+        <button onclick="closeLightbox()" class="btn btn-ghost btn-sm" style="font-size: 1.4rem; padding: 0.35rem 0.6rem; cursor: pointer; color: var(--text-muted);" aria-label="Close">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="th-modal-body" id="lightboxBody">
+      <!-- Injected iframe or image -->
+    </div>
+  </div>
+</div>
 
 <script>
-  function previewDocument(url, title) {
-    document.getElementById("previewTitle").textContent = "Preview: " + title;
-    document.getElementById("previewFrame").src = url;
-    document.getElementById("docPreviewModal").style.display = "block";
+  let activeCategory = 'all';
+
+  function filterCategory(cat) {
+    activeCategory = cat;
+    document.querySelectorAll('.th-cat-btn').forEach(b => b.classList.remove('active'));
+    if (event && event.currentTarget) {
+      event.currentTarget.classList.add('active');
+    }
+    applyAllFilters();
   }
 
-  function closePreview() {
-    document.getElementById("docPreviewModal").style.display = "none";
-    document.getElementById("previewFrame").src = "";
+  function filterBySearch() {
+    applyAllFilters();
   }
 
-  // Close modal when clicking outside
-  window.onclick = function (event) {
-    var modal = document.getElementById("docPreviewModal");
-    if (event.target == modal) {
-      closePreview();
-    }
-  };
+  function applyAllFilters() {
+    const query = (document.getElementById('circularSearch')?.value || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.notice-item');
+    let visibleCount = 0;
 
-  // Close modal with Escape key
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-      closePreview();
+    items.forEach(card => {
+      const cardCat = card.dataset.category || 'general';
+      const cardPriority = card.dataset.priority || 'normal';
+      const cardText = card.dataset.text || '';
+
+      const matchesCat = (activeCategory === 'all') || 
+                         (activeCategory === 'urgent' && cardPriority === 'urgent') || 
+                         (cardCat === activeCategory);
+
+      const matchesSearch = !query || cardText.includes(query);
+
+      if (matchesCat && matchesSearch) {
+        card.style.display = 'block';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const emptyAlert = document.getElementById('noSearchMatchAlert');
+    if (emptyAlert) {
+      emptyAlert.style.display = (visibleCount === 0 && items.length > 0) ? 'block' : 'none';
     }
+  }
+
+  function clearSearchAndFilters() {
+    const searchInput = document.getElementById('circularSearch');
+    if (searchInput) searchInput.value = '';
+    activeCategory = 'all';
+    document.querySelectorAll('.th-cat-btn').forEach((b, i) => {
+      if (i === 0) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    applyAllFilters();
+  }
+
+  function openLightbox(url, title, type) {
+    const modal = document.getElementById('thLightboxModal');
+    const titleEl = document.getElementById('lightboxTitle');
+    const body = document.getElementById('lightboxBody');
+    const downloadBtn = document.getElementById('lightboxDownloadBtn');
+
+    titleEl.querySelector('span').textContent = title || 'Document Preview';
+    downloadBtn.href = url.replace('/files/view/', '/files/');
+
+    if (type === 'image') {
+      body.innerHTML = `<img src="${url}" alt="${title}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 1rem; border-radius: 8px;">`;
+    } else {
+      body.innerHTML = `<iframe src="${url}" style="width: 100%; height: 100%; border: none; background: #ffffff;"></iframe>`;
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    const modal = document.getElementById('thLightboxModal');
+    const body = document.getElementById('lightboxBody');
+    modal.style.display = 'none';
+    body.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
   });
 </script>
 {% endblock %}

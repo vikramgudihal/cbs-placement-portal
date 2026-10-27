@@ -1,42 +1,614 @@
 {% extends 'base.html' %}
+{% block title %}{{ form.title }} | Google Form | CBS 3i-cell{% endblock %}
+{% block page_title %}{{ form.title }}{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL STUDENT FORM VIEW (Google Forms Authentic Design)
+     ============================================================ */
+
+  :root {
+    --gf-purple: #673ab7;
+    --gf-purple-dark: #512da8;
+    --gf-purple-light: #ede7f6;
+    --gf-bg: #f0ebf8;
+    --gf-card-bg: #ffffff;
+    --gf-border: #dadce0;
+    --gf-text-main: #202124;
+    --gf-text-muted: #5f6368;
+    --gf-red: #d93025;
+  }
+
+  body {
+    background-color: var(--gf-bg) !important;
+  }
+
+  .gf-student-container {
+    max-width: 770px;
+    margin: 1.5rem auto 5rem auto;
+    padding: 0 1rem;
+  }
+
+  /* 1. Header Card */
+  .gf-form-header-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+    border-top: 10px solid var(--gf-purple);
+    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.08);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gf-header-banner-box {
+    margin: -1.75rem -2rem 1.5rem -2rem;
+    max-height: 220px;
+    overflow: hidden;
+  }
+
+  .gf-header-banner-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gf-form-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    line-height: 1.25;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .gf-form-desc {
+    font-size: 0.95rem;
+    color: #3c4043;
+    line-height: 1.6;
+    margin: 0 0 1.25rem 0;
+    white-space: pre-line;
+  }
+
+  .gf-account-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 0.85rem;
+    font-size: 0.82rem;
+    color: var(--gf-text-muted);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .gf-account-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+  }
+
+  .gf-required-alert {
+    color: var(--gf-red);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-top: 0.75rem;
+  }
+
+  /* 2. Question Cards */
+  .gf-question-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.15);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .gf-question-card:focus-within {
+    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.2), 0 4px 12px 2px rgba(103, 58, 183, 0.12);
+  }
+
+  .gf-q-label {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--gf-text-main);
+    line-height: 1.45;
+    margin-bottom: 1.25rem;
+    display: block;
+  }
+
+  .gf-required-star {
+    color: var(--gf-red);
+    font-weight: 700;
+    margin-left: 0.25rem;
+  }
+
+  /* Question Attached Image */
+  .gf-q-attached-image {
+    margin-bottom: 1.25rem;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .gf-q-attached-image img {
+    max-height: 280px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+  }
+
+  /* Short Text & Paragraph Underline Inputs */
+  .gf-input-underline {
+    width: 100%;
+    max-width: 450px;
+    border: none;
+    border-bottom: 1px solid #70757a;
+    padding: 0.5rem 0.1rem;
+    font-size: 0.95rem;
+    color: var(--gf-text-main);
+    background: transparent;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-bottom-color 0.2s ease;
+  }
+
+  .gf-input-underline:focus {
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  .gf-textarea-underline {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #70757a;
+    padding: 0.5rem 0.1rem;
+    font-size: 0.95rem;
+    color: var(--gf-text-main);
+    background: transparent;
+    outline: none;
+    box-sizing: border-box;
+    min-height: 50px;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-bottom-color 0.2s ease;
+  }
+
+  .gf-textarea-underline:focus {
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  /* Multiple Choice Radios */
+  .gf-radio-group,
+  .gf-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .gf-choice-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--gf-text-main);
+    cursor: pointer;
+    user-select: none;
+    padding: 0.2rem 0;
+  }
+
+  .gf-choice-label input[type="radio"],
+  .gf-choice-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .gf-custom-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #5f6368;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .gf-choice-label input[type="radio"]:checked + .gf-custom-radio {
+    border-color: var(--gf-purple);
+  }
+
+  .gf-choice-label input[type="radio"]:checked + .gf-custom-radio::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gf-purple);
+  }
+
+  /* Checkboxes */
+  .gf-custom-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid #5f6368;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .gf-choice-label input[type="checkbox"]:checked + .gf-custom-checkbox {
+    background: var(--gf-purple);
+    border-color: var(--gf-purple);
+  }
+
+  .gf-choice-label input[type="checkbox"]:checked + .gf-custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* Dropdown Select */
+  .gf-select-box {
+    padding: 0.75rem 1.25rem;
+    border-radius: 4px;
+    border: 1px solid var(--gf-border);
+    background: #ffffff;
+    font-size: 0.95rem;
+    color: var(--gf-text-main);
+    outline: none;
+    cursor: pointer;
+    min-width: 220px;
+    max-width: 380px;
+  }
+
+  .gf-select-box:focus {
+    border-color: var(--gf-purple);
+  }
+
+  /* File / Image Upload Box (Google Forms Style) */
+  .gf-file-upload-zone {
+    border: 1.5px dashed #bdc1c6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .gf-file-upload-zone:hover {
+    background: var(--gf-purple-light);
+    border-color: var(--gf-purple);
+  }
+
+  .gf-file-upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .gf-upload-btn-fake {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    border: 1px solid var(--gf-border);
+    background: #ffffff;
+    color: var(--gf-purple);
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .gf-file-name-preview {
+    display: none;
+    margin-top: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #059669;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  /* Date & Number Inputs */
+  .gf-date-input,
+  .gf-number-input {
+    padding: 0.65rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #70757a;
+    font-size: 0.95rem;
+    outline: none;
+    background: #ffffff;
+    color: var(--gf-text-main);
+  }
+
+  .gf-date-input:focus,
+  .gf-number-input:focus {
+    border-color: var(--gf-purple);
+  }
+
+  /* 3. Bottom Action Bar */
+  .gf-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .btn-gf-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--gf-purple);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(103, 58, 183, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-gf-submit:hover {
+    background: var(--gf-purple-dark);
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.4);
+  }
+
+  .btn-gf-clear {
+    background: transparent;
+    border: none;
+    color: var(--gf-purple);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+  }
+
+  .btn-gf-clear:hover {
+    background: var(--gf-purple-light);
+    border-radius: 6px;
+  }
+
+  .gf-portal-disclaimer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--gf-text-muted);
+    margin-top: 2rem;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="auth-container lg glass-card" style="margin-top: 2rem;">
-    <div style="margin-bottom: 1.5rem;">
-      <a href="{{ url_for('dynamic_forms.list_student_forms') }}" class="btn-secondary btn-sm">
-        <i class="ph-bold ph-arrow-left"></i> Back
-      </a>
-    </div>
-    <h2 class="text-center mb-2">{{ form.title }}</h2>
-    <p class="text-center text-muted mb-4">{{ form.description }}</p>
-    
-    <form action="{{ url_for('dynamic_forms.fill_form', form_id=form._id) }}" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      {% for field in form.fields %}
-      <div class="form-group mb-4">
-        <label class="form-label">{{ field.label }}</label>
-        
-        {% if field.type == 'textarea' %}
-          <textarea name="{{ field.label }}" class="form-control" rows="4" required></textarea>
-        {% elif field.type == 'file' %}
-          <input type="file" name="{{ field.label }}" class="form-control" required>
-          <small class="text-muted">Max size: 5MB</small>
-        {% elif field.type == 'date' %}
-           <input type="date" name="{{ field.label }}" class="form-control" required>
-        {% elif field.type == 'number' %}
-           <input type="number" name="{{ field.label }}" class="form-control" required>
-        {% else %}
-           <input type="text" name="{{ field.label }}" class="form-control" required>
-        {% endif %}
+<div class="gf-student-container">
+
+  <form id="studentGoogleForm" action="{{ url_for('dynamic_forms.fill_form', form_id=form._id) }}" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <!-- 1. Header Card -->
+    <div class="gf-form-header-card">
+      {% if form.header_image_id %}
+      <div class="gf-header-banner-box">
+        <img src="/files/view/{{ form.header_image_id }}" alt="Form Banner">
       </div>
-      {% endfor %}
+      {% endif %}
+
+      <h1 class="gf-form-title">{{ form.title }}</h1>
       
-      <div class="d-flex gap-3 justify-content-center mt-4">
-        <a href="{{ url_for('dynamic_forms.list_student_forms') }}" class="btn-secondary">Cancel</a>
-        <button type="submit" class="btn-primary px-5">Submit</button>
+      {% if form.description %}
+      <p class="gf-form-desc">{{ form.description }}</p>
+      {% endif %}
+
+      <div class="gf-account-bar">
+        <div class="gf-account-pill">
+          <i class="ph-bold ph-user-circle" style="font-size: 1.1rem; color: var(--gf-purple);"></i>
+          <span>Submitting as <strong>{{ session.get('name') or session.get('email') }}</strong></span>
+        </div>
+        <div>
+          <a href="{{ url_for('dynamic_forms.list_student_forms') }}" style="color: var(--gf-purple); text-decoration: none; font-weight: 600;">
+            ← Back to Forms Vault
+          </a>
+        </div>
       </div>
-    </form>
+
+      <div class="gf-required-alert">* Indicates required question</div>
+    </div>
+
+    <!-- 2. Question Cards List -->
+    {% for field in form.fields %}
+    <div class="gf-question-card">
+      <label class="gf-q-label">
+        <span>{{ field.label }}</span>
+        {% if field.required %}
+        <span class="gf-required-star">*</span>
+        {% endif %}
+      </label>
+
+      <!-- Attached Question Image if present -->
+      {% if field.image_url or field.image_id %}
+      <div class="gf-q-attached-image">
+        <img src="{{ field.image_url or ('/files/view/' ~ field.image_id) }}" alt="Question illustration">
+      </div>
+      {% endif %}
+
+      <!-- Question Input by Type -->
+      {% if field.type == 'text' %}
+        <input
+          type="text"
+          name="{{ field.label }}"
+          class="gf-input-underline"
+          placeholder="Your answer"
+          {% if field.required %}required{% endif %}
+        />
+
+      {% elif field.type == 'textarea' %}
+        <textarea
+          name="{{ field.label }}"
+          class="gf-textarea-underline"
+          placeholder="Your answer"
+          rows="2"
+          {% if field.required %}required{% endif %}
+        ></textarea>
+
+      {% elif field.type == 'radio' %}
+        <div class="gf-radio-group">
+          {% for opt in field.options %}
+          <label class="gf-choice-label">
+            <input type="radio" name="{{ field.label }}" value="{{ opt }}" {% if field.required and loop.first %}required{% endif %}>
+            <span class="gf-custom-radio"></span>
+            <span>{{ opt }}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+      {% elif field.type == 'checkbox' %}
+        <div class="gf-checkbox-group">
+          {% for opt in field.options %}
+          <label class="gf-choice-label">
+            <input type="checkbox" name="{{ field.label }}" value="{{ opt }}">
+            <span class="gf-custom-checkbox"></span>
+            <span>{{ opt }}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+      {% elif field.type == 'select' %}
+        <select name="{{ field.label }}" class="gf-select-box" {% if field.required %}required{% endif %}>
+          <option value="" disabled selected>Choose</option>
+          {% for opt in field.options %}
+          <option value="{{ opt }}">{{ opt }}</option>
+          {% endfor %}
+        </select>
+
+      {% elif field.type in ['file', 'image'] %}
+        <div class="gf-file-upload-zone" onclick="document.getElementById('file_input_{{ loop.index }}').click()">
+          <input
+            type="file"
+            id="file_input_{{ loop.index }}"
+            name="{{ field.label }}"
+            {% if field.type == 'image' %}accept="image/*"{% endif %}
+            {% if field.required %}required{% endif %}
+            onchange="displaySelectedFileName(this, 'preview_file_{{ loop.index }}')"
+          />
+          <div class="gf-upload-btn-fake">
+            <i class="ph-bold ph-upload-simple"></i>
+            <span>Add {{ 'image' if field.type == 'image' else 'file' }}</span>
+          </div>
+          <div style="font-size: 0.78rem; color: #80868b; margin-top: 0.5rem;">
+            Max 5MB • Formats: {% if field.type == 'image' %}PNG, JPG, WebP{% else %}PDF, DOCX, ZIP, PNG, JPG{% endif %}
+          </div>
+          <div class="gf-file-name-preview" id="preview_file_{{ loop.index }}">
+            <i class="ph-bold ph-check-circle"></i>
+            <span class="preview-text"></span>
+          </div>
+        </div>
+
+      {% elif field.type == 'date' %}
+        <input
+          type="date"
+          name="{{ field.label }}"
+          class="gf-date-input"
+          {% if field.required %}required{% endif %}
+        />
+
+      {% elif field.type == 'number' %}
+        <input
+          type="number"
+          name="{{ field.label }}"
+          class="gf-number-input"
+          placeholder="0"
+          {% if field.required %}required{% endif %}
+        />
+
+      {% else %}
+        <input
+          type="text"
+          name="{{ field.label }}"
+          class="gf-input-underline"
+          placeholder="Your answer"
+          {% if field.required %}required{% endif %}
+        />
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+    <!-- 3. Bottom Action Bar -->
+    <div class="gf-bottom-bar">
+      <button type="submit" class="btn-gf-submit" id="submitFormBtn">
+        <span>Submit</span>
+        <i class="ph-bold ph-arrow-right"></i>
+      </button>
+
+      <button type="button" class="btn-gf-clear" onclick="clearGoogleForm()">
+        Clear form
+      </button>
+    </div>
+
+  </form>
+
+  <div class="gf-portal-disclaimer">
+    This dynamic form was created inside CBS 3i-cell Placement Portal.<br>
+    Never submit sensitive passwords through forms. Verified Academic Record.
   </div>
+
 </div>
+
+<script>
+  function displaySelectedFileName(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+
+    if (input.files && input.files[0]) {
+      const f = input.files[0];
+      if (f.size > 5 * 1024 * 1024) {
+        alert("Selected file exceeds 5MB limit. Please upload a smaller file.");
+        input.value = '';
+        preview.style.display = 'none';
+        return;
+      }
+      preview.querySelector('.preview-text').textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+      preview.style.display = 'inline-flex';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  function clearGoogleForm() {
+    if (confirm("Clear all answers? This will reset all questions in this form.")) {
+      document.getElementById('studentGoogleForm').reset();
+      document.querySelectorAll('.gf-file-name-preview').forEach(p => p.style.display = 'none');
+    }
+  }
+
+  // Prevent double submissions
+  document.getElementById('studentGoogleForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('submitFormBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>Submitting...</span>';
+    }
+  });
+</script>
 {% endblock %}

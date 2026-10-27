@@ -1,170 +1,386 @@
-{% extends 'base.html' %} {% block title %}Manage Users - Admin{% endblock %} {%
-block content %}
-<div class="container" style="margin-top: 2rem; margin-bottom: 2rem">
-  <div class="section-header">
-    <h1>User Management</h1>
-    <p>Manage all students and admins in the system</p>
-  </div>
+{% extends 'base.html' %}
+{% block title %}User Management & Student Verification | CBS TPO{% endblock %}
 
-  <div style="display: flex; gap: 1rem; margin-bottom: 2rem">
-    <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary"
-      >← Back to Dashboard</a
-    >
-    <a href="{{ url_for('manage_admins') }}" class="btn-secondary"
-      >Manage Admins</a
-    >
-    <a href="{{ url_for('students_activity') }}" class="btn-secondary"
-      >Student Activity</a
-    >
-    <a href="{{ url_for('view_login_history') }}" class="btn-secondary"
-      >Login History</a
-    >
-  </div>
+{% block content %}
+<div class="user-mgmt-container" style="max-width: 1400px; margin: 0 auto; padding-bottom: 3rem;">
 
-  <!-- Pending Approvals Section -->
-  {% set pending = users | selectattr('is_approved', 'false') | list %} {% if
-  pending %}
-  <div class="glass-card-heavy" style="margin-bottom: 2rem; padding: 1.5rem">
-    <h2 style="color: var(--accent); margin-bottom: 1rem">
-      ⏳ Pending Approval ({{ pending | length }})
-    </h2>
-    <div style="overflow-x: auto">
-      <table style="width: 100%; border-collapse: collapse">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--primary)">
-            <th style="padding: 0.75rem; text-align: left">Student ID</th>
-            <th style="padding: 0.75rem; text-align: left">Name</th>
-            <th style="padding: 0.75rem; text-align: left">Email</th>
-            <th style="padding: 0.75rem; text-align: left">Branch</th>
-            <th style="padding: 0.75rem; text-align: left">Registered</th>
-            <th style="padding: 0.75rem; text-align: center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in pending %}
-          <tr style="border-bottom: 1px solid var(--border-color)">
-            <td style="padding: 0.75rem">
-              {{ user.student_info.student_id if user.student_info else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">
-              {{ user.student_info.name if user.student_info else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">{{ user.email }}</td>
-            <td style="padding: 0.75rem">
-              {{ user.student_info.branch if user.student_info else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">
-              {{ user.created_at.strftime('%d-%m-%Y %H:%M') if user.created_at
-              else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem; text-align: center">
-              <form
-                method="POST"
-                action="{{ url_for('approve_student', user_id=user._id) }}"
-                style="display: inline"
-              >
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button
-                  type="submit"
-                  class="btn-add"
-                  style="padding: 0.5rem 1rem; margin-right: 0.5rem"
-                >
-                  ✓ Approve
-                </button>
-              </form>
-              <a href="{{ url_for('view_student_details', user_id=user._id) }}" class="btn-sm btn-view" style="padding: 0.5rem; margin-right: 0.5rem;" title="View Details">
-                  <i class="ph-bold ph-eye"></i>
-              </a>
-              <form
-                method="POST"
-                action="{{ url_for('reject_student', user_id=user._id) }}"
-                style="display: inline"
-                onsubmit="return confirm('Are you sure?');"
-              >
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button
-                  type="submit"
-                  class="btn-delete"
-                  style="padding: 0.5rem 1rem"
-                >
-                  ✗ Reject
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Executive Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.65rem; border-radius: var(--r-full); background: rgba(30, 64, 175, 0.08); color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+          <i class="ph-bold ph-shield-check"></i> TPO Administration
+        </span>
+      </div>
+      <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin: 0;">Student & User Management</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+        Approve registrations, verify academic marksheets, and prevent score tampering.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn-back">
+        <i class="ph-bold ph-arrow-left"></i> Dashboard
+      </a>
+      <a href="{{ url_for('all_students_list') }}" class="btn-secondary">
+        <i class="ph-bold ph-users"></i> All Students List
+      </a>
+      <a href="{{ url_for('manage_admins') }}" class="btn-secondary">
+        <i class="ph-bold ph-user-gear"></i> Manage Admins
+      </a>
+      <a href="{{ url_for('view_login_history') }}" class="btn-secondary">
+        <i class="ph-bold ph-clock-counter-clockwise"></i> Audit Logs
+      </a>
     </div>
   </div>
-  {% endif %}
 
-  <!-- Approved Users Section -->
-  <div class="glass-card-heavy" style="padding: 1.5rem">
-    <h2 style="color: var(--secondary); margin-bottom: 1rem">
-      ✓ Approved Users ({{ (users | selectattr('is_approved', 'true') | list) |
-      length }})
-    </h2>
-    <div style="overflow-x: auto">
-      <table style="width: 100%; border-collapse: collapse">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--secondary)">
-            <th style="padding: 0.75rem; text-align: left">Student ID</th>
-            <th style="padding: 0.75rem; text-align: left">Name</th>
-            <th style="padding: 0.75rem; text-align: left">Email</th>
-            <th style="padding: 0.75rem; text-align: left">Branch</th>
-            <th style="padding: 0.75rem; text-align: left">Registered</th>
-            <th style="padding: 0.75rem; text-align: left">Last Login</th>
-            <th style="padding: 0.75rem; text-align: left">Status</th>
-            <th style="padding: 0.75rem; text-align: center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users if user.is_approved %}
-          <tr style="border-bottom: 1px solid var(--border-color)">
-            <td style="padding: 0.75rem">
-              <strong
-                >{{ user.student_info.student_id if user.student_info else 'N/A'
-                }}</strong
-              >
-            </td>
-            <td style="padding: 0.75rem">
-              {{ user.student_info.name if user.student_info else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">{{ user.email }}</td>
-            <td style="padding: 0.75rem">
-              {{ user.student_info.branch if user.student_info else 'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">
-              {{ user.created_at.strftime('%d-%m-%Y') if user.created_at else
-              'N/A' }}
-            </td>
-            <td style="padding: 0.75rem">
-              {% if user.last_login_info %} {{
-              user.last_login_info.login_time.strftime('%d-%m-%Y %H:%M') }} {%
-              else %} Never logged in {% endif %}
-            </td>
-            <td style="padding: 0.75rem">
-              <span
-                style="
-                  padding: 0.25rem 0.75rem;
-                  border-radius: 20px;
-                  background: var(--success-light);
-                  color: var(--success);
-                "
-                >Active</span
-              >
-            </td>
-            <td style="padding: 0.75rem; text-align: center;">
-                 <a href="{{ url_for('view_student_details', user_id=user._id) }}" class="btn-sm btn-view" title="View Details">
-                  <i class="ph-bold ph-eye"></i> View
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Operational Stat Cards -->
+  {% set pending_count = (users | selectattr('is_approved', 'equalto', false) | list) | length %}
+  {% set approved_count = (users | selectattr('is_approved', 'equalto', true) | list) | length %}
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.75rem;">
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.15rem 1.25rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Total Registrations</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-top: 0.25rem;">{{ users|length }}</div>
+      <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.25rem;">All students & sub-admins</div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--warning); border-radius: var(--r-lg); padding: 1.15rem 1.25rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.8rem; font-weight: 600; color: var(--warning); text-transform: uppercase;">Pending Approval</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--warning); margin-top: 0.25rem;">{{ pending_count }}</div>
+      <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.25rem;">Requires TPO approval to login</div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--success); border-radius: var(--r-lg); padding: 1.15rem 1.25rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.8rem; font-weight: 600; color: var(--success); text-transform: uppercase;">Approved Accounts</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--success); margin-top: 0.25rem;">{{ approved_count }}</div>
+      <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.25rem;">Active placement candidates</div>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: var(--r-lg); padding: 1.15rem 1.25rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.8rem; font-weight: 600; color: var(--primary); text-transform: uppercase;">Score Freezing</div>
+      <div style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+        <i class="ph-bold ph-lock-key"></i> Anti-Tampering Active
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.25rem;">Scores locked after TPO verification</div>
     </div>
   </div>
+
+  <!-- Operational Filter Deck & Search -->
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <!-- Tab Filters -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="filterPills">
+        <button type="button" class="tab-pill active" onclick="setFilter('all')" data-filter="all">
+          All Users ({{ users|length }})
+        </button>
+        <button type="button" class="tab-pill" onclick="setFilter('pending')" data-filter="pending">
+          Pending Approval ({{ pending_count }})
+        </button>
+        <button type="button" class="tab-pill" onclick="setFilter('approved')" data-filter="approved">
+          Approved ({{ approved_count }})
+        </button>
+        <button type="button" class="tab-pill" onclick="setFilter('verified')" data-filter="verified">
+          Verified & Locked
+        </button>
+      </div>
+
+      <!-- Instant Live Search -->
+      <div style="position: relative; min-width: 280px; flex: 1; max-width: 400px;">
+        <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-subtle);"></i>
+        <input type="text" id="userLiveSearch" placeholder="Search by name, roll no, email, branch..." 
+               onkeyup="filterUserTable()"
+               style="width: 100%; padding: 0.6rem 1rem 0.6rem 2.5rem; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg); color: var(--text-main); font-size: 0.875rem;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Actions Toolbar -->
+  <form id="batchActionForm" method="POST" action="{{ url_for('batch_approve_students') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="approve_all" id="approveAllInput" value="false"/>
+
+    <div id="batchToolbar" style="display: none; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--r-md); margin-bottom: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <i class="ph-bold ph-check-square" style="color: var(--primary); font-size: 1.2rem;"></i>
+        <span style="font-weight: 600; color: #1e3a8a; font-size: 0.9rem;">
+          <span id="selectedCount">0</span> student account(s) selected
+        </span>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button type="button" class="btn-sm" onclick="submitBatchApprove(false)" style="background: var(--success); color: white; border: none; padding: 0.45rem 1rem; border-radius: var(--r-sm); font-weight: 600; cursor: pointer;">
+          <i class="ph-bold ph-check"></i> Approve Selected
+        </button>
+        <button type="button" class="btn-sm btn-secondary" onclick="clearSelection()" style="padding: 0.45rem 0.85rem;">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- 1-Click Approve All Pending Banner (If any pending) -->
+    {% if pending_count > 0 %}
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; background: #fffbeb; border: 1px solid #fef3c7; border-radius: var(--r-md); margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.65rem; color: #92400e; font-size: 0.875rem;">
+        <i class="ph-bold ph-warning-circle" style="font-size: 1.15rem; color: #d97706;"></i>
+        <span>There are <strong>{{ pending_count }}</strong> student registration(s) waiting for placement office approval.</span>
+      </div>
+      <button type="button" onclick="submitBatchApprove(true)" style="background: #d97706; color: white; border: none; padding: 0.45rem 1rem; border-radius: var(--r-sm); font-weight: 700; font-size: 0.825rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+        <i class="ph-bold ph-check-double"></i> 1-Click Approve All ({{ pending_count }})
+      </button>
+    </div>
+    {% endif %}
+
+    <!-- Data Table Container -->
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;" id="userTable">
+          <thead>
+            <tr style="background: var(--bg); border-bottom: 1px solid var(--border); text-align: left;">
+              <th style="padding: 0.75rem 1rem; width: 40px; text-align: center;">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="cursor: pointer;"/>
+              </th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Student ID / Roll No</th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Candidate Name & Email</th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Branch & CGPA</th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Account Status</th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Verification</th>
+              <th style="padding: 0.75rem 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: right;">TPO Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            {% set st = user.student_info if user.student_info else {} %}
+            {% set is_appr = user.is_approved %}
+            {% set is_ver = st.get('is_verified', false) %}
+            <tr class="user-row" 
+                data-approved="{{ 'true' if is_appr else 'false' }}"
+                data-verified="{{ 'true' if is_ver else 'false' }}"
+                style="border-bottom: 1px solid var(--border); transition: background 0.15s ease;">
+              
+              <td style="padding: 0.85rem 1rem; text-align: center;">
+                {% if not is_appr %}
+                <input type="checkbox" name="selected_user_ids" value="{{ user._id }}" class="user-select-cb" onchange="updateBatchToolbar()" style="cursor: pointer;"/>
+                {% else %}
+                <i class="ph-bold ph-check" style="color: var(--success); opacity: 0.6;"></i>
+                {% endif %}
+              </td>
+
+              <td style="padding: 0.85rem 1rem;">
+                <span class="user-roll" style="font-family: monospace; font-weight: 700; background: var(--bg); padding: 0.2rem 0.5rem; border-radius: var(--r-xs); border: 1px solid var(--border); color: var(--text-main);">
+                  {{ st.student_id or 'CBS-TEMP' }}
+                </span>
+              </td>
+
+              <td style="padding: 0.85rem 1rem;">
+                <div class="user-name" style="font-weight: 700; color: var(--text-main);">
+                  {{ st.name or user.full_name or 'Unregistered Name' }}
+                </div>
+                <div class="user-email" style="color: var(--text-subtle); font-size: 0.8rem;">
+                  {{ user.email }}
+                </div>
+              </td>
+
+              <td style="padding: 0.85rem 1rem;">
+                <div class="user-branch" style="font-weight: 600; color: var(--text-main);">
+                  {{ st.branch or 'General' }}
+                </div>
+                <div style="font-size: 0.785rem; color: var(--text-muted);">
+                  CGPA: <strong style="color: var(--primary);">{{ st.cgpa or '0.0' }}</strong>
+                </div>
+              </td>
+
+              <td style="padding: 0.85rem 1rem;">
+                {% if is_appr %}
+                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: var(--r-full); background: rgba(5, 150, 105, 0.1); color: var(--success); font-size: 0.75rem; font-weight: 700;">
+                  <i class="ph-bold ph-check-circle"></i> Active
+                </span>
+                {% else %}
+                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: var(--r-full); background: rgba(217, 119, 6, 0.1); color: #d97706; font-size: 0.75rem; font-weight: 700;">
+                  <i class="ph-bold ph-clock"></i> Pending
+                </span>
+                {% endif %}
+              </td>
+
+              <td style="padding: 0.85rem 1rem;">
+                {% if is_ver %}
+                <span title="Verified by: {{ st.verified_by or 'TPO' }}" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: var(--r-full); background: rgba(30, 64, 175, 0.1); color: var(--primary); font-size: 0.75rem; font-weight: 700;">
+                  <i class="ph-bold ph-lock-key"></i> Verified & Locked
+                </span>
+                {% else %}
+                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: var(--r-full); background: rgba(100, 116, 139, 0.1); color: var(--text-subtle); font-size: 0.75rem; font-weight: 600;">
+                  <i class="ph-bold ph-circle-dashed"></i> Unverified
+                </span>
+                {% endif %}
+              </td>
+
+              <td style="padding: 0.85rem 1rem; text-align: right;">
+                <div style="display: inline-flex; gap: 0.4rem; align-items: center; justify-content: flex-end;">
+                  {% if not is_appr %}
+                  <button type="button" class="btn-sm" onclick="singleApprove('{{ user._id }}')" style="background: var(--success); color: white; border: none; padding: 0.35rem 0.75rem; border-radius: var(--r-sm); font-size: 0.785rem; font-weight: 600; cursor: pointer;">
+                    Approve
+                  </button>
+                  {% endif %}
+
+                  <!-- Toggle Verification Button -->
+                  <button type="button" class="btn-sm btn-secondary" onclick="toggleVerify('{{ user._id }}')" title="{{ 'Unlock profile' if is_ver else 'Verify & lock marks' }}" style="padding: 0.35rem 0.65rem; font-size: 0.785rem;">
+                    {% if is_ver %}
+                    <i class="ph-bold ph-lock-key-open"></i> Unlock
+                    {% else %}
+                    <i class="ph-bold ph-shield-check"></i> Verify
+                    {% endif %}
+                  </button>
+
+                  <!-- View Full Profile -->
+                  <a href="{{ url_for('view_student_details', user_id=user._id) }}" class="btn-sm btn-secondary" title="View Full Candidate Dossier" style="padding: 0.35rem 0.65rem;">
+                    <i class="ph-bold ph-eye"></i>
+                  </a>
+
+                  <!-- Reject / Delete -->
+                  {% if not is_appr %}
+                  <button type="button" onclick="singleReject('{{ user._id }}')" class="btn-sm" style="background: rgba(220, 38, 38, 0.1); color: var(--danger); border: 1px solid rgba(220, 38, 38, 0.2); padding: 0.35rem 0.55rem; border-radius: var(--r-sm); cursor: pointer;" title="Reject student">
+                    <i class="ph-bold ph-trash"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="ph-duotone ph-users" style="font-size: 2.5rem; opacity: 0.5; margin-bottom: 0.5rem;"></i>
+                <p>No user records found.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
 </div>
+
+<!-- Hidden Action Forms for Single Approvals & Verification -->
+<form id="actionHelperForm" method="POST" style="display: none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+
+<style>
+.tab-pill {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.825rem;
+  font-weight: 600;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tab-pill:hover {
+  background: var(--bg);
+  color: var(--text-main);
+}
+.tab-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.user-row:hover {
+  background: var(--surface-hover);
+}
+</style>
+
+<script>
+let currentFilter = 'all';
+
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('#filterPills .tab-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  filterUserTable();
+}
+
+function filterUserTable() {
+  const query = (document.getElementById('userLiveSearch').value || '').toLowerCase();
+  const rows = document.querySelectorAll('#userTable tbody .user-row');
+
+  rows.forEach(row => {
+    const isApproved = row.dataset.approved === 'true';
+    const isVerified = row.dataset.verified === 'true';
+    const roll = (row.querySelector('.user-roll')?.textContent || '').toLowerCase();
+    const name = (row.querySelector('.user-name')?.textContent || '').toLowerCase();
+    const email = (row.querySelector('.user-email')?.textContent || '').toLowerCase();
+    const branch = (row.querySelector('.user-branch')?.textContent || '').toLowerCase();
+
+    // Tab check
+    let matchesTab = true;
+    if (currentFilter === 'pending') matchesTab = !isApproved;
+    else if (currentFilter === 'approved') matchesTab = isApproved;
+    else if (currentFilter === 'verified') matchesTab = isVerified;
+
+    // Search query check
+    const matchesSearch = !query || roll.includes(query) || name.includes(query) || email.includes(query) || branch.includes(query);
+
+    row.style.display = (matchesTab && matchesSearch) ? '' : 'none';
+  });
+}
+
+function toggleSelectAll(masterCb) {
+  const cbs = document.querySelectorAll('.user-select-cb');
+  cbs.forEach(cb => {
+    if (cb.closest('tr').style.display !== 'none') {
+      cb.checked = masterCb.checked;
+    }
+  });
+  updateBatchToolbar();
+}
+
+function updateBatchToolbar() {
+  const checked = document.querySelectorAll('.user-select-cb:checked');
+  const toolbar = document.getElementById('batchToolbar');
+  const countSpan = document.getElementById('selectedCount');
+  
+  if (checked.length > 0) {
+    toolbar.style.display = 'flex';
+    countSpan.textContent = checked.length;
+  } else {
+    toolbar.style.display = 'none';
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.user-select-cb').forEach(cb => cb.checked = false);
+  const master = document.getElementById('selectAllCheckbox');
+  if (master) master.checked = false;
+  updateBatchToolbar();
+}
+
+function submitBatchApprove(allPending) {
+  const form = document.getElementById('batchActionForm');
+  document.getElementById('approveAllInput').value = allPending ? 'true' : 'false';
+  if (allPending) {
+    if (confirm("Are you sure you want to approve ALL pending student accounts in 1 click?")) {
+      form.submit();
+    }
+  } else {
+    form.submit();
+  }
+}
+
+function singleApprove(userId) {
+  const helper = document.getElementById('actionHelperForm');
+  helper.action = `/admin/approve-student/${userId}`;
+  helper.submit();
+}
+
+function singleReject(userId) {
+  if (confirm("Are you sure you want to reject and remove this registration?")) {
+    const helper = document.getElementById('actionHelperForm');
+    helper.action = `/admin/reject-student/${userId}`;
+    helper.submit();
+  }
+}
+
+function toggleVerify(userId) {
+  const helper = document.getElementById('actionHelperForm');
+  helper.action = `/admin/student/${userId}/toggle-verify`;
+  helper.submit();
+}
+</script>
 {% endblock %}

@@ -6,12 +6,12 @@ block content %}
     <p>Manage admin roles and permissions</p>
   </div>
   <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap">
-    <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary"
-      >Back to Dashboard</a
-    >
-    <a href="{{ url_for('manage_users') }}" class="btn-secondary"
-      >Manage Users</a
-    >
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">
+      <i class="ph-bold ph-arrow-left"></i> Back to Dashboard
+    </a>
+    <a href="{{ url_for('manage_users') }}" class="btn-back">
+      <i class="ph-bold ph-users"></i> Manage Users
+    </a>
   </div>
   {% if pending %}
   <div class="glass-card-heavy" style="padding: 1.5rem; margin-bottom: 2rem">

@@ -12,7 +12,7 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <meta name="apple-mobile-web-app-title" content="PlacementCell" />
+    <meta name="apple-mobile-web-app-title" content="3i-cell" />
     <link
       rel="manifest"
       href="{{ url_for('static', filename='manifest.json') }}"
@@ -22,326 +22,336 @@
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236366f1' width='192' height='192'/><text x='50%' y='50%' font-size='80' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>PC</text></svg>"
     />
     <title>{% block title %}CBS 3i-cell{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Phosphor Icons (Local Vendor + CDN Fallback) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/phosphor/regular/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/phosphor/bold/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/phosphor/fill/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/phosphor/duotone/style.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css" crossorigin="anonymous" />
+
+    <!-- Base / Global styles -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 10000) | random }}"
+      href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1,9999)|random }}"
     />
+    <!-- Master Enterprise App Layout CSS -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/mobile-nav.css') }}"
+      href="{{ url_for('static', filename='css/app-layout.css') }}?v={{ range(1,9999)|random }}"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/dashboard-responsive.css') }}"
-    />
-    <!-- Phosphor Icons (weights used across the app) -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css"
-      crossorigin="anonymous"
-      onerror="this.onerror=null;this.href='https://unpkg.com/@phosphor-icons/web@2.1.2/src/regular/style.css';"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css"
-      crossorigin="anonymous"
-      onerror="this.onerror=null;this.href='https://unpkg.com/@phosphor-icons/web@2.1.2/src/bold/style.css';"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css"
-      crossorigin="anonymous"
-      onerror="this.onerror=null;this.href='https://unpkg.com/@phosphor-icons/web@2.1.2/src/fill/style.css';"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css"
-      crossorigin="anonymous"
-      onerror="this.onerror=null;this.href='https://unpkg.com/@phosphor-icons/web@2.1.2/src/duotone/style.css';"
-    />
-    <script
-      src="{{ url_for('static', filename='js/offline-notifications.js') }}"
-      defer
-    ></script>
+
+    <!-- Apply theme immediately to prevent flash -->
     <script>
-      // Apply theme immediately to prevent flash
       (function () {
         document.documentElement.setAttribute("data-theme", "light");
       })();
     </script>
+
+    <script src="{{ url_for('static', filename='js/offline-notifications.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+
     {% block head %}{% endblock %}
+    {% block extra_css %}{% endblock %}
   </head>
 
   <body>
-    {% if request.endpoint in ['login', 'signup', 'login_post', 'signup_post',
-    'forgot_password', 'reset_password'] %}
-    <!-- Simplified Navbar for Auth Pages -->
-    <nav class="navbar glass-navbar auth-navbar">
-      <a href="/" class="logo">
+    {% set is_auth_page = request.endpoint in ['login', 'signup', 'login_post', 'signup_post', 'forgot_password', 'reset_password'] %}
+    {% set is_logged_in = session.get('user_id') %}
+    {% set user_role    = session.get('role') %}
+
+    {% if not (is_logged_in and not is_auth_page) %}
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- AUTH / PUBLIC NAVBAR                                   -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <nav class="auth-navbar-bar" style="display:flex; justify-content:space-between; align-items:center; padding:0 1.5rem;">
+      <a href="/" style="display:flex; align-items:center; gap:0.6rem; text-decoration:none;">
         <img
           src="{{ url_for('static', filename='images/logo1.png') }}"
           alt="Logo"
-          class="logo-img-lg"
+          style="height:34px; border-radius:6px;"
+          onerror="this.style.display='none'"
         />
-        <span class="logo-text-simple">
-          Placement<span class="highlight">Cell</span>
+        <span style="font-size:1.15rem; font-weight:800; color:var(--text-main);">
+          CBS <span style="background:var(--grad-primary); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">3i-cell</span>
         </span>
       </a>
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm" style="font-size:0.85rem;">Login</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm" style="font-size:0.85rem;">Sign Up</a>
+      </div>
     </nav>
+
     {% else %}
-    <!-- Full Navbar -->
-    <nav class="navbar glass-navbar">
-      <div class="nav-brand">
-        <a href="/" class="logo">
-          <img
-            src="{{ url_for('static', filename='images/logo1.png') }}"
-            alt="Logo"
-            class="logo-img"
-          />
-          <div class="logo-text-container">
-            <span class="logo-main">
-              CBS <span class="highlight">3i-cell</span>
-            </span>
-            <span class="logo-subtitle"> INDUSTRY INSTITUTE INTERFACE </span>
-          </div>
-        </a>
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- APP SHELL: Sidebar Overlay                             -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ── LEFT SIDEBAR ────────────────────────────────────── -->
+    <aside class="app-sidebar" id="appSidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <img
+          src="{{ url_for('static', filename='images/logo1.png') }}"
+          alt="CBS 3i-cell Logo"
+          onerror="this.style.display='none'"
+        />
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-main">CBS <span class="highlight">3i-cell</span></span>
+          <span class="sidebar-logo-sub">Industry Institute Interface</span>
+        </div>
       </div>
 
-      <!-- Desktop Nav Links (Hidden on Mobile) -->
-      <div class="nav-links desktop-only">
-        {% if session.get('user_id') %} {% if session.get('role') == 'admin' %}
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav" aria-label="Main Navigation">
+
+        {% if user_role == 'admin' %}
+        <!-- ADMIN NAVIGATION -->
+        <span class="sidebar-section-label">Overview</span>
         <a
           href="{{ url_for('admin_dashboard') }}"
-          class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
-          >Dashboard</a
+          class="sidebar-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
         >
-        <a
-          href="{{ url_for('manage_jobs') }}"
-          class="nav-link {% if request.endpoint == 'manage_jobs' %}active{% endif %}"
-          >Jobs</a
-        >
-        <a
-          href="{{ url_for('manage_announcements') }}"
-          class="nav-link {% if request.endpoint == 'manage_announcements' %}active{% endif %}"
-          >Town Hall</a
-        >
-        <a
-          href="{{ url_for('dynamic_forms.manage_forms') }}"
-          class="nav-link {% if request.endpoint == 'manage_forms' %}active{% endif %}"
-          >Forms</a
-        >
-        {% else %}
-        <a
-          href="{{ url_for('student_dashboard') }}"
-          class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}"
-          >Home</a
-        >
-        <a
-          href="{{ url_for('student_jobs') }}"
-          class="nav-link {% if request.endpoint == 'student_jobs' %}active{% endif %}"
-          >Jobs</a
-        >
-        <a
-          href="{{ url_for('student_announcements') }}"
-          class="nav-link {% if request.endpoint == 'student_announcements' %}active{% endif %}"
-          >Town Hall</a
-        >
-        <a
-          href="{{ url_for('dynamic_forms.list_student_forms') }}"
-          class="nav-link {% if request.endpoint == 'list_student_forms' %}active{% endif %}"
-          >Forms</a
-        >
-        <a
-          href="{{ url_for('student_profile') }}"
-          class="nav-link {% if request.endpoint == 'student_profile' %}active{% endif %}"
-          >Profile</a
-        >
-        {% endif %} {% else %}
-        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-        <a href="{{ url_for('signup') }}" class="btn btn-sm btn-submit"
-          >Student Signup</a
-        >
-        {% endif %}
-      </div>
-
-      <!-- Nav Controls -->
-      <div class="nav-controls">
-        {% if session.get('user_id') %}
-        <!-- Notification Bell -->
-        <a
-          href="{{ url_for('notifications_page') }}"
-          class="btn-icon-nav"
-          aria-label="Notifications"
-        >
-          <i class="ph-bold ph-bell"></i>
-          {% if unread_notifications_count and unread_notifications_count > 0 %}
-          <span class="notif-badge">
-            {{ unread_notifications_count if unread_notifications_count < 10
-            else '9+' }}
-          </span>
-          {% endif %}
+          <i class="ph-fill ph-house-simple"></i>
+          <span>Dashboard</span>
         </a>
 
-        <!-- Desktop Logout -->
-        <button
-          onclick="showLogoutModal(event)"
-          class="btn-logout"
-          title="Logout"
+        <span class="sidebar-section-label">Manage</span>
+        <a
+          href="{{ url_for('manage_jobs') }}"
+          class="sidebar-item {% if request.endpoint == 'manage_jobs' %}active{% endif %}"
         >
-          <i class="ph-bold ph-sign-out"></i>
-          <span>Logout</span>
-        </button>
+          <i class="ph-fill ph-briefcase"></i>
+          <span>Jobs</span>
+        </a>
+        <a
+          href="{{ url_for('manage_announcements') }}"
+          class="sidebar-item {% if request.endpoint == 'manage_announcements' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-megaphone"></i>
+          <span>Town Hall</span>
+        </a>
+        <a
+          href="{{ url_for('view_applications') }}"
+          class="sidebar-item {% if request.endpoint == 'view_applications' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-files"></i>
+          <span>Applications</span>
+        </a>
+        <a
+          href="{{ url_for('dynamic_forms.manage_forms') }}"
+          class="sidebar-item {% if request.endpoint == 'manage_forms' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-clipboard-text"></i>
+          <span>Forms</span>
+        </a>
+
+        <span class="sidebar-section-label">Users</span>
+        <a
+          href="{{ url_for('manage_users') }}"
+          class="sidebar-item {% if request.endpoint == 'manage_users' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-users"></i>
+          <span>Students</span>
+        </a>
+        {% if admin_level == 'super_admin' %}
+        <a
+          href="{{ url_for('manage_admins') }}"
+          class="sidebar-item {% if request.endpoint == 'manage_admins' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-user-gear"></i>
+          <span>Admins</span>
+        </a>
         {% endif %}
-      </div>
-    </nav>
-    {% endif %}
+        <a
+          href="{{ url_for('view_password_requests') }}"
+          class="sidebar-item {% if request.endpoint == 'view_password_requests' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-lock-key"></i>
+          <span>Password Reqs</span>
+        </a>
 
-    <div class="container">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-        <div class="flash-msg {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-      {% endif %} {% endwith %} {% block content %}{% endblock %}
-    </div>
+        {% else %}
+        <!-- STUDENT NAVIGATION -->
+        <span class="sidebar-section-label">Menu</span>
+        <a
+          href="{{ url_for('student_dashboard') }}"
+          class="sidebar-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-house-simple"></i>
+          <span>Home</span>
+        </a>
+        <a
+          href="{{ url_for('student_jobs') }}"
+          class="sidebar-item {% if request.endpoint == 'student_jobs' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-briefcase"></i>
+          <span>Jobs</span>
+        </a>
+        <a
+          href="{{ url_for('student_announcements') }}"
+          class="sidebar-item {% if request.endpoint == 'student_announcements' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-megaphone"></i>
+          <span>Town Hall</span>
+        </a>
+        <a
+          href="{{ url_for('dynamic_forms.list_student_forms') }}"
+          class="sidebar-item {% if request.endpoint == 'list_student_forms' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-clipboard-text"></i>
+          <span>Forms</span>
+        </a>
+        <a
+          href="{{ url_for('student_applications') }}"
+          class="sidebar-item {% if request.endpoint == 'student_applications' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-files"></i>
+          <span>My Applications</span>
+        </a>
 
-    {% if request.endpoint in ['login', 'signup', 'login_post', 'signup_post']
-    %}
-    <!-- Simplified Footer for Auth Pages -->
-    <footer
-      style="
-        border-top: 1px solid var(--border);
-        padding: 2rem 0;
-        margin-top: 2rem;
-        text-align: center;
-        background: transparent;
-      "
-    >
-      <div
-        class="container"
-        style="margin-top: 0; padding-top: 0; border: none"
-      >
-        <p style="color: var(--text-muted); font-size: 0.85rem">
-          &copy; 2026 CBS 3i-cell. All rights reserved.
-        </p>
-      </div>
-    </footer>
-    {% else %}
-    <!-- Global Simplified Footer -->
-    <footer
-      style="
-        border-top: 1px solid var(--border);
-        padding: 2rem 0;
-        margin-top: 4rem;
-        text-align: center;
-        background: transparent;
-      "
-    >
-      <div
-        class="container"
-        style="margin-top: 0; padding-top: 0; border: none"
-      >
-        <p style="color: var(--text-muted); font-size: 0.85rem">
-          &copy; 2026 CHETAN BUSINESS SCHOOL. All rights reserved.
-        </p>
-      </div>
-    </footer>
-    {% endif %}
+        <span class="sidebar-section-label">Account</span>
+        <a
+          href="{{ url_for('student_profile') }}"
+          class="sidebar-item {% if request.endpoint == 'student_profile' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-user-circle"></i>
+          <span>Profile</span>
+        </a>
+        <a
+          href="{{ url_for('notifications_page') }}"
+          class="sidebar-item {% if request.endpoint == 'notifications_page' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-bell"></i>
+          <span>Notifications</span>
+          {% if unread_notifications_count and unread_notifications_count > 0 %}
+          <span class="sidebar-badge">{{ unread_notifications_count if unread_notifications_count < 10 else '9+' }}</span>
+          {% endif %}
+        </a>
+        {% endif %}
 
-    <!-- PWA Install Prompt (Hidden by default) -->
-    <div id="installPrompt" class="install-prompt" style="display: none">
-      <div class="install-content">
-        <div class="install-icon">
-          <i class="ph-fill ph-download-simple"></i>
-        </div>
-        <div class="install-text">
-          <h4>Install App</h4>
-          <p>Add to home screen for better experience</p>
-        </div>
-      </div>
-      <button onclick="installPWA()" class="btn-sm btn-primary">Install</button>
-      <button onclick="closeInstallPrompt()" class="close-prompt-btn">
-        <i class="ph ph-x"></i>
-      </button>
-    </div>
+      </nav>
 
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="modal-overlay">
-      <div class="modal-content glass-card">
-        <i
-          class="ph-bold ph-sign-out"
-          style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem"
-        ></i>
-        <h3>Confirm Logout</h3>
-        <p>Are you sure you want to log out of your session?</p>
-        <div class="modal-actions">
-          <button onclick="confirmLogout()" class="btn btn-delete">Logout</button>
-          <button onclick="closeLogoutModal()" class="btn btn-cancel">
-            Cancel
+      <!-- Sidebar Footer (User Card) -->
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card" onclick="showLogoutModal(event)">
+          <div class="sidebar-user-avatar">
+            {{ session.get('name', 'U')[0].upper() if session.get('name') else 'U' }}
+          </div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">{{ session.get('name', 'User') }}</div>
+            <div class="sidebar-user-role">{{ user_role | capitalize }}</div>
+          </div>
+          <button class="sidebar-logout-btn" title="Logout" aria-label="Logout">
+            <i class="ph-bold ph-sign-out"></i>
           </button>
         </div>
       </div>
+    </aside>
+    {% endif %}
+
+    <!-- ── MAIN AREA ──────────────────────────────────────── -->
+    <div class="{% if is_logged_in and not is_auth_page %}app-main{% else %}auth-wrapper{% endif %}">
+
+      {% if is_logged_in and not is_auth_page %}
+      <!-- Top Bar -->
+      <header class="app-topbar">
+        <!-- Hamburger (Mobile) -->
+        <button
+          class="topbar-hamburger"
+          id="hamburgerBtn"
+          aria-label="Open menu"
+          onclick="toggleSidebar()"
+        >
+          <i class="ph-bold ph-list"></i>
+        </button>
+
+        <!-- Page title (injected by JS) -->
+        <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
+
+        <div class="topbar-right">
+          <!-- Notifications -->
+          <a
+            href="{{ url_for('notifications_page') }}"
+            class="topbar-icon-btn"
+            aria-label="Notifications"
+          >
+            <i class="ph-bold ph-bell"></i>
+            {% if unread_notifications_count and unread_notifications_count > 0 %}
+            <span class="topbar-notif-badge">
+              {{ unread_notifications_count if unread_notifications_count < 10 else '9+' }}
+            </span>
+            {% endif %}
+          </a>
+
+          <!-- Logout -->
+          <button
+            onclick="showLogoutModal(event)"
+            class="btn btn-secondary btn-sm desktop-only"
+            title="Logout"
+          >
+            <i class="ph-bold ph-sign-out"></i>
+            Logout
+          </button>
+        </div>
+      </header>
+      {% endif %}
+
+      <!-- Page Content -->
+      <main class="{% if is_logged_in and not is_auth_page %}app-content{% else %}auth-page-container{% endif %}">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages" style="{% if not is_logged_in or is_auth_page %}margin: 1rem auto; max-width: 440px; padding: 0 1rem;{% endif %}">
+          {% for category, message in messages %}
+          <div class="flash-msg {{ category }}">
+            <i class="ph-bold
+              {% if category == 'success' %}ph-check-circle
+              {% elif category in ['error','danger'] %}ph-x-circle
+              {% elif category == 'warning' %}ph-warning
+              {% else %}ph-info{% endif %}
+            "></i>
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Footer -->
+      <footer style="padding: 1.25rem 1.75rem; border-top: 1px solid var(--border); text-align: center; margin-top: auto;">
+        <p style="color: var(--text-subtle); font-size: 0.78rem;">
+          Developed by Vikram Gudihal &amp; Bibiayisha A Mulla &nbsp;&middot;&nbsp; CBS 3i-cell &copy; 2026
+        </p>
+      </footer>
     </div>
 
-    <!-- Real-time Notification Polling -->
-    <script>
-      // Notification polling for real-time updates
-      let lastCheckTime = new Date().toISOString();
-
-      function checkNewNotifications() {
-        fetch('/api/notifications/check?last_check=' + encodeURIComponent(lastCheckTime))
-          .then(response => response.json())
-          .then(data => {
-            if (data.new_count !== undefined) {
-              const btn = document.querySelector('a[aria-label="Notifications"]');
-              let badge = document.querySelector('.notif-badge');
-              
-              if (data.new_count > 0) {
-                if (!badge && btn) {
-                  // Create badge if not exists
-                  badge = document.createElement('span');
-                  badge.className = 'notif-badge';
-                  btn.appendChild(badge);
-                }
-                
-                if (badge) {
-                  badge.textContent = data.new_count < 10 ? data.new_count : '9+';
-                  badge.style.display = 'flex';
-                }
-              } else if (badge) {
-                badge.style.display = 'none';
-              }
-            }
-          })
-          .catch(err => console.log('Notification check failed:', err));
-      }
-
-      // Start polling when user is logged in
-      {% if session.get('user_id') %}
-      // Check every 30 seconds
-      setInterval(checkNewNotifications, 30000);
-      // Update last check time after page load
-      lastCheckTime = new Date().toISOString();
-      {% endif %}
-    </script>
-
-    {% if session.get('user_id') and request.endpoint not in ['login', 'signup',
-    'login_post', 'signup_post'] %}
-    <nav class="mobile-bottom-nav">
+    {% if is_logged_in and not is_auth_page %}
+    <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
       <div class="mobile-nav-container">
-        {% if session.get('role') == 'admin' %}
+        {% if user_role == 'admin' %}
+        <!-- ADMIN MOBILE NAV -->
         <a
           href="{{ url_for('admin_dashboard') }}"
           class="mobile-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
         >
-          <i class="ph-fill ph-house"></i>
+          <i class="ph-fill ph-house-simple"></i>
           <span>Home</span>
         </a>
         <a
@@ -356,14 +366,14 @@
           class="mobile-nav-item center-item"
         >
           <i class="ph-fill ph-users"></i>
-          <!-- Users -->
+          <span>Users</span>
         </a>
         <a
           href="{{ url_for('manage_announcements') }}"
           class="mobile-nav-item {% if request.endpoint == 'manage_announcements' %}active{% endif %}"
         >
           <i class="ph-fill ph-megaphone"></i>
-          <span>TownHall</span>
+          <span>Hall</span>
         </a>
         <a
           href="{{ url_for('view_applications') }}"
@@ -372,8 +382,9 @@
           <i class="ph-fill ph-files"></i>
           <span>Apps</span>
         </a>
+
         {% else %}
-        <!-- STUDENT NAV -->
+        <!-- STUDENT MOBILE NAV -->
         <a
           href="{{ url_for('student_jobs') }}"
           class="mobile-nav-item {% if request.endpoint == 'student_jobs' %}active{% endif %}"
@@ -386,17 +397,15 @@
           class="mobile-nav-item {% if request.endpoint == 'student_announcements' %}active{% endif %}"
         >
           <i class="ph-fill ph-megaphone"></i>
-          <span>TownHall</span>
+          <span>Hall</span>
         </a>
-
         <a
           href="{{ url_for('student_dashboard') }}"
           class="mobile-nav-item center-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}"
         >
-          <i class="ph-fill ph-house"></i>
+          <i class="ph-fill ph-house-simple"></i>
           <span>Home</span>
         </a>
-
         <a
           href="{{ url_for('dynamic_forms.list_student_forms') }}"
           class="mobile-nav-item {% if request.endpoint == 'list_student_forms' %}active{% endif %}"
@@ -408,7 +417,7 @@
           href="{{ url_for('student_profile') }}"
           class="mobile-nav-item {% if request.endpoint == 'student_profile' %}active{% endif %}"
         >
-          <i class="ph-fill ph-user"></i>
+          <i class="ph-fill ph-user-circle"></i>
           <span>Profile</span>
         </a>
         {% endif %}
@@ -416,230 +425,151 @@
     </nav>
     {% endif %}
 
-    <style id="security-guard-style">
-      .security-popup {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(252, 253, 255, 0.65);
-        background-image: linear-gradient(
-          -20deg,
-          #fc607544 0%rgba (255, 155, 68, 0.29) 44 100%
-        ) !important;
-        backdrop-filter: blur(5px);
-        z-index: 9999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s;
-      }
-      .security-popup.show {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      .security-card {
-        background: #0b1021;
-        background-image: linear-gradient(
-          -20deg,
-          #fc6076 0%,
-          #ff9a44 100%
-        ) !important;
-        color: #e2e8f0 !important ;
-        padding: 16px 18px;
-        border-radius: 14px;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
-        min-width: 260px;
-        max-width: 360px;
-        font-family: "Space Grotesk", "DM Sans", "Helvetica Neue", sans-serif;
-      }
-      .security-title {
-        margin: 0 0 6px;
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-      }
-      .security-msg {
-        margin: 0;
-        font-size: 14px;
-        color: #cbd5e1;
-      }
-      .security-btn {
-        margin-top: 12px;
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #475569;
-        background: #ffffff;
-        color: #000000;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-      }
-    </style>
+    <!-- ── PWA INSTALL PROMPT ──────────────────────────────── -->
+    <div id="installPrompt" class="install-prompt">
+      <div class="install-content">
+        <div class="install-icon">
+          <i class="ph-fill ph-download-simple"></i>
+        </div>
+        <div class="install-text">
+          <h4>Install App</h4>
+          <p>Add to home screen for a better experience</p>
+        </div>
+      </div>
+      <button onclick="installPWA()" class="btn btn-primary btn-sm">Install</button>
+      <button onclick="closeInstallPrompt()" class="close-prompt-btn">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
 
+    <!-- ── LOGOUT MODAL ────────────────────────────────────── -->
+    <div id="logoutModal" class="modal-overlay">
+      <div class="modal-content">
+        <div style="width:56px;height:56px;background:rgba(239,68,68,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;color:var(--danger);">
+          <i class="ph-bold ph-sign-out"></i>
+        </div>
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to log out of your session?</p>
+        <div class="modal-actions">
+          <button onclick="confirmLogout()" class="btn btn-danger">Logout</button>
+          <button onclick="closeLogoutModal()" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECURITY GUARD ──────────────────────────────────── -->
+    <!-- ── NOTIFICATION POLLING ────────────────────────────── -->
+    {% if is_logged_in %}
     <script>
-      (() => {
-        const popup = document.createElement("div");
-        popup.className = "security-popup";
-        popup.innerHTML = `
-    <div class="security-card">
-      <p class="security-title">Action Blocked</p>
-      <p class="security-msg" id="security-msg">This action is disabled on this page.</p>
-      <button class="security-btn" id="security-btn">OK</button>
-    </div>`;
-        document.body.appendChild(popup);
-
-        const msgEl = popup.querySelector("#security-msg");
-        const btnEl = popup.querySelector("#security-btn");
-        let hideTimer;
-
-        const showPopup = (text) => {
-          msgEl.textContent = text;
-          popup.classList.add("show");
-          clearTimeout(hideTimer);
-          hideTimer = setTimeout(() => popup.classList.remove("show"), 2200);
-        };
-
-        btnEl.addEventListener("click", () => popup.classList.remove("show"));
-
-        const block = (text, e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showPopup(text);
-        };
-
-        // Mouse + selection
-        document.addEventListener(
-          "contextmenu",
-          (e) => block("Right click is disabled here.", e),
-          true,
-        );
-        document.addEventListener(
-          "copy",
-          (e) => block("Copy is disabled.", e),
-          true,
-        );
-        document.addEventListener(
-          "cut",
-          (e) => block("Cut is disabled.", e),
-          true,
-        );
-        document.addEventListener(
-          "dragstart",
-          (e) => block("Drag is disabled.", e),
-          true,
-        );
-
-        // Keyboard shortcuts / dev tools hints
-        document.addEventListener(
-          "keydown",
-          async (e) => {
-            const key = e.key.toLowerCase();
-            const meta = e.ctrlKey || e.metaKey;
-            if (e.key === "F12" || (meta && e.shiftKey && key === "i"))
-              block("Developer tools are blocked.", e);
-            if (meta && ["c", "x", "u", "s", "p"].includes(key))
-              block("Shortcut disabled.", e);
-            if (e.key === "PrintScreen") {
-              showPopup("Screenshot blocked.");
-              try {
-                await navigator.clipboard.writeText("");
-              } catch (_) {}
+      let lastCheckTime = new Date().toISOString();
+      function checkNewNotifications() {
+        fetch('/api/notifications/check?last_check=' + encodeURIComponent(lastCheckTime))
+          .then(r => r.json())
+          .then(data => {
+            if (data.new_count !== undefined) {
+              const badges = document.querySelectorAll('.topbar-notif-badge, .notif-badge');
+              const sidebarBadge = document.querySelector('.sidebar-badge');
+              if (data.new_count > 0) {
+                const txt = data.new_count < 10 ? data.new_count : '9+';
+                badges.forEach(b => { b.textContent = txt; b.style.display = 'flex'; });
+                if (sidebarBadge) { sidebarBadge.textContent = txt; sidebarBadge.style.display = 'flex'; }
+              } else {
+                badges.forEach(b => { b.style.display = 'none'; });
+                if (sidebarBadge) sidebarBadge.style.display = 'none';
+              }
             }
-          },
-          true,
-        );
-
-        // Simple devtools detection removed as it causes issues on mobile
-        // The blur effect was triggering falsely due to viewport size differences.
-      })();
+          }).catch(() => {});
+      }
+      setInterval(checkNewNotifications, 30000);
+      lastCheckTime = new Date().toISOString();
     </script>
+    {% endif %}
 
-    <!-- Service Worker Registration -->
+    <!-- ── APP SCRIPTS ─────────────────────────────────────── -->
     <script>
-      // Register Service Worker
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/static/js/sw.js")
-            .then((registration) => {
-              console.log("Service Worker registered:", registration);
-            })
-            .catch((error) => {
-              console.log("Service Worker registration failed:", error);
-            });
-        });
+      // ── Sidebar Toggle ──────────────────────────────────────
+      function toggleSidebar() {
+        const sidebar  = document.getElementById('appSidebar');
+        const overlay  = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+        document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
       }
 
-      // Mobile Menu Logic
-      function toggleMobileMenu() {
-        const menu = document.getElementById("mobileMenu");
-        menu.classList.toggle("active");
-        // Prevent body scroll when menu is open
-        if (menu.classList.contains("active")) {
-          document.body.style.overflow = "hidden";
-        } else {
-          document.body.style.overflow = "";
-        }
+      function closeSidebar() {
+        const sidebar = document.getElementById('appSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
       }
 
-      // Initialize on load
-      document.addEventListener("DOMContentLoaded", () => {
-        if (typeof requestNotificationPermission === "function") {
-          requestNotificationPermission();
-        }
+      // ── Logout Modal ────────────────────────────────────────
+      function showLogoutModal(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('logoutModal');
+        if (modal) { modal.style.display = 'flex'; modal.classList.add('active'); }
+      }
+
+      function closeLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) { modal.style.display = 'none'; modal.classList.remove('active'); }
+      }
+
+      function confirmLogout() {
+        window.location.href = '/logout';
+      }
+
+      // Close modal on backdrop click
+      document.getElementById('logoutModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeLogoutModal();
       });
 
-      // PWA Install Logic
+      // ── PWA Install ─────────────────────────────────────────
       window.deferredPrompt = null;
-      const installPrompt = document.getElementById("installPrompt");
+      const installPrompt = document.getElementById('installPrompt');
 
-      window.addEventListener("beforeinstallprompt", (e) => {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
+      window.addEventListener('beforeinstallprompt', e => {
         e.preventDefault();
-        // Stash the event so it can be triggered later.
         window.deferredPrompt = e;
-
-        // Show the prompt logic:
-        // Check if user has dismissed it recently (optional, skipping for now to ensure visibility)
-        showInstallPrompt();
-      });
-
-      function showInstallPrompt() {
         if (installPrompt) {
-          installPrompt.style.display = "flex";
-          // Add simple animation class
-          setTimeout(() => installPrompt.classList.add("visible"), 100);
+          installPrompt.style.display = 'flex';
+          setTimeout(() => installPrompt.classList.add('visible'), 100);
         }
-      }
+      });
 
       function closeInstallPrompt() {
         if (installPrompt) {
-          installPrompt.classList.remove("visible");
-          setTimeout(() => (installPrompt.style.display = "none"), 300);
+          installPrompt.classList.remove('visible');
+          setTimeout(() => { installPrompt.style.display = 'none'; }, 300);
         }
       }
 
       async function installPWA() {
-        if (!window.deferredPrompt) {
-          return;
-        }
-        // Show the install prompt
+        if (!window.deferredPrompt) return;
         window.deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
         const { outcome } = await window.deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-
-        // We've used the prompt, and can't use it again, throw it away
         window.deferredPrompt = null;
         closeInstallPrompt();
       }
 
-      window.addEventListener("appinstalled", () => {
-        // Hide the app-provided install promotion
+      window.addEventListener('appinstalled', () => {
         closeInstallPrompt();
         window.deferredPrompt = null;
-        console.log("PWA was installed");
+      });
+
+      // ── Service Worker ──────────────────────────────────────
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/static/js/sw.js').catch(() => {});
+        });
+      }
+
+      // ── Notification permission ─────────────────────────────
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof requestNotificationPermission === 'function') {
+          requestNotificationPermission();
+        }
       });
     </script>
   </body>

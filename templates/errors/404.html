@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}404 - Page Not Found | CBS Placement Cell{% endblock %}
+
+{% block content %}
+<div style="min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+  <div style="max-width: 520px; width: 100%; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 3rem 2rem; box-shadow: var(--shadow-sm);">
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: var(--r-md); background: rgba(30, 64, 175, 0.08); color: var(--primary); font-size: 2rem; margin-bottom: 1.5rem;">
+      <i class="ph-bold ph-compass"></i>
+    </div>
+    
+    <div style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">
+      Error 404 • Resource Not Found
+    </div>
+    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.75rem;">
+      Page Not Located
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+      The requested placement portal URL could not be found or may have been moved during a system update.
+    </p>
+
+    <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+      {% if session.get('user_id') %}
+        {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-primary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+          <i class="ph-bold ph-arrow-left"></i> Return to TPO Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('student_dashboard') }}" class="btn-primary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+          <i class="ph-bold ph-arrow-left"></i> Return to Student Hub
+        </a>
+        {% endif %}
+      {% else %}
+      <a href="{{ url_for('home') }}" class="btn-primary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+        <i class="ph-bold ph-house"></i> Portal Home
+      </a>
+      <a href="{{ url_for('login') }}" class="btn-secondary" style="padding: 0.75rem 1.5rem; text-decoration: none;">
+        Candidate Login
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

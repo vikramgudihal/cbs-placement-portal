@@ -1,18 +1,23 @@
-from flask import Flask
+import os
 from jinja2 import Environment, FileSystemLoader
 
-app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates'))
 
-def check_template(template_name):
-    try:
-        env.get_template(template_name)
-        print(f"OK: {template_name}")
-    except Exception as e:
-        print(f"ERROR: {template_name}: {e}")
+print("Exhaustive Jinja Template Syntax Validation...")
+has_error = False
+for root, _, files in os.walk('templates'):
+    for f in files:
+        if f.endswith('.html'):
+            rel_path = os.path.relpath(os.path.join(root, f), 'templates').replace('\\', '/')
+            try:
+                env.get_template(rel_path)
+                print(f"  [PASS] {rel_path}")
+            except Exception as e:
+                print(f"  [FAIL] {rel_path}: {e}")
+                has_error = True
 
-print("Checking Templates...")
-check_template('admin/dashboard.html')
-check_template('student/dashboard.html')
-check_template('admin/manage_jobs.html')
-check_template('admin/manage_announcements.html')
+if has_error:
+    print("\nTemplate validation FAILED.")
+    exit(1)
+else:
+    print("\nAll templates PASSED with 0 syntax errors.")

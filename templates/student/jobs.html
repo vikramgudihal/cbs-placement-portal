@@ -1,161 +1,617 @@
-{% extends 'base.html' %} {% block title %}All Jobs - CBS 3i-cell{%
-endblock %} {% block content %}
-<div class="section-card glass-card">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2.5rem;
-    "
-  >
-    <div>
-      <h2>
-        <i
-          class="ph-bold ph-briefcase"
-          style="color: var(--primary); margin-right: 0.5rem"
-        ></i
-        >Job Portal
-      </h2>
-      <p class="text-muted" style="font-size: 0.9rem">
-        Browse all available opportunities posted by the placement cell.
-      </p>
-    </div>
-    <a href="{{ url_for('student_dashboard') }}" class="btn-secondary"
-      ><i class="ph ph-arrow-left"></i> Dashboard</a
-    >
-  </div>
+{% extends 'base.html' %}
+{% block title %}Placement Drives & Campus Recruitment | CBS 3i-cell{% endblock %}
+{% block page_title %}Placement Drives{% endblock %}
 
-  <div class="jobs-grid">
-    {% for job in jobs %}
-    <div
-      class="job-card glass-card {% if student.cgpa < job.min_cgpa %}locked{% endif %}"
-    >
-      <div class="job-header">
-        <h3>{{ job.company_name }}</h3>
-        <span
-          class="badge {% if student.cgpa < job.min_cgpa %}badge-error{% endif %}"
-        >
-          {% if student.cgpa < job.min_cgpa %}<i class="ph ph-lock"></i> {%
-          endif %} Min {{ job.min_cgpa }} CGPA
+{% block head %}
+<style>
+  /* ============================================================
+     ENTERPRISE OPPORTUNITIES BOARD (Non-AI Institutional Standard)
+     Clean, professional, high-density feed. No puffy "box box" AI cards.
+     ============================================================ */
+
+  .drives-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-bottom: 3rem;
+  }
+
+  /* Control Header */
+  .drives-toolbar {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  [data-theme="dark"] .drives-toolbar {
+    background: var(--surface);
+  }
+
+  .drives-search-wrap {
+    flex: 1;
+    min-width: 260px;
+    position: relative;
+  }
+
+  .drives-search-input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.4rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-main);
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease;
+  }
+
+  .drives-search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #ffffff;
+  }
+
+  .drives-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-select {
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-main);
+    font-size: 0.825rem;
+    font-weight: 500;
+  }
+
+  .view-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .view-toggle-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
+  /* ── LIST VIEW (Default Enterprise Feed) ───────────────────── */
+  .drives-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .drive-row {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  [data-theme="dark"] .drive-row {
+    background: var(--surface);
+  }
+
+  .drive-row:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+  }
+
+  .drive-row.is-locked {
+    background: #fafafa;
+    opacity: 0.82;
+  }
+
+  [data-theme="dark"] .drive-row.is-locked {
+    background: rgba(22, 27, 34, 0.6);
+  }
+
+  /* Identity Column */
+  .drive-identity {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    min-width: 280px;
+    flex: 1.2;
+  }
+
+  .company-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .company-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .role-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0.15rem 0 0.25rem 0;
+    line-height: 1.3;
+  }
+
+  .external-icon-link {
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .external-icon-link:hover {
+    color: var(--primary);
+  }
+
+  /* Key Metrics Center Column */
+  .drive-metrics-col {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    flex: 1.5;
+    flex-wrap: wrap;
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-item-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    letter-spacing: 0.05em;
+  }
+
+  .metric-item-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.1rem;
+  }
+
+  .pkg-highlight {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  [data-theme="dark"] .pkg-highlight {
+    color: #f8fafc;
+  }
+
+  /* Criteria Badges */
+  .eligibility-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .eligibility-pill.ok {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+
+  .eligibility-pill.lock {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+
+  .dream-pill {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  /* Actions Right Column */
+  .drive-actions-col {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    justify-content: flex-end;
+    min-width: 180px;
+  }
+
+  /* Crisp Enterprise Action Buttons */
+  .btn-apply-corp {
+    background: var(--primary);
+    color: #ffffff;
+    border: 1px solid #1e3a8a;
+    border-radius: 6px;
+    padding: 0.55rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-apply-corp:hover {
+    background: #1d4ed8;
+  }
+
+  .status-chip-applied {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 0.45rem 0.95rem;
+    border-radius: 6px;
+    font-size: 0.825rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .btn-details-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn-details-toggle:hover {
+    background: var(--bg);
+    color: var(--text-main);
+  }
+
+  /* Inline Collapsible JD Drawer */
+  .drive-details-drawer {
+    display: none;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .drawer-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg);
+    border-radius: 6px;
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 960px) {
+    .drive-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .drive-metrics-col {
+      width: 100%;
+      gap: 1rem;
+    }
+    .drive-actions-col {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="drives-container">
+
+  <!-- Executive Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); background: rgba(30, 64, 175, 0.08); padding: 0.2rem 0.6rem; border-radius: 4px; text-transform: uppercase;">
+          Campus Hiring Season 2026-27
         </span>
       </div>
-      <p class="role">{{ job.role }}</p>
+      <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-main); margin: 0;">Verified Placement Opportunities</h1>
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+        Official drives certified by Chetan Business School (CBS 3i-Cell). Your profile CGPA: <strong style="color: var(--primary);">{{ student.cgpa or '0.0' }}</strong>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.65rem; align-items: center;">
+      <a href="{{ url_for('student_dashboard') }}" class="btn-back">
+        <i class="ph-bold ph-arrow-left"></i> Dashboard
+      </a>
+      <a href="{{ url_for('student_applications') }}" class="btn-secondary">
+        <i class="ph-bold ph-kanban"></i> My Applications
+      </a>
+    </div>
+  </div>
 
-      <div
-        style="
-          margin: 1.25rem 0;
-          background: rgba(37, 99, 235, 0.05);
-          padding: 1rem;
-          border-radius: 10px;
-          border: 1px solid rgba(37, 99, 235, 0.1);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-          "
-        >
-          <span
-            style="
-              font-weight: 600;
-              color: var(--primary);
-              display: flex;
-              align-items: center;
-              gap: 0.4rem;
-            "
-          >
-            <i class="ph-bold ph-sparkle"></i> AI Match Score
-          </span>
-          <span style="font-weight: 700; color: var(--primary)"
-            >{{ job.match_score }}%</span
-          >
-        </div>
-        <div
-          style="
-            height: 8px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
-            overflow: hidden;
-          "
-        >
-          <div
-            style="height: 100%; --width: {{ job.match_score }}%; width: var(--width); background: var(--gradient); border-radius: 10px;"
-          ></div>
-        </div>
+  <!-- Operational Filter Toolbar -->
+  <div class="drives-toolbar">
+    <div class="drives-search-wrap">
+      <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-subtle);"></i>
+      <input
+        type="text"
+        id="jobSearchInput"
+        class="drives-search-input"
+        placeholder="Filter by company, role title, location, or skills..."
+        oninput="filterFeed()"
+      />
+    </div>
+
+    <div class="drives-filter-group">
+      <select id="eligibilitySelect" class="filter-select" onchange="filterFeed()">
+        <option value="all">All Drives ({{ jobs|length }})</option>
+        <option value="eligible">✓ Eligible for Me</option>
+        <option value="dream">★ Dream Drives (≥ 10 LPA)</option>
+        <option value="applied">Applied Drives</option>
+      </select>
+
+      <div id="driveCounter" style="font-size: 0.825rem; font-weight: 600; color: var(--text-muted); padding: 0.35rem 0.65rem; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); white-space: nowrap;">
+        {{ jobs|length }} Active Drives
       </div>
+    </div>
+  </div>
 
-      <div class="job-meta">
-        <span><i class="ph ph-calendar"></i> Drive: {{ job.drive_date }}</span>
-      </div>
+  <!-- Enterprise Opportunities Feed -->
+  <div class="drives-feed" id="drivesFeedList">
+    {% for job in jobs %}
+    {% set is_applied = job._id|string in applied_job_ids_str %}
+    {% set is_eligible = student.cgpa >= job.min_cgpa %}
+    {% set is_dream = (job.package and '10' in job.package) or (job.package and ('1' in job.package or '2' in job.package or '3' in job.package) and 'LPA' in job.package) %}
 
-        {% if job.attachment_id %}
-        <div class="attachment-preview" style="width: 100%; margin-bottom: 1rem;">
-            {% set ext = job.safe_data.get('attachment_filename', '').split('.')[-1] | lower if job.safe_data and job.safe_data.get('attachment_filename') else 'file' %}
-            
-            {# Since we don't have easy filename access in template without safe_data sometimes, we rely on a generic check or if you stored it #}
-            {# For now, assuming we assume standard download button but let's try to be smart if possible #}
-            
-            <a href="{{ url_for('file_serving.serve_file', file_id=job.attachment_id) }}" target="_blank" class="attachment-card">
-                <div class="att-icon">
-                    <i class="ph-bold ph-file-text"></i>
-                </div>
-                <div class="att-info">
-                    <span>View Attachment</span>
-                    <small>Click to open</small>
-                </div>
-                <i class="ph-bold ph-arrow-square-out"></i>
-            </a>
+    <div class="drive-row {% if not is_eligible %}is-locked{% endif %}"
+         data-company="{{ job.company_name | lower }}"
+         data-role="{{ job.role | lower }}"
+         data-location="{{ (job.location or '') | lower }}"
+         data-eligible="{{ 'yes' if is_eligible else 'no' }}"
+         data-applied="{{ 'yes' if is_applied else 'no' }}"
+         data-package="{{ job.package or '' }}"
+         id="drive-{{ job._id }}">
+      
+      <!-- Left: Monogram & Job Identity -->
+      <div class="drive-identity">
+        <div class="company-avatar">
+          {{ job.company_name[0].upper() }}
         </div>
-        {% endif %} 
-        
-        <div class="job-actions" style="display: flex; gap: 0.5rem; width: 100%;">
-             {% if job.external_url %}
-            <a
-              href="{{ job.external_url }}"
-              target="_blank"
-              class="btn-secondary"
-              style="flex: 1;"
-            >
-              <i class="ph-bold ph-link"></i> Apply Link
+        <div>
+          <div class="company-name-row">
+            <span>{{ job.company_name }}</span>
+            {% if job.external_url %}
+            <a href="{{ job.external_url }}" target="_blank" class="external-icon-link" title="Visit Official Company Recruitment Portal">
+              <i class="ph-bold ph-arrow-square-out"></i>
             </a>
             {% endif %}
+            {% if is_dream %}
+            <span class="dream-pill">★ Dream Drive</span>
+            {% endif %}
+          </div>
+          <h2 class="role-title">{{ job.role }}</h2>
+          <div style="display: flex; gap: 0.5rem; align-items: center; font-size: 0.775rem; color: var(--text-subtle);">
+            <span><i class="ph-bold ph-briefcase"></i> {{ job.employment_type or 'Full-Time Campus' }}</span>
+            <span>•</span>
+            <span><i class="ph-bold ph-map-pin"></i> {{ job.location or 'Multiple Locations' }}</span>
+          </div>
+        </div>
       </div>
 
-      {% if job._id|string in applied_job_ids_str %}
-      <button class="btn-secondary w-100" disabled>
-        <i class="ph ph-check-circle"></i> Already Applied
-      </button>
-      {% elif student.cgpa >= job.min_cgpa %}
-      <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button type="submit" class="btn-primary w-100">Apply Now</button>
-      </form>
-      {% else %}
-      <button
-        class="btn-secondary w-100"
-        disabled
-        style="opacity: 0.6; cursor: not-allowed"
-      >
-        <i class="ph ph-info"></i> Not Eligible
-      </button>
-      {% endif %}
+      <!-- Center: Key Operational Metrics -->
+      <div class="drive-metrics-col">
+        <div class="metric-item">
+          <span class="metric-item-label">Compensation</span>
+          <span class="metric-item-val pkg-highlight">
+            {{ job.package or 'Disclosed in Drive' }}
+          </span>
+        </div>
+
+        <div class="metric-item">
+          <span class="metric-item-label">Drive Schedule</span>
+          <span class="metric-item-val" style="font-size: 0.85rem; font-weight: 600;">
+            <i class="ph-bold ph-calendar"></i> Drive: {{ job.drive_date.strftime('%d %b %Y') if job.drive_date and job.drive_date is not string and job.drive_date.strftime is defined else ((job.drive_date|string)[:10] if job.drive_date else 'Scheduled') }}
+          </span>
+        </div>
+
+        <div class="metric-item">
+          <span class="metric-item-label">Academic Benchmark</span>
+          <div style="margin-top: 0.15rem;">
+            {% if is_eligible %}
+            <span class="eligibility-pill ok">
+              <i class="ph-bold ph-check"></i> Eligible (Min {{ job.min_cgpa }})
+            </span>
+            {% else %}
+            <span class="eligibility-pill lock">
+              <i class="ph-bold ph-lock"></i> Min {{ job.min_cgpa }} Required
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Action Buttons -->
+      <div class="drive-actions-col">
+        {% if is_applied %}
+        <span class="status-chip-applied">
+          <i class="ph-bold ph-check-circle"></i> Applied
+        </span>
+        {% elif is_eligible %}
+        <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-apply-corp">
+            Apply Now <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </form>
+        {% else %}
+        <span style="font-size: 0.775rem; color: var(--text-subtle); display: inline-flex; align-items: center; gap: 0.25rem;">
+          <i class="ph-bold ph-lock"></i> Criteria Not Met
+        </span>
+        {% endif %}
+
+        <button type="button" class="btn-details-toggle" onclick="toggleDetails('{{ job._id }}')" title="View Job Description & Brochure">
+          Details <i class="ph-bold ph-caret-down"></i>
+        </button>
+      </div>
+
+      <!-- Collapsible JD Drawer -->
+      <div class="drive-details-drawer" id="drawer-{{ job._id }}">
+        <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Job Description & Eligibility Guidelines</div>
+        <p style="margin: 0; line-height: 1.6;">
+          {{ job.description or 'Official job brochure issued by recruiter. Contact placement coordinator for detailed round schedules and syllabus.' }}
+        </p>
+
+        <div class="drawer-meta-grid">
+          <div>
+            <strong style="color: var(--text-main); display: block; margin-bottom: 0.2rem;">Application Deadline:</strong>
+            <span>{{ job.expires_at.strftime('%d %b %Y') if job.expires_at and job.expires_at is not string and job.expires_at.strftime is defined else 'Open until drive commencement' }}</span>
+          </div>
+          <div>
+            <strong style="color: var(--text-main); display: block; margin-bottom: 0.2rem;">Official Attachment:</strong>
+            {% if job.attachment_id %}
+            <a href="{{ url_for('file_serving.serve_file', file_id=job.attachment_id) }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">
+              <i class="ph-bold ph-file-pdf" style="color: var(--danger);"></i> Download JD PDF
+            </a>
+            {% else %}
+            <span>No external PDF attached</span>
+            {% endif %}
+          </div>
+          {% if job.external_url %}
+          <div>
+            <strong style="color: var(--text-main); display: block; margin-bottom: 0.2rem;">External Portal:</strong>
+            <a href="{{ job.external_url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+              Open Company Portal ↗
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 4rem 2rem; text-align: center;">
+      <i class="ph-duotone ph-briefcase" style="font-size: 2.5rem; color: var(--text-subtle); margin-bottom: 0.75rem;"></i>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">No Active Placement Drives</h3>
+      <p style="color: var(--text-muted); font-size: 0.875rem;">Check announcements for upcoming campus recruitment schedules.</p>
     </div>
     {% endfor %}
   </div>
+
 </div>
 
-<style>
-  .job-card.locked {
-    background: rgba(241, 245, 249, 0.5);
-  }
+<script>
+function filterFeed() {
+  const query = (document.getElementById('jobSearchInput').value || '').toLowerCase().trim();
+  const filter = document.getElementById('eligibilitySelect').value;
+  const rows = document.querySelectorAll('.drive-row');
+  let count = 0;
 
-  .badge-error {
-    background: #fee2e2;
-    color: #b91c1c;
+  rows.forEach(row => {
+    const company = row.dataset.company || '';
+    const role = row.dataset.role || '';
+    const location = row.dataset.location || '';
+    const isEligible = row.dataset.eligible === 'yes';
+    const isApplied = row.dataset.applied === 'yes';
+    const pkg = row.dataset.package || '';
+
+    // Search query check
+    const matchesSearch = !query || company.includes(query) || role.includes(query) || location.includes(query);
+
+    // Filter check
+    let matchesFilter = true;
+    if (filter === 'eligible') matchesFilter = isEligible;
+    else if (filter === 'applied') matchesFilter = isApplied;
+    else if (filter === 'dream') {
+      matchesFilter = pkg.includes('1') || pkg.includes('2') || pkg.includes('3') || pkg.includes('LPA');
+    }
+
+    if (matchesSearch && matchesFilter) {
+      row.style.display = 'flex';
+      count++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const counter = document.getElementById('driveCounter');
+  if (counter) {
+    counter.textContent = `${count} Drive${count !== 1 ? 's' : ''}`;
   }
-</style>
+}
+
+function toggleDetails(jobId) {
+  const drawer = document.getElementById('drawer-' + jobId);
+  if (drawer) {
+    const isVisible = drawer.style.display === 'block';
+    drawer.style.display = isVisible ? 'none' : 'block';
+  }
+}
+
+function confirmApply(company, role) {
+  return confirm(`Confirm application for ${role} at ${company} using your verified CBS placement profile?`);
+}
+</script>
 {% endblock %}

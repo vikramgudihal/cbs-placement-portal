@@ -1,127 +1,921 @@
-{% extends 'base.html' %} {% block content %}
-<div class="container">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    "
-  >
-    <h2 style="color: var(--primary); margin: 0">Forms & Surveys</h2>
-    <a href="{{ url_for('student_dashboard') }}" class="btn-secondary">
-      <i class="ph-bold ph-arrow-left"></i> Back
-    </a>
+{% extends 'base.html' %}
+{% block title %}Candidate Forms &amp; Surveys | CBS 3i-cell{% endblock %}
+{% block page_title %}Forms &amp; Surveys{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL CANDIDATE FORMS & SURVEYS (Modern Fluid Layout)
+     ============================================================ */
+
+  :root {
+    --sf-indigo: #4f46e5;
+    --sf-blue: #2563eb;
+    --sf-emerald: #10b981;
+    --sf-amber: #f59e0b;
+    --sf-rose: #ef4444;
+  }
+
+  .student-forms-wrap {
+    max-width: 1200px;
+    margin: 1.5rem auto 4rem auto;
+    padding: 0 1rem;
+  }
+
+  /* 1. Ambient Banner */
+  .forms-hero-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .forms-hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .banner-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner-left h1 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .banner-left p {
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .banner-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-banner-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.35rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-glass:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    transform: translateY(-2px);
+  }
+
+  /* Metric Counter Ribbon */
+  .forms-stats-ribbon {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .stat-pill-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+  }
+
+  .stat-pill-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+
+  .stat-pill-info .stat-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-pill-info .stat-label {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* 2. Controls Toolbar */
+  .forms-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .segmented-tabs {
+    display: inline-flex;
+    background: #ffffff;
+    padding: 0.35rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    gap: 0.25rem;
+  }
+
+  .tab-btn {
+    border: none;
+    background: transparent;
+    padding: 0.55rem 1.2rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    color: #1e293b;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .tab-badge {
+    background: rgba(0, 0, 0, 0.06);
+    color: inherit;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+  }
+
+  .tab-btn.active .tab-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+
+  .search-box-wrap {
+    position: relative;
+    min-width: 260px;
+    flex-grow: 1;
+    max-width: 360px;
+  }
+
+  .search-box-wrap i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1.1rem;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.65rem 1rem 0.65rem 2.6rem;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    font-size: 0.88rem;
+    color: #1e293b;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  /* 3. Section Titles */
+  .section-heading-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+  }
+
+  .section-badge-count {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.65rem;
+    background: #e2e8f0;
+    color: #475569;
+    font-weight: 700;
+    border-radius: 9999px;
+  }
+
+  /* 4. Fluid Card Grid */
+  .forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* Form Card Design */
+  .form-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.1);
+    border-color: #cbd5e1;
+  }
+
+  .form-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .form-icon-disc {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.18));
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .status-pill.open {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+  }
+
+  .status-pill.submitted {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+  }
+
+  .form-card-title {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.35;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .form-card-desc {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.55;
+    margin-bottom: 1.25rem;
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .form-meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    padding: 0.35rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .meta-chip i {
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+
+  .btn-form-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-form-action.primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 8px 18px -4px rgba(37, 99, 235, 0.35);
+  }
+
+  .btn-form-action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px -4px rgba(37, 99, 235, 0.48);
+    color: #ffffff;
+  }
+
+  /* Submitted Response Card */
+  .response-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    transition: all 0.2s ease;
+  }
+
+  .response-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  }
+
+  .response-header {
+    padding: 1.35rem 1.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    background: #ffffff;
+    transition: background 0.15s ease;
+  }
+
+  .response-header:hover {
+    background: #f8fafc;
+  }
+
+  .response-info-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .response-check-disc {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .response-title-group h4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .response-date {
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .response-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .toggle-drawer-btn {
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.5rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .toggle-drawer-btn i {
+    transition: transform 0.2s ease;
+  }
+
+  .toggle-drawer-btn.open i {
+    transform: rotate(180deg);
+  }
+
+  .response-drawer {
+    display: none;
+    padding: 1.5rem 1.75rem 1.75rem 1.75rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .response-drawer.active {
+    display: block;
+    animation: fadeInDrawer 0.25s ease-out;
+  }
+
+  @keyframes fadeInDrawer {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .drawer-subheading {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .answer-pill-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+  }
+
+  .answer-question-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+    display: block;
+  }
+
+  .answer-value-text {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    word-break: break-word;
+  }
+
+  /* Empty state */
+  .forms-empty-state {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 2px dashed #e2e8f0;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    margin: 1.5rem 0;
+  }
+
+  .forms-empty-disc {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .forms-empty-state h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .forms-empty-state p {
+    font-size: 0.9rem;
+    color: #64748b;
+    max-width: 440px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="student-forms-wrap">
+
+  {# Precompute counts #}
+  {% set pending_forms = [] %}
+  {% for form in forms %}
+    {% if form.get('is_active', true) and form._id not in submitted_ids %}
+      {% set _ = pending_forms.append(form) %}
+    {% endif %}
+  {% endfor %}
+
+  <!-- 1. Ambient Candidate Banner -->
+  <div class="forms-hero-banner">
+    <div class="banner-inner">
+      <div class="banner-left">
+        <h1>
+          <i class="ph-duotone ph-clipboard-text"></i>
+          Candidate Surveys &amp; Form Vault
+        </h1>
+        <p>Complete active placement questionnaires, survey preferences, and review your historical submission records.</p>
+      </div>
+      <div class="banner-actions">
+        <a href="{{ url_for('student_dashboard') }}" class="btn-banner-glass">
+          <i class="ph-bold ph-arrow-left"></i> Candidate Hub
+        </a>
+      </div>
+    </div>
+
+    <!-- Metric Counter Ribbon -->
+    <div class="forms-stats-ribbon">
+      <div class="stat-pill-item">
+        <div class="stat-pill-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <i class="ph-bold ph-clock-countdown"></i>
+        </div>
+        <div class="stat-pill-info">
+          <div class="stat-value">{{ pending_forms|length }}</div>
+          <div class="stat-label">Pending Action</div>
+        </div>
+      </div>
+
+      <div class="stat-pill-item">
+        <div class="stat-pill-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="ph-bold ph-check-circle"></i>
+        </div>
+        <div class="stat-pill-info">
+          <div class="stat-value">{{ my_responses|length }}</div>
+          <div class="stat-label">Completed Forms</div>
+        </div>
+      </div>
+
+      <div class="stat-pill-item">
+        <div class="stat-pill-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+          <i class="ph-bold ph-folder"></i>
+        </div>
+        <div class="stat-pill-info">
+          <div class="stat-value">{{ forms|length }}</div>
+          <div class="stat-label">Total Assigned</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- My Submitted Forms Section -->
-  {% if my_responses %}
-  <div style="margin-bottom: 2rem">
-    <h3 style="color: var(--text-main); margin-bottom: 1rem">
-      <i class="ph-bold ph-check-circle" style="color: var(--success)"></i> My
-      Submitted Forms
-    </h3>
-    <div class="jobs-grid">
-      {% for response in my_responses %}
-      <div
-        class="job-card glass-card"
-        style="border-left: 4px solid var(--success)"
-      >
-        <div class="d-flex justify-content-between align-items-start mb-3">
-          <div
-            class="job-icon"
-            style="background: var(--success); color: white"
-          >
-            <i
-              class="ph-duotone ph-clipboard-text"
-              style="font-size: 1.5rem"
-            ></i>
+  <!-- 2. Controls Toolbar & Segmented Tabs -->
+  <div class="forms-toolbar">
+    <div class="segmented-tabs" role="tablist">
+      <button class="tab-btn active" id="tab-all" onclick="switchTab('all')">
+        <i class="ph-bold ph-squares-four"></i>
+        All Surveys
+        <span class="tab-badge">{{ (pending_forms|length) + (my_responses|length) }}</span>
+      </button>
+      <button class="tab-btn" id="tab-pending" onclick="switchTab('pending')">
+        <i class="ph-bold ph-clock"></i>
+        Action Required
+        <span class="tab-badge">{{ pending_forms|length }}</span>
+      </button>
+      <button class="tab-btn" id="tab-completed" onclick="switchTab('completed')">
+        <i class="ph-bold ph-check"></i>
+        Submitted History
+        <span class="tab-badge">{{ my_responses|length }}</span>
+      </button>
+    </div>
+
+    <div class="search-box-wrap">
+      <i class="ph-bold ph-magnifying-glass"></i>
+      <input type="text" id="formsSearch" class="search-input" placeholder="Search forms by title..." oninput="handleFormsSearch(this.value)">
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SECTION A: ACTION REQUIRED (Pending Forms)
+       ============================================================ -->
+  <div id="section-pending" class="content-tab-section">
+    <div class="section-heading-bar">
+      <h2 class="section-title">
+        <i class="ph-bold ph-fire" style="color: #f59e0b;"></i>
+        Action Required: Pending Forms
+      </h2>
+      <span class="section-badge-count">{{ pending_forms|length }} open</span>
+    </div>
+
+    {% if pending_forms|length > 0 %}
+      <div class="forms-grid">
+        {% for form in pending_forms %}
+        <div class="form-card searchable-form" data-title="{{ form.title|lower }}" data-desc="{{ form.description|lower }}">
+          <div>
+            <div class="form-card-header">
+              <div class="form-icon-disc">
+                <i class="ph-duotone ph-file-text"></i>
+              </div>
+              <span class="status-pill open">
+                <i class="ph-bold ph-circle"></i> Open
+              </span>
+            </div>
+
+            <h3 class="form-card-title">{{ form.title }}</h3>
+            <p class="form-card-desc">{{ form.description or 'No additional instructions provided for this questionnaire.' }}</p>
+
+            <div class="form-meta-chips">
+              <span class="meta-chip">
+                <i class="ph-bold ph-list-numbers"></i>
+                {{ form.fields|length if form.fields else 0 }} Questions
+              </span>
+              {% if form.created_at %}
+              <span class="meta-chip">
+                <i class="ph-bold ph-calendar-blank"></i>
+                {{ form.created_at.strftime('%d %b %Y') }}
+              </span>
+              {% endif %}
+              <span class="meta-chip" style="color: #059669; background: #ecfdf5; border-color: #d1fae5;">
+                <i class="ph-bold ph-shield-check" style="color: #059669;"></i>
+                Verified Drive
+              </span>
+            </div>
           </div>
-          <span class="badge" style="background: var(--success); color: white"
-            >Submitted</span
-          >
-        </div>
 
-        <h4 class="mb-2">
-          {% for form in forms %}{% if form._id == response.form_id %}{{
-          form.title }}{% endif %}{% endfor %}
-        </h4>
-        <p
-          style="
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-          "
-        >
-          Submitted: {{ response.submitted_at.strftime('%d %b %Y, %H:%M') if
-          response.submitted_at else 'N/A' }}
-        </p>
-
-        <div
-          style="
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-          "
-        >
-          <p style="font-size: 0.9rem; color: var(--text-muted)">
-            <strong>Responses:</strong>
-          </p>
-          <ul
-            style="
-              font-size: 0.85rem;
-              color: var(--text-main);
-              padding-left: 1.2rem;
-            "
-          >
-            {% for key, value in response.answers.items() %}
-            <li>
-              {{ key }}: {% if value|length > 50 %}{{ value[:50] }}...{% else
-              %}{{ value }}{% endif %}
-            </li>
-            {% endfor %}
-          </ul>
+          <div>
+            <a href="{{ url_for('dynamic_forms.fill_form', form_id=form._id) }}" class="btn-form-action primary">
+              <span>Fill Questionnaire</span>
+              <i class="ph-bold ph-arrow-right"></i>
+            </a>
+          </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Available Forms Section -->
-  <h3 style="color: var(--text-main); margin-bottom: 1rem">
-    <i class="ph-bold ph-clipboard-list"></i> Available Forms
-  </h3>
-  <div class="jobs-grid">
-    {% for form in forms %} {% if form._id not in submitted_ids %}
-    <div class="job-card glass-card">
-      <div class="d-flex justify-content-between align-items-start mb-3">
-        <div class="job-icon">
-          <i
-            class="ph-duotone ph-clipboard-text"
-            style="font-size: 2rem; color: var(--primary)"
-          ></i>
+    {% else %}
+      <div class="forms-empty-state">
+        <div class="forms-empty-disc" style="background: #ecfdf5; color: #10b981;">
+          <i class="ph-duotone ph-check-circle"></i>
         </div>
-        <span class="badge">Open</span>
+        <h3>All Caught Up!</h3>
+        <p>You have no outstanding forms or questionnaires requiring submission. When new placement surveys are released, they will appear here.</p>
       </div>
-
-      <h3 class="mb-2">{{ form.title }}</h3>
-      <p style="color: var(--text-muted); margin-bottom: 1.5rem">
-        {{ form.description }}
-      </p>
-
-      <a
-        href="{{ url_for('dynamic_forms.fill_form', form_id=form._id) }}"
-        class="btn-primary w-100"
-      >
-        Fill Out Form
-      </a>
-    </div>
-    {% endif %} {% else %}
-    <div class="col-12 text-center text-muted">
-      <p>No active forms or surveys at the moment.</p>
-    </div>
-    {% endfor %}
+    {% endif %}
   </div>
+
+  <!-- ============================================================
+       SECTION B: SUBMISSION HISTORY
+       ============================================================ -->
+  <div id="section-completed" class="content-tab-section" style="margin-top: 2.5rem;">
+    <div class="section-heading-bar">
+      <h2 class="section-title">
+        <i class="ph-bold ph-checks" style="color: #10b981;"></i>
+        Submitted Form Records
+      </h2>
+      <span class="section-badge-count">{{ my_responses|length }} completed</span>
+    </div>
+
+    {% if my_responses %}
+      <div class="submitted-forms-list">
+        {% for response in my_responses %}
+          {# Find corresponding form info #}
+          {% set matched_form = {'title': 'Placement Form', 'description': ''} %}
+          {% for f in forms %}
+            {% if f._id == response.form_id %}
+              {% set _ = matched_form.update({'title': f.title, 'description': f.description}) %}
+            {% endif %}
+          {% endfor %}
+
+          <div class="response-card searchable-form" data-title="{{ matched_form.title|lower }}" data-desc="{{ matched_form.description|lower }}">
+            <div class="response-header" onclick="toggleResponseDrawer('drawer-{{ loop.index }}', 'btn-toggle-{{ loop.index }}')">
+              <div class="response-info-left">
+                <div class="response-check-disc">
+                  <i class="ph-bold ph-check"></i>
+                </div>
+                <div class="response-title-group">
+                  <h4>{{ matched_form.title }}</h4>
+                  <div class="response-date">
+                    <i class="ph-bold ph-clock"></i>
+                    Submitted on: {{ response.submitted_at.strftime('%d %b %Y, %I:%M %p') if response.submitted_at else 'Verified Entry' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="response-actions-right">
+                <span class="status-pill submitted">
+                  <i class="ph-bold ph-check-circle"></i> Recorded
+                </span>
+                <button type="button" class="toggle-drawer-btn" id="btn-toggle-{{ loop.index }}">
+                  <span>View Answers</span>
+                  <i class="ph-bold ph-caret-down"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="drawer-{{ loop.index }}" class="response-drawer">
+              <div class="drawer-subheading">
+                <i class="ph-bold ph-article"></i> Your Recorded Responses
+              </div>
+
+              {% if response.answers %}
+                <div class="answers-grid">
+                  {% for key, value in response.answers.items() %}
+                  <div class="answer-pill-box">
+                    <span class="answer-question-label">{{ key }}</span>
+                    <div class="answer-value-text">
+                      {% if value and (value|string|length == 24 and not (' ' in value|string)) %}
+                        {# Possible GridFS ObjectId #}
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; color: #2563eb;">
+                          <i class="ph-bold ph-paperclip"></i> Uploaded Document [Ref #{{ value|string|truncate(10, True, '...') }}]
+                        </span>
+                      {% else %}
+                        {{ value if value else '—' }}
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p style="font-size: 0.88rem; color: #64748b; margin: 0;">No individual answer values available for this record.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="forms-empty-state">
+        <div class="forms-empty-disc">
+          <i class="ph-duotone ph-hourglass"></i>
+        </div>
+        <h3>No Submissions Yet</h3>
+        <p>Once you complete and submit placement surveys or company drive choice forms, your historical response slips will be organized right here.</p>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
+
+<script>
+  // Tab Switching
+  function switchTab(mode) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    const pendingSec = document.getElementById('section-pending');
+    const completedSec = document.getElementById('section-completed');
+    
+    if (mode === 'all') {
+      document.getElementById('tab-all').classList.add('active');
+      if (pendingSec) pendingSec.style.display = 'block';
+      if (completedSec) completedSec.style.display = 'block';
+    } else if (mode === 'pending') {
+      document.getElementById('tab-pending').classList.add('active');
+      if (pendingSec) pendingSec.style.display = 'block';
+      if (completedSec) completedSec.style.display = 'none';
+    } else if (mode === 'completed') {
+      document.getElementById('tab-completed').classList.add('active');
+      if (pendingSec) pendingSec.style.display = 'none';
+      if (completedSec) completedSec.style.display = 'block';
+    }
+  }
+
+  // Accordion drawer toggle
+  function toggleResponseDrawer(drawerId, btnId) {
+    const drawer = document.getElementById(drawerId);
+    const btn = document.getElementById(btnId);
+    if (!drawer) return;
+
+    const isActive = drawer.classList.contains('active');
+    if (isActive) {
+      drawer.classList.remove('active');
+      if (btn) {
+        btn.classList.remove('open');
+        btn.querySelector('span').textContent = 'View Answers';
+      }
+    } else {
+      drawer.classList.add('active');
+      if (btn) {
+        btn.classList.add('open');
+        btn.querySelector('span').textContent = 'Hide Answers';
+      }
+    }
+  }
+
+  // Real-time search filter
+  function handleFormsSearch(query) {
+    const q = query.toLowerCase().trim();
+    const cards = document.querySelectorAll('.searchable-form');
+
+    cards.forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      const desc = card.getAttribute('data-desc') || '';
+      if (!q || title.includes(q) || desc.includes(q)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
 {% endblock %}

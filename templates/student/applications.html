@@ -1,195 +1,588 @@
-{% extends 'base.html' %} {% block title %}My Applications - CBS 3i-cell{%
-endblock %} {% block content %}
-<div class="section-card glass-card">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    "
-  >
-    <h2>
-      <i
-        class="ph-bold ph-paper-plane-tilt"
-        style="color: var(--primary); margin-right: 0.5rem"
-      ></i>
-      My Applications
-    </h2>
-    <a href="{{ url_for('student_dashboard') }}" class="btn-secondary">
-      <i class="ph ph-arrow-left"></i> Dashboard
-    </a>
-  </div>
+{% extends 'base.html' %}
+{% block title %}My Applications Pipeline | CBS 3i-cell{% endblock %}
+{% block page_title %}Applications Pipeline{% endblock %}
 
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL CANDIDATE APPLICATION PIPELINE (Modern Fluid)
+     ============================================================ */
+
+  :root {
+    --app-indigo: #4f46e5;
+    --app-blue: #2563eb;
+    --app-emerald: #10b981;
+    --app-amber: #f59e0b;
+    --app-rose: #ef4444;
+  }
+
+  .applications-stream-wrap {
+    max-width: 1180px;
+    margin: 1.5rem auto 4rem auto;
+  }
+
+  /* ============================================================
+     1. PIPELINE HEADER BANNER
+     ============================================================ */
+  .pipeline-header-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .pipeline-header-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .pipeline-banner-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner-title-block h1 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.35rem 0;
+  }
+
+  .banner-title-block p {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .pipeline-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-pipe-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .btn-pipe-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.55);
+    color: #ffffff;
+  }
+
+  .btn-pipe-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .btn-pipe-glass:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
+
+  /* ============================================================
+     2. APPLICATION CARD WITH INTERACTIVE STAGES
+     ============================================================ */
+  .application-fluid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+  }
+
+  [data-theme="dark"] .application-fluid-card {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .application-fluid-card:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -5px rgba(15, 23, 42, 0.1);
+  }
+
+  .app-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .app-company-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+  }
+
+  .app-avatar-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+  }
+
+  .app-company-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .app-role-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .status-badge-chip {
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-badge-chip.selected {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .status-badge-chip.active-round {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .status-badge-chip.rejected {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  .status-badge-chip.applied {
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--app-indigo);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+  }
+
+  /* 4-Stage Connected Stepper */
+  .app-journey-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    position: relative;
+    padding: 1rem 0 0.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .app-journey-stepper::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+
+  .stepper-node {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    margin-bottom: 0.45rem;
+    color: var(--text-muted);
+  }
+
+  .stepper-lbl {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .stepper-node.completed .stepper-dot {
+    background: var(--app-emerald);
+    border-color: var(--app-emerald);
+    color: #ffffff;
+  }
+
+  .stepper-node.completed .stepper-lbl {
+    color: var(--app-emerald);
+  }
+
+  .stepper-node.current .stepper-dot {
+    background: var(--app-indigo);
+    border-color: var(--app-indigo);
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  }
+
+  .stepper-node.current .stepper-lbl {
+    color: var(--app-indigo);
+    font-weight: 800;
+  }
+
+  /* Confirmation Slip (For Interview / GD) */
+  .interview-attendance-slip {
+    margin-top: 1.25rem;
+    padding: 1.15rem 1.35rem;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .slip-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .slip-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f59e0b;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .btn-slip-attend {
+    padding: 0.55rem 1.15rem;
+    border-radius: 8px;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-slip-attend:hover {
+    background: #059669;
+  }
+
+  .btn-slip-decline {
+    padding: 0.55rem 1.15rem;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-slip-decline:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 640px) {
+    .pipeline-header-banner {
+      padding: 1.75rem 1.25rem;
+    }
+    .application-fluid-card {
+      padding: 1.25rem 1.15rem;
+    }
+    .pipeline-action-buttons {
+      width: 100%;
+    }
+    .pipeline-action-buttons a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="applications-stream-wrap">
+
+  <!-- ============================================================
+       1. PIPELINE HEADER BANNER
+       ============================================================ -->
+  <section class="pipeline-header-banner">
+    <div class="pipeline-banner-inner">
+      <div class="banner-title-block">
+        <h1>Application Hiring Pipeline</h1>
+        <p>Real-time candidate progression across written aptitude, group discussions, technical evaluations, and official joining letters.</p>
+      </div>
+
+      <div class="pipeline-action-buttons">
+        <a href="{{ url_for('student_jobs') }}" class="btn-pipe-primary">
+          <i class="ph-bold ph-plus-circle"></i>
+          <span>Explore More Drives</span>
+        </a>
+        <a href="{{ url_for('student_dashboard') }}" class="btn-pipe-glass">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. APPLICATIONS STREAM
+       ============================================================ -->
   {% if applications %}
-  <div class="applications-grid" style="display: grid; gap: 1.5rem">
+  <div>
     {% for app in applications %}
-    <div class="glass-card" style="padding: 1.5rem; position: relative">
-      <!-- Status Badge -->
-      <div style="position: absolute; top: 1.5rem; right: 1.5rem">
-        {% set status_val = app.status or 'Unknown' %}
-        <span
-          class="status-badge {{ status_val|lower|replace(' ', '-') }}"
-          style="padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; 
-              background: {% if status_val == 'Selected' %}rgba(34, 197, 94, 0.1); color: #16a34a;
-              {% elif status_val == 'Rejected' %}rgba(239, 68, 68, 0.1); color: #dc2626;
-              {% elif status_val in ['Interview', 'GD'] %}rgba(234, 179, 8, 0.1); color: #ca8a04;
-              {% else %}rgba(99, 102, 241, 0.1); color: var(--primary);{% endif %}"
-        >
-          {{ status_val }}
-        </span>
-      </div>
+    {% set status_val = app.status or 'Applied' %}
+    {% set grad_colors = [
+      'linear-gradient(135deg, #4f46e5, #3b82f6)',
+      'linear-gradient(135deg, #059669, #10b981)',
+      'linear-gradient(135deg, #d97706, #f59e0b)',
+      'linear-gradient(135deg, #7c3aed, #a855f7)',
+      'linear-gradient(135deg, #0284c7, #2563eb)'
+    ] %}
+    {% set company_name = app.job_info.company_name if app.job_info else 'Recruiter' %}
+    {% set color_idx = loop.index0 % 5 %}
 
-      <div style="margin-bottom: 1rem">
-        {% if app.job_info %}
-        <h3 style="margin-bottom: 0.25rem">
-          {{ app.job_info.company_name or 'Unknown Company' }}
-        </h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem">
-          {{ app.job_info.role or 'Unknown Role' }}
-        </p>
-        {% else %}
-        <h3 style="margin-bottom: 0.25rem">Job Details Unavailable</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem">
-          This job may have been removed
-        </p>
-        {% endif %}
-      </div>
-
-      <div
-        style="
-          display: flex;
-          gap: 2rem;
-          color: var(--text-muted);
-          font-size: 0.9rem;
-          margin-bottom: 1.5rem;
-        "
-      >
-        <span
-          ><i class="ph ph-calendar"></i> Applied: {{
-          app.applied_at.strftime('%d %b %Y') if app.applied_at else 'Unknown'
-          }}</span
-        >
-        {% if app.job_info and app.job_info.drive_date %}
-        <span
-          ><i class="ph ph-clock"></i> Drive: {{
-          app.job_info.drive_date.strftime('%d %b %Y') if
-          app.job_info.drive_date is not string else app.job_info.drive_date
-          }}</span
-        >
-        {% endif %}
-      </div>
-
-      <!-- Action Area for Interview/GD -->
-      {% if app.status in ['Interview', 'GD'] %}
-      <div
-        style="
-          background: rgba(234, 179, 8, 0.05);
-          padding: 1.25rem;
-          border-radius: 12px;
-          border: 1px solid rgba(234, 179, 8, 0.2);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            align-items: start;
-            gap: 1rem;
-            margin-bottom: 1rem;
-          "
-        >
-          <i
-            class="ph-fill ph-info"
-            style="color: #ca8a04; font-size: 1.5rem"
-          ></i>
+    <div class="application-fluid-card">
+      <div class="app-card-head">
+        <div class="app-company-meta">
+          <div class="app-avatar-box" style="background: {{ grad_colors[color_idx] }};">
+            {{ company_name[0]|upper }}
+          </div>
           <div>
-            <h4 style="color: #ca8a04; font-size: 1rem; margin-bottom: 0.25rem">
-              Action Required
-            </h4>
-            <p style="font-size: 0.9rem; color: var(--text-muted)">
-              Please confirm your attendance for the {{ app.status }}.
-            </p>
+            <h3 class="app-company-title">
+              <span>{{ company_name }}</span>
+            </h3>
+            <div class="app-role-subtitle">
+              {{ app.job_info.role if app.job_info else 'Campus Drive' }}
+              {% if app.job_info and app.job_info.package %}
+              &bull; <strong style="color: var(--text-main);"><i class="ph-bold ph-currency-dollar"></i> {{ app.job_info.package }}</strong>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <!-- Meta Date Pills -->
+          <span style="font-size: 0.78rem; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); padding: 0.3rem 0.65rem; border-radius: 8px;">
+            <i class="ph-bold ph-calendar"></i> Applied: {{ app.applied_at.strftime('%d %b %Y') if app.applied_at and app.applied_at.strftime is defined else 'Recently' }}
+          </span>
+
+          <!-- Status Chip -->
+          <span class="status-badge-chip
+            {% if status_val == 'Selected' %}selected
+            {% elif status_val in ['Shortlisted', 'Interview', 'GD'] %}active-round
+            {% elif status_val == 'Rejected' %}rejected
+            {% else %}applied{% endif %}
+          ">
+            {% if status_val == 'Selected' %}
+              <i class="ph-bold ph-trophy"></i> Offer Awarded
+            {% elif status_val in ['Interview', 'GD'] %}
+              <i class="ph-bold ph-hourglass-high"></i> {{ status_val }} Round
+            {% elif status_val == 'Shortlisted' %}
+              <i class="ph-bold ph-star"></i> Shortlisted
+            {% elif status_val == 'Rejected' %}
+              <i class="ph-bold ph-x-circle"></i> Exited Drive
+            {% else %}
+              <i class="ph-bold ph-paper-plane-tilt"></i> Application In Review
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- 4-Stage Connected Stepper -->
+      <div class="app-journey-stepper">
+        <!-- 1. Applied -->
+        <div class="stepper-node completed">
+          <div class="stepper-dot"><i class="ph-bold ph-check"></i></div>
+          <div class="stepper-lbl">Applied</div>
+        </div>
+
+        <!-- 2. Shortlisted -->
+        <div class="stepper-node {% if status_val in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}completed{% elif status_val == 'Rejected' %}rejected{% else %}current{% endif %}">
+          <div class="stepper-dot">
+            {% if status_val in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}
+              <i class="ph-bold ph-check"></i>
+            {% else %}
+              2
+            {% endif %}
+          </div>
+          <div class="stepper-lbl">Shortlisted</div>
+        </div>
+
+        <!-- 3. Interview / GD -->
+        <div class="stepper-node {% if status_val in ['GD', 'Interview', 'Selected'] %}completed{% elif status_val == 'Shortlisted' %}current{% else %}{% endif %}">
+          <div class="stepper-dot">
+            {% if status_val in ['GD', 'Interview', 'Selected'] %}
+              <i class="ph-bold ph-check"></i>
+            {% else %}
+              3
+            {% endif %}
+          </div>
+          <div class="stepper-lbl">Interview / GD</div>
+        </div>
+
+        <!-- 4. Final Offer -->
+        <div class="stepper-node {% if status_val == 'Selected' %}completed{% else %}{% endif %}">
+          <div class="stepper-dot">
+            {% if status_val == 'Selected' %}
+              <i class="ph-bold ph-trophy"></i>
+            {% else %}
+              4
+            {% endif %}
+          </div>
+          <div class="stepper-lbl">Offer Letter</div>
+        </div>
+      </div>
+
+      <!-- Attendance Confirmation Call Slip (For Interview / GD) -->
+      {% if status_val in ['Interview', 'GD'] %}
+      <div class="interview-attendance-slip">
+        <div class="slip-left">
+          <div class="slip-icon">
+            <i class="ph-fill ph-bell-ringing"></i>
+          </div>
+          <div>
+            <strong style="color: #92400e; font-size: 0.92rem; display: block;">
+              {{ status_val }} Attendance Confirmation Required
+            </strong>
+            <span style="font-size: 0.8rem; color: #78350f;">
+              Please indicate your attendance for the upcoming recruitment round.
+            </span>
           </div>
         </div>
 
         {% if app.student_response %}
-        <div style="margin-top: 0.5rem; font-weight: 600">
-          Your Response:
-          <span
-            style="color: {% if app.student_response == 'Attending' %}#16a34a{% else %}#dc2626{% endif %};"
-          >
-            {{ app.student_response }}
-          </span>
-          <span
-            style="
-              font-size: 0.8rem;
-              color: var(--text-muted);
-              font-weight: 400;
-            "
-          >
-            (Recorded on {{ app.response_at.strftime('%d %b %H:%M') if
-            app.response_at else 'Unknown' }})
-          </span>
+        <div style="font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem; color: {% if app.student_response == 'Attending' %}#059669{% else %}#dc2626{% endif %};">
+          <i class="ph-bold {% if app.student_response == 'Attending' %}ph-check-circle{% else %}ph-x-circle{% endif %}"></i>
+          <span>Response Logged: {{ app.student_response }}</span>
         </div>
         {% else %}
-        <div style="display: flex; gap: 1rem">
-          <form
-            action="{{ url_for('respond_application', app_id=app._id) }}"
-            method="POST"
-          >
+        <div style="display: flex; gap: 0.6rem;">
+          <form action="{{ url_for('respond_application', app_id=app._id) }}" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="response" value="Attending" />
-            <button
-              type="submit"
-              class="btn-primary"
-              style="
-                background: linear-gradient(135deg, #16a34a, #22c55e);
-                border: none;
-              "
-            >
+            <button type="submit" class="btn-slip-attend">
               <i class="ph-bold ph-check"></i> I Will Attend
             </button>
           </form>
-          <form
-            action="{{ url_for('respond_application', app_id=app._id) }}"
-            method="POST"
-          >
+          <form action="{{ url_for('respond_application', app_id=app._id) }}" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="response" value="Not Attending" />
-            <button
-              type="submit"
-              class="btn-secondary"
-              style="
-                background: rgba(239, 68, 68, 0.1);
-                color: #dc2626;
-                border: 1px solid rgba(239, 68, 68, 0.2);
-              "
-            >
-              <i class="ph-bold ph-x"></i> Not Attending
+            <button type="submit" class="btn-slip-decline">
+              <i class="ph-bold ph-x"></i> Cannot Attend
             </button>
           </form>
         </div>
         {% endif %}
       </div>
       {% endif %}
+
     </div>
     {% endfor %}
   </div>
+
   {% else %}
-  <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted)">
-    <i
-      class="ph-duotone ph-paper-plane-tilt"
-      style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5"
-    ></i>
-    <h3>No applications yet</h3>
-    <p>
-      Head over to the
-      <a href="{{ url_for('student_jobs') }}" style="color: var(--primary)"
-        >Job Portal</a
-      >
-      to apply.
+  <!-- Empty State -->
+  <div style="text-align: center; padding: 4.5rem 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 24px;">
+    <i class="ph-duotone ph-paper-plane-tilt" style="font-size: 3rem; color: var(--app-indigo); margin-bottom: 0.85rem; display: block;"></i>
+    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.45rem;">No Applications Submitted</h3>
+    <p style="color: var(--text-muted); max-width: 420px; margin: 0 auto 1.5rem auto; font-size: 0.9rem; line-height: 1.5;">
+      You have not applied to any campus drives yet. Explore active opportunities matching your branch and CGPA.
     </p>
+    <a href="{{ url_for('student_jobs') }}" class="btn-pipe-primary" style="display: inline-flex;">
+      <i class="ph-bold ph-briefcase"></i> Explore Available Jobs
+    </a>
   </div>
   {% endif %}
+
 </div>
 {% endblock %}

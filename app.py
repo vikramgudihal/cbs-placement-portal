@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session, request, flash
+from flask import Flask, render_template, redirect, url_for, session, request, flash, send_from_directory
 from utils.db import get_db, get_fs
 from utils.auth import hash_password, verify_password, login_required
 import os
@@ -15,7 +15,7 @@ from flask import make_response
 from utils.excel_generator import generate_student_export, generate_application_export
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', 'cbs-3i-cell-stable-secret-key-2026-prod-session')
 
 # Register Blueprints
 app.register_blueprint(file_serving_bp)
@@ -47,24 +47,42 @@ limiter = Limiter(
 talisman = Talisman(
     app,
     content_security_policy={
-        'default-src': ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://unpkg.com"],
+        'default-src': ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
         'img-src': ["'self'", "data:", "https:", "blob:"],
-        'script-src': ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
-        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"]
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+        'font-src': ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+        'connect-src': ["'self'", "https://cdn.jsdelivr.net", "https://unpkg.com"]
     },
     force_https=False  # Set to True in production with proper SSL
 )
 
 # 3. CSRF Protection
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 csrf = CSRFProtect(app)
 
-# 4. Session Security
+# 4. Session & Payload Security
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=False # Set to True in production (HTTPS)
+    SESSION_COOKIE_SECURE=False, # Set to True in production (HTTPS)
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024 # 16 MB max payload defense
 )
+
+# 5. Production Structured Logging (Rotating file log)
+import logging
+from logging.handlers import RotatingFileHandler
+
+os.makedirs('logs', exist_ok=True)
+log_file_path = os.path.join('logs', 'cbs_portal.log')
+file_handler = RotatingFileHandler(log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
+file_handler.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(module)s:%(lineno)d]: %(message)s'
+))
+file_handler.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info("CBS Placement Portal initialized with production-level hardening.")
 
 # Initialize DB
 db = get_db()
@@ -80,25 +98,85 @@ forms_collection = db['forms']
 form_responses_collection = db['form_responses']
 password_requests_collection = db['password_requests']
 
-# Ensure unique index on email
+# Production Index Optimization
+def ensure_production_indexes():
+    """Ensure database performance and integrity under high concurrent placement traffic."""
+    try:
+        users_collection.create_index("email", unique=True)
+        users_collection.create_index([("role", 1), ("is_approved", 1)])
+        users_collection.create_index([("created_at", -1)])
 
-# Ensure unique index on email
-users_collection.create_index("email", unique=True)
+        students_collection.create_index("user_id", unique=True)
+        students_collection.create_index("student_id", sparse=True)
+        students_collection.create_index([("is_active", 1), ("cgpa", -1)])
+        students_collection.create_index([("branch", 1)])
+        students_collection.create_index([("is_verified", 1)])
 
-# Helpful indexes for jobs/announcements (safe to run repeatedly)
-try:
-    jobs_collection.create_index([('status', 1)])
-    jobs_collection.create_index([('created_at', -1)])
-    jobs_collection.create_index([('expires_at', 1)])
-    jobs_collection.create_index([('company_name', 'text'), ('role', 'text'), ('description', 'text')])
+        applications_collection.create_index([("student_id", 1), ("job_id", 1)])
+        applications_collection.create_index([("status", 1), ("applied_at", -1)])
+        applications_collection.create_index([("job_id", 1), ("status", 1)])
 
-    announcements_collection.create_index([('status', 1)])
-    announcements_collection.create_index([('created_at', -1)])
-    announcements_collection.create_index([('expires_at', 1)])
-    announcements_collection.create_index([('title', 'text'), ('content', 'text')])
-except Exception:
-    # Index creation failure should not block app startup
-    pass
+        jobs_collection.create_index([('status', 1)])
+        jobs_collection.create_index([('created_at', -1)])
+        jobs_collection.create_index([('expires_at', 1)])
+        jobs_collection.create_index([('drive_date', 1)])
+        jobs_collection.create_index([('company_name', 'text'), ('role', 'text'), ('description', 'text')])
+
+        announcements_collection.create_index([('status', 1)])
+        announcements_collection.create_index([('created_at', -1)])
+        announcements_collection.create_index([('expires_at', 1)])
+
+        notifications_collection.create_index([('user_id', 1), ('is_read', 1), ('created_at', -1)])
+        login_logs_collection.create_index([('user_id', 1), ('login_time', -1)])
+    except Exception as e:
+        app.logger.warning(f"Production index creation warning: {e}")
+
+ensure_production_indexes()
+
+# --- PRODUCTION HEALTH CHECK ENDPOINT ---
+@app.route('/health')
+@app.route('/api/health')
+def health_check():
+    """Production Uptime & Database Connectivity Monitoring."""
+    from utils.db import check_db_health
+    db_ok, db_msg = check_db_health()
+    status_code = 200 if db_ok else 503
+    return {
+        "status": "healthy" if db_ok else "unhealthy",
+        "database": {
+            "connected": db_ok,
+            "message": db_msg
+        },
+        "service": {
+            "name": "CBS Placement ERP",
+            "version": "2.5.0-production",
+            "environment": os.environ.get('FLASK_ENV', 'production'),
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+    }, status_code
+
+# --- PRODUCTION ERROR HANDLERS ---
+@app.errorhandler(403)
+def forbidden_error(e):
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(404)
+def not_found_error(e):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return render_template('errors/429.html'), 429
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    flash("Security session expired. Please refresh the page and submit again.", "warning")
+    return redirect(request.referrer or url_for('home'))
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    app.logger.error(f"Internal 500 Exception: {str(e)}", exc_info=True)
+    return render_template('errors/500.html'), 500
 
 # --- CONTEXT PROCESSORS ---
 @app.context_processor
@@ -189,15 +267,17 @@ def login_post():
                 session['role'] = user['role']
                 return redirect(url_for('complete_profile'))
             
-            # Case 2: Profile Completed but Not Approved -> Wait
+            # Case 2: Profile Completed but Not Approved -> Wait for Super Admin Approval
             if not user.get('is_approved', False):
-                flash("Your profile is submitted and pending Admin Approval. Please check back later.", "info")
-                return redirect(url_for('login'))
+                student_doc = students_collection.find_one({'user_id': user['_id']})
+                student_name = (student_doc.get('name') if student_doc else None) or user.get('name', 'Student')
+                return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role='Student', pending_name=student_name)
         
-        # Check if admin/faculty is approved
+        # Check if admin/faculty is approved by super admin
         if user['role'] == 'admin' and not user.get('is_approved', False):
-            flash("Your admin account is pending super admin approval. Please wait.", "error")
-            return redirect(url_for('login'))
+            admin_title = 'Faculty Coordinator' if user.get('admin_level') == 'faculty' else 'Administrator'
+            admin_name = user.get('full_name') or user.get('name', 'Admin')
+            return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role=admin_title, pending_name=admin_name)
         
         session['user_id'] = str(user['_id'])
         session['role'] = user['role']
@@ -363,6 +443,18 @@ def complete_profile():
                 'profile_updated_at': datetime.datetime.now()
             }
             
+            # University Registration / Roll Number (P02DR25S126001 format)
+            new_student_id = request.form.get('student_id', '').strip().upper()
+            if new_student_id:
+                existing_s = students_collection.find_one({
+                    'student_id': new_student_id,
+                    'user_id': {'$ne': ObjectId(session['user_id'])}
+                })
+                if existing_s:
+                    flash(f"University Registration / Roll Number {new_student_id} is already taken by another student.", "error")
+                    return redirect(url_for('complete_profile'))
+                update_data['student_id'] = new_student_id
+            
             # Only update resume if a new one was uploaded
             if resume_id:
                 update_data['resume_file_id'] = resume_id
@@ -374,17 +466,22 @@ def complete_profile():
             )
             
             # Update User Status & Name
+            was_approved = user.get('is_approved', False) if user else False
             users_collection.update_one(
                 {'_id': ObjectId(session['user_id'])},
                 {'$set': {
                     'name': name, # Sync name
                     'profile_completed': True, 
-                    'is_approved': False
+                    'is_approved': was_approved
                 }}
             )
             
-            flash("Profile submitted successfully! Please wait for Admin Approval.", "success")
-            return redirect(url_for('login')) # Redirect to login/wait page logic
+            if was_approved:
+                flash("Profile updated successfully!", "success")
+                return redirect(url_for('student_profile'))
+            else:
+                flash("Profile submitted successfully! Please wait for Super Admin Approval.", "success")
+                return redirect(url_for('login'))
             
         except Exception as e:
             import traceback
@@ -418,24 +515,35 @@ def signup_post():
         
         # Student Registration
         if role == 'student':
-            # Generate Auto ID (Simple Sequence or Random - using Random + Year for now)
-            # Format: CBS + Year + Random 4 digits (e.g., CBS20241234)
-            current_year = datetime.datetime.now().year
-            import random
-            rand_suffix = random.randint(1000, 9999)
-            student_id_code = f"CBS{current_year}{rand_suffix}"
+            roll_no = request.form.get('roll_no', '').strip().upper()
+            if not roll_no:
+                flash("University Registration / Roll Number is required (e.g. P02DR25S126001).", "error")
+                return redirect(url_for('signup'))
             
-            # Create User with profile_completed = False
+            import re
+            if not re.match(r'^[A-Z0-9]{8,20}$', roll_no):
+                flash("Invalid Roll Number format. Expected university pattern like P02DR25S126001 (alphanumeric, 8-20 characters).", "error")
+                return redirect(url_for('signup'))
+            
+            # Check duplicate roll number
+            if students_collection.find_one({'student_id': roll_no}):
+                flash(f"University Registration / Roll Number '{roll_no}' is already registered in the system.", "error")
+                return redirect(url_for('signup'))
+            
+            student_id_code = roll_no
+            
+            # Create User with profile_completed = False, is_approved = False
             user_id = users_collection.insert_one({
                 'email': email,
                 'password': hash_password(password),
                 'role': 'student',
+                'name': name,
                 'is_approved': False,
                 'profile_completed': False,  # Flag to trigger profile flow
                 'created_at': datetime.datetime.now()
             }).inserted_id
             
-            # Create Minimal Student Profile (Detailed fields collected later)
+            # Create Minimal Student Profile with official Roll / Reg No
             students_collection.insert_one({
                 'user_id': user_id,
                 'student_id': student_id_code,
@@ -444,21 +552,22 @@ def signup_post():
                 'is_active': False
             })
             
-            # Notify super admins (Optional at this stage, maybe better after profile completion?)
-            # Keeping it here so admins know a user joined.
+            # Notify super admins of new student registration
             super_admins = users_collection.find({'role': 'admin', 'admin_level': 'super_admin'})
             for admin in super_admins:
                 notifications_collection.insert_one({
                     'user_id': admin['_id'],
                     'title': '👤 New Student Signup',
-                    'message': f"Student {name} ({email}) has signed up. Auto-ID: {student_id_code}",
-                    'link': '/admin/manage-users',
+                    'message': f"Student {name} ({email}) registered with Roll No: {student_id_code}. Awaiting your approval.",
+                    'link': '/admin/dashboard',
                     'is_read': False,
                     'created_at': datetime.datetime.now(),
-                    'type': 'registration'
+                    'type': 'registration',
+                    'requester_email': email,
+                    'requester_id': user_id
                 })
             
-            flash("Account created! Please login to complete your profile.", "success")
+            flash("Account created! Please sign in and complete your academic profile.", "success")
         
         # Admin/Faculty Registration
         else:  # admin or faculty
@@ -727,10 +836,16 @@ def admin_dashboard():
     # Check if user is super admin or faculty
     admin_level = session.get('admin_level')
     
+    total_students = students_collection.count_documents({})
+    placed_count = len(applications_collection.distinct('student_id', {'status': 'Selected'}))
+    placement_rate = round((placed_count / max(total_students, 1)) * 100, 1)
+
     stats = {
         'total_jobs': jobs_collection.count_documents({}),
-        'total_students': students_collection.count_documents({}),
-        'total_applications': applications_collection.count_documents({})
+        'total_students': total_students,
+        'total_applications': applications_collection.count_documents({}),
+        'placed_count': placed_count,
+        'placement_rate': placement_rate
     }
     
     # Chart Data: Application Status Distribution
@@ -739,16 +854,20 @@ def admin_dashboard():
     ]
     status_counts = list(applications_collection.aggregate(pipeline))
     chart_data = {item['_id']: item['count'] for item in status_counts}
-    # Ensure common statuses exist for the chart
-    for status in ['Applied', 'Shortlisted', 'Selected', 'Rejected']:
+    for status in ['Applied', 'Shortlisted', 'GD', 'Interview', 'Selected', 'Rejected']:
         if status not in chart_data:
             chart_data[status] = 0
 
-    jobs = list(jobs_collection.find().sort('created_at', -1).limit(5))
-    announcements = list(announcements_collection.find().sort('date', -1).limit(5))
+    jobs = list(jobs_collection.find().sort('created_at', -1).limit(6))
+    for j in jobs:
+        j['applicant_count'] = applications_collection.count_documents({'job_id': j['_id']})
+        j['shortlisted_count'] = applications_collection.count_documents({'job_id': j['_id'], 'status': {'$in': ['Shortlisted', 'GD', 'Interview', 'Selected']}})
+
+    announcements = list(announcements_collection.find().sort('created_at', -1).limit(5))
     
     # Get pending students for approval (only super admins)
     pending_students = []
+    urgent_notifications = []
     if admin_level == 'super_admin':
         pipeline = [
             {'$match': {'is_approved': False}},
@@ -758,9 +877,21 @@ def admin_dashboard():
                 'pipeline': [{'$match': {'$expr': {'$eq': ['$user_id', '$$user_id']}}}],
                 'as': 'student_info'
             }},
-            {'$unwind': {'path': '$student_info', 'preserveNullAndEmptyArrays': True}}
+            {'$unwind': {'path': '$student_info', 'preserveNullAndEmptyArrays': True}},
+            {'$sort': {'created_at': -1}}
         ]
         pending_students = list(users_collection.aggregate(pipeline))
+        
+        # Fetch unread urgent approval requests & registration notifications for Super Admin
+        urgent_notifications = list(notifications_collection.find({
+            'user_id': ObjectId(session['user_id']),
+            'type': {'$in': ['approval_reminder', 'registration', 'admin_registration']},
+            'is_read': False
+        }).sort('created_at', -1).limit(15))
+        
+        urgent_emails = {n.get('requester_email') for n in urgent_notifications if n.get('requester_email')}
+        for u in pending_students:
+            u['has_urgent_reminder'] = u.get('email') in urgent_emails
     
     # Add pending approvals to stats
     stats['pending_approvals'] = len(pending_students)
@@ -771,7 +902,8 @@ def admin_dashboard():
                          announcements=announcements, 
                          chart_data=chart_data,
                          admin_level=admin_level,
-                         pending_students=pending_students)
+                         pending_students=pending_students,
+                         urgent_notifications=urgent_notifications)
 
 @app.route('/admin/jobs/add', methods=['POST'])
 @login_required(role='admin')
@@ -1004,6 +1136,258 @@ def reject_student(user_id):
     
     return redirect(url_for('manage_users'))
 
+@app.route('/admin/approve-user/<user_id>', methods=['POST'])
+@login_required(role='admin')
+def approve_user(user_id):
+    """Super Admin: Universal approval for student, faculty, or admin accounts."""
+    if session.get('admin_level') != 'super_admin':
+        flash("Only Super Admins can authorize user registrations.", "error")
+        return redirect(url_for('admin_dashboard'))
+    
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            flash("User not found.", "error")
+            return redirect(request.referrer or url_for('admin_dashboard'))
+        
+        users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {'is_approved': True, 'approved_at': datetime.datetime.now(), 'approved_by': session.get('email')}}
+        )
+        
+        # If student, activate profile
+        if user.get('role') == 'student':
+            students_collection.update_one(
+                {'user_id': ObjectId(user_id)},
+                {'$set': {'is_active': True}}
+            )
+            student = students_collection.find_one({'user_id': ObjectId(user_id)})
+            student_name = (student.get('name') if student else None) or user.get('name', 'Student')
+            notifications_collection.insert_one({
+                'user_id': ObjectId(user_id),
+                'title': '🎉 Account Approved',
+                'message': f"Hello {student_name}, your account has been approved by Super Admin! You can now access all drives and placement services.",
+                'link': '/student/dashboard',
+                'is_read': False,
+                'created_at': datetime.datetime.now()
+            })
+        else:
+            admin_name = user.get('full_name') or user.get('name', 'Admin')
+            notifications_collection.insert_one({
+                'user_id': ObjectId(user_id),
+                'title': '🎉 Admin Account Approved',
+                'message': f"Hello {admin_name}, your administrative access has been verified and approved by Super Admin.",
+                'link': '/admin/dashboard',
+                'is_read': False,
+                'created_at': datetime.datetime.now()
+            })
+            
+        # Mark all related approval reminders as read
+        notifications_collection.update_many(
+            {'requester_email': user.get('email')},
+            {'$set': {'is_read': True}}
+        )
+        
+        flash(f"Account for {user.get('email')} approved successfully!", "success")
+    except Exception as e:
+        flash(f"Error approving user: {e}", "error")
+        
+    return redirect(request.referrer or url_for('admin_dashboard'))
+
+@app.route('/admin/reject-user/<user_id>', methods=['POST'])
+@login_required(role='admin')
+def reject_user(user_id):
+    """Super Admin: Universal rejection and removal for any pending registration."""
+    if session.get('admin_level') != 'super_admin':
+        flash("Only Super Admins can reject accounts.", "error")
+        return redirect(url_for('admin_dashboard'))
+        
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)})
+        if user:
+            users_collection.delete_one({'_id': ObjectId(user_id)})
+            students_collection.delete_one({'user_id': ObjectId(user_id)})
+            notifications_collection.delete_many({'requester_email': user.get('email')})
+            flash(f"Registration for {user.get('email')} has been rejected and removed.", "success")
+    except Exception as e:
+        flash(f"Error rejecting user: {e}", "error")
+        
+    return redirect(request.referrer or url_for('admin_dashboard'))
+
+@app.route('/notify-admin-approval', methods=['POST'])
+def notify_admin_approval():
+    """Allows unapproved users to send an urgent authorization notification to Super Admins."""
+    email = request.form.get('email', '').strip()
+    if not email:
+        flash("Email is required.", "error")
+        return redirect(url_for('login'))
+        
+    user = users_collection.find_one({'email': email})
+    if not user:
+        flash("Account not found.", "error")
+        return redirect(url_for('login'))
+        
+    if user.get('is_approved', False):
+        flash("Your account is already approved! You can log in directly.", "success")
+        return redirect(url_for('login'))
+        
+    user_name = user.get('name') or user.get('full_name', 'Applicant')
+    role_desc = 'Student' if user.get('role') == 'student' else (user.get('admin_level') or 'Admin/Faculty')
+    
+    roll_info = ""
+    if user.get('role') == 'student':
+        s_doc = students_collection.find_one({'user_id': user['_id']})
+        if s_doc and s_doc.get('student_id'):
+            roll_info = f" (Roll No: {s_doc['student_id']})"
+            
+    super_admins = list(users_collection.find({'role': 'admin', 'admin_level': 'super_admin'}))
+    for sa in super_admins:
+        notifications_collection.insert_one({
+            'user_id': sa['_id'],
+            'title': '🚨 Urgent Approval Request',
+            'message': f"{user_name} ({email}, {role_desc}{roll_info}) is awaiting approval and requested immediate authorization.",
+            'link': '/admin/dashboard',
+            'is_read': False,
+            'created_at': datetime.datetime.now(),
+            'type': 'approval_reminder',
+            'requester_email': email,
+            'requester_id': user['_id']
+        })
+        
+    flash(f"Super Admin notified! An urgent authorization alert has been sent for {email}.", "success")
+    return redirect(url_for('login'))
+
+@app.route('/student/update-roll-no', methods=['POST'])
+@login_required(role='student')
+def update_roll_no():
+    """Allow student to update their university roll number / registration number anytime."""
+    roll_no = request.form.get('roll_no', '').strip().upper()
+    if not roll_no:
+        flash("University Registration / Roll Number cannot be empty.", "error")
+        return redirect(url_for('student_profile'))
+        
+    import re
+    if not re.match(r'^[A-Z0-9]{8,20}$', roll_no):
+        flash("Invalid Roll Number format. Expected pattern like P02DR25S126001 (alphanumeric, 8-20 characters).", "error")
+        return redirect(url_for('student_profile'))
+        
+    # Check duplicate
+    existing = students_collection.find_one({
+        'student_id': roll_no,
+        'user_id': {'$ne': ObjectId(session['user_id'])}
+    })
+    if existing:
+        flash(f"University Registration / Roll Number '{roll_no}' is already assigned to another student.", "error")
+        return redirect(url_for('student_profile'))
+        
+    students_collection.update_one(
+        {'user_id': ObjectId(session['user_id'])},
+        {'$set': {'student_id': roll_no}}
+    )
+    flash(f"University Registration / Roll Number updated to '{roll_no}' successfully!", "success")
+    return redirect(url_for('student_profile'))
+
+@app.route('/admin/users/batch-approve', methods=['POST'])
+@login_required(role='admin')
+def batch_approve_students():
+    """TPO Manual Work Reduction Engine: Approve all or selected student accounts in 1 click."""
+    admin_level = session.get('admin_level')
+    if admin_level != 'super_admin':
+        flash("Only Super Admins can approve students", "error")
+        return redirect(url_for('admin_dashboard'))
+    
+    user_ids = request.form.getlist('selected_user_ids')
+    approve_all = request.form.get('approve_all') == 'true'
+    
+    query = {'is_approved': False, 'role': 'student'}
+    if not approve_all:
+        if not user_ids:
+            flash("No students selected for approval.", "warning")
+            return redirect(url_for('manage_users'))
+        valid_oids = []
+        for uid in user_ids:
+            try:
+                valid_oids.append(ObjectId(uid))
+            except Exception:
+                pass
+        query['_id'] = {'$in': valid_oids}
+    
+    pending_users = list(users_collection.find(query))
+    if not pending_users:
+        flash("No matching pending student accounts found.", "info")
+        return redirect(url_for('manage_users'))
+        
+    p_ids = [u['_id'] for u in pending_users]
+    users_collection.update_many(
+        {'_id': {'$in': p_ids}},
+        {'$set': {'is_approved': True, 'approved_at': datetime.datetime.now(), 'approved_by': session['email']}}
+    )
+    
+    notifs = []
+    for u in pending_users:
+        notifs.append({
+            'user_id': u['_id'],
+            'title': 'Account Approved',
+            'message': "Your student placement account has been approved! You can now apply for recruitment drives.",
+            'link': '/student/dashboard',
+            'is_read': False,
+            'created_at': datetime.datetime.now(),
+            'type': 'system'
+        })
+    if notifs:
+        notifications_collection.insert_many(notifs)
+        
+    flash(f"Successfully approved {len(p_ids)} student account(s) in 1 click!", "success")
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/student/<user_id>/toggle-verify', methods=['POST'])
+@login_required(role='admin')
+def toggle_verify_student(user_id):
+    """TPO Anti-Tampering Engine: Officially verify and freeze or unlock student academic credentials."""
+    admin_level = session.get('admin_level')
+    if admin_level not in ['super_admin', 'faculty']:
+        flash("Unauthorized access", "error")
+        return redirect(url_for('admin_dashboard'))
+        
+    try:
+        student = students_collection.find_one({'user_id': ObjectId(user_id)})
+        if not student:
+            flash("Student profile not found.", "error")
+            return redirect(request.referrer or url_for('manage_users'))
+            
+        new_status = not student.get('is_verified', False)
+        update_data = {
+            'is_verified': new_status,
+            'is_locked': new_status,
+            'verified_at': datetime.datetime.now() if new_status else None,
+            'verified_by': session.get('email') if new_status else None
+        }
+        students_collection.update_one({'user_id': ObjectId(user_id)}, {'$set': update_data})
+        
+        if new_status:
+            notif_msg = "Your academic profile has been verified and locked by the Placement Cell. Your credentials are now certified for recruiter master sheets."
+            notif_title = "✓ Profile Officially Verified"
+        else:
+            notif_msg = "Your academic profile lock has been released by the Placement Cell coordinator. You may update your academic records."
+            notif_title = "Academic Profile Unlocked"
+            
+        notifications_collection.insert_one({
+            'user_id': ObjectId(user_id),
+            'title': notif_title,
+            'message': notif_msg,
+            'link': '/student/profile',
+            'is_read': False,
+            'created_at': datetime.datetime.now(),
+            'type': 'verification'
+        })
+        
+        status_text = "verified & locked" if new_status else "unlocked"
+        flash(f"Student profile successfully {status_text}.", "success")
+    except Exception as e:
+        flash(f"Error updating verification status: {str(e)}", "error")
+        
+    return redirect(request.referrer or url_for('manage_users'))
+
 @app.route('/admin/manage-admins')
 @login_required(role='admin')
 def manage_admins():
@@ -1214,7 +1598,7 @@ def delete_job(job_id):
 @app.route('/admin/jobs/<job_id>/publish', methods=['POST'])
 @login_required(role='admin')
 def publish_job(job_id):
-    """Publish a draft job"""
+    """Publish a draft or expired job with valid future expiration"""
     try:
         job = jobs_collection.find_one({'_id': ObjectId(job_id)})
         if not job:
@@ -1226,14 +1610,22 @@ def publish_job(job_id):
             flash("You don't have permission to publish this job", "error")
             return redirect(url_for('manage_jobs'))
         
+        # Ensure expires_at is in the future so auto_expire_jobs() does not immediately re-expire it
+        now = datetime.datetime.now()
+        current_expiry = job.get('expires_at')
+        new_expiry = current_expiry
+        if not current_expiry or current_expiry < now:
+            new_expiry = now + datetime.timedelta(days=30)
+        
         # Publish the job
         jobs_collection.update_one(
             {'_id': ObjectId(job_id)},
             {'$set': {
                 'status': 'published',
                 'is_published': True,
-                'published_at': datetime.datetime.now(),
-                'updated_at': datetime.datetime.now()
+                'expires_at': new_expiry,
+                'published_at': now,
+                'updated_at': now
             }}
         )
         
@@ -1253,11 +1645,32 @@ def publish_job(job_id):
         if notifications:
             notifications_collection.insert_many(notifications)
             
-        flash("Job published successfully!", "success")
+        flash(f"Job '{job.get('company_name')}' published successfully with deadline extended to {new_expiry.strftime('%d %b %Y')}!", "success")
         return redirect(url_for('manage_jobs'))
     except Exception as e:
         flash(f"Error publishing job: {str(e)}", "error")
         return redirect(url_for('manage_jobs'))
+
+@app.route('/admin/jobs/republish-expired', methods=['POST'])
+@login_required(role='admin')
+def republish_expired_jobs():
+    """1-Click action for TPO: Extend all expired recruitment drives by 30 days and republish them."""
+    try:
+        now = datetime.datetime.now()
+        future_date = now + datetime.timedelta(days=30)
+        result = jobs_collection.update_many(
+            {'status': 'expired'},
+            {'$set': {
+                'status': 'published',
+                'is_published': True,
+                'expires_at': future_date,
+                'updated_at': now
+            }}
+        )
+        flash(f"Successfully republished {result.modified_count} expired drive(s) with application deadline extended to {future_date.strftime('%d %b %Y')}!", "success")
+    except Exception as e:
+        flash(f"Error republishing expired drives: {str(e)}", "error")
+    return redirect(url_for('manage_jobs'))
 
 
 
@@ -1466,10 +1879,40 @@ def edit_job(job_id):
 
 
 
+def enrich_announcements_attachments(announcements_list):
+    """Enrich announcement documents with attachment metadata (type, filename, size in KB)."""
+    from utils.db import get_fs
+    fs = None
+    for ann in announcements_list:
+        att_id = ann.get('attachment_id')
+        if att_id:
+            try:
+                if fs is None:
+                    fs = get_fs()
+                f_obj = fs.get(ObjectId(str(att_id)))
+                ann['attachment_filename'] = f_obj.filename or 'Document'
+                fname_lower = (f_obj.filename or '').lower()
+                if fname_lower.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg')):
+                    ann['attachment_type'] = 'image'
+                elif fname_lower.endswith('.pdf'):
+                    ann['attachment_type'] = 'pdf'
+                else:
+                    ann['attachment_type'] = 'file'
+                ann['attachment_size_kb'] = round(f_obj.length / 1024, 1)
+            except Exception:
+                ann['attachment_filename'] = 'Attached File'
+                ann['attachment_type'] = 'file'
+                ann['attachment_size_kb'] = 0
+        else:
+            ann['attachment_type'] = None
+            ann['attachment_filename'] = None
+            ann['attachment_size_kb'] = 0
+
 @app.route('/admin/announcements/manage')
 @login_required(role='admin')
 def manage_announcements():
     announcements = list(announcements_collection.find().sort('created_at', -1))
+    enrich_announcements_attachments(announcements)
     
     # Prepare for both display and JSON
     announcements_data = []
@@ -1674,6 +2117,7 @@ def mark_all_read():
 @login_required(role='student')
 def student_announcements():
     announcements = list(announcements_collection.find({'status': 'published'}).sort('created_at', -1))
+    enrich_announcements_attachments(announcements)
     return render_template('student/announcements.html', announcements=announcements)
 
 @app.route('/student/jobs/<job_id>/apply', methods=['POST'])
@@ -1686,7 +2130,23 @@ def apply_job(job_id):
         # Check if already applied
         if applications_collection.find_one({'student_id': user_id, 'job_id': job_id_obj}):
             flash("You have already applied for this job.", "info")
-            return redirect(url_for('student_jobs')) # Assuming this route exists
+            return redirect(url_for('student_jobs'))
+            
+        # University Placement Policy (Dream Job & Single Offer Rule)
+        existing_offer = applications_collection.find_one({
+            'student_id': user_id,
+            'status': 'Selected'
+        })
+        if existing_offer:
+            existing_job = jobs_collection.find_one({'_id': existing_offer.get('job_id')})
+            existing_company = existing_job.get('company_name', 'an organization') if existing_job else 'an organization'
+            import re
+            nums = re.findall(r'[\d\.]+', str(job.get('package', '0')))
+            new_pkg_val = float(nums[0]) if nums else 0.0
+            
+            if new_pkg_val < 10.0:
+                flash(f"Placement Policy Restriction: You have already secured an offer at {existing_company}. Per College Placement Policy, you are eligible to apply only for Dream Category recruitment drives (≥ 10 LPA).", "warning")
+                return redirect(url_for('student_jobs'))
             
         # Get Student Details for Snapshot
         student = students_collection.find_one({'user_id': user_id})
@@ -2017,6 +2477,13 @@ def view_job_applications(job_id):
         # If preserveNull.. is True, it might be None or a dict. 
         if not app.get('user_info'):
              app['user_info'] = {'email': app.get('student_email', 'N/A')}
+
+        # Ensure job_info is always present on each application dict
+        if not app.get('job_info'):
+            app['job_info'] = {
+                'company_name': (job.get('company_name') if job else None) or app.get('company_name', 'Recruitment Drive'),
+                'role': (job.get('role') if job else None) or app.get('job_role', 'Role')
+            }
     
     # Calculate multiple applications
     student_app_counts = {}
@@ -2121,10 +2588,184 @@ def update_application_status(app_id):
     new_status = request.form.get('status')
     applications_collection.update_one(
         {'_id': ObjectId(app_id)},
-        {'$set': {'status': new_status}}
+        {'$set': {'status': new_status, 'updated_at': datetime.datetime.now()}}
     )
-    flash("Status updated", "success")
-    return redirect(url_for('view_applications'))
+    flash("Status updated successfully", "success")
+    return redirect(request.referrer or url_for('view_applications'))
+
+@app.route('/admin/applications/batch-status-update', methods=['POST'])
+@login_required(role='admin')
+def batch_status_update():
+    """TPO Bulk Action: Update selected checked applications from the data table."""
+    app_ids = request.form.getlist('selected_app_ids')
+    new_status = request.form.get('batch_status')
+    if not app_ids or not new_status:
+        flash("No applications or invalid status selected.", "warning")
+        return redirect(request.referrer or url_for('view_applications'))
+
+    obj_ids = []
+    for aid in app_ids:
+        try:
+            obj_ids.append(ObjectId(aid))
+        except Exception:
+            pass
+
+    if obj_ids:
+        res = applications_collection.update_many(
+            {'_id': {'$in': obj_ids}},
+            {'$set': {'status': new_status, 'updated_at': datetime.datetime.now()}}
+        )
+        flash(f"Updated {res.modified_count} application(s) to '{new_status}'.", "success")
+    return redirect(request.referrer or url_for('view_applications'))
+
+@app.route('/admin/applications/bulk-advance', methods=['POST'])
+@login_required(role='admin')
+def bulk_advance_applications():
+    """
+    TPO Operations Engine: Batch advance applications.
+    Takes candidate identifiers (roll numbers, student IDs, or emails) and a target status.
+    Instantly updates all matching candidate applications for the drive and notifies students.
+    """
+    job_id = request.form.get('job_id')
+    target_status = request.form.get('target_status')
+    raw_identifiers = request.form.get('identifiers', '')
+    round_note = request.form.get('round_note', '').strip()
+
+    valid_statuses = ['Applied', 'Shortlisted', 'GD', 'Interview', 'Selected', 'Rejected', 'Withdrawn']
+    if target_status not in valid_statuses:
+        flash("Invalid target status selected.", "error")
+        return redirect(request.referrer or url_for('view_applications'))
+
+    import re
+    tokens = [t.strip() for t in re.split(r'[\r\n,;\s]+', raw_identifiers) if t.strip()]
+    if not tokens:
+        flash("Please provide at least one Student ID, Roll Number, or Email.", "warning")
+        return redirect(request.referrer or url_for('view_applications'))
+
+    matched_user_ids = set()
+    found_students = list(students_collection.find({'student_id': {'$in': tokens}}))
+    for s in found_students:
+        matched_user_ids.add(s['user_id'])
+        
+    found_users = list(users_collection.find({'email': {'$in': tokens}}))
+    for u in found_users:
+        matched_user_ids.add(u['_id'])
+
+    if not matched_user_ids:
+        flash(f"No students found matching the provided {len(tokens)} identifiers.", "error")
+        return redirect(request.referrer or url_for('view_applications'))
+
+    app_query = {'student_id': {'$in': list(matched_user_ids)}}
+    if job_id and job_id != 'all':
+        try:
+            app_query['job_id'] = ObjectId(job_id)
+        except Exception:
+            pass
+
+    update_data = {
+        'status': target_status,
+        'updated_at': datetime.datetime.now()
+    }
+    if round_note:
+        update_data['round_note'] = round_note
+
+    result = applications_collection.update_many(app_query, {'$set': update_data})
+
+    # Notify students
+    notif_title = f"Placement Drive Update: {target_status}"
+    notif_msg = f"Your application status has been updated to '{target_status}'."
+    if round_note:
+        notif_msg += f" Info: {round_note}"
+
+    notifs = []
+    for uid in matched_user_ids:
+        notifs.append({
+            'user_id': uid,
+            'title': notif_title,
+            'message': notif_msg,
+            'link': '/student/applications',
+            'is_read': False,
+            'created_at': datetime.datetime.now(),
+            'type': 'status_update'
+        })
+    if notifs:
+        notifications_collection.insert_many(notifs)
+
+    flash(f"Batch Advancement Complete: Updated {result.modified_count} application(s) to '{target_status}'. Notified {len(matched_user_ids)} student(s).", "success")
+    return redirect(request.referrer or url_for('view_applications'))
+
+@app.route('/admin/export/custom-master-sheet', methods=['POST'])
+@login_required(role='admin')
+def export_custom_master_sheet():
+    """
+    Generate tailored candidate Excel/CSV based on recruiter criteria:
+    - Min CGPA, Max backlogs, Branches, Gender
+    """
+    try:
+        min_cgpa = float(request.form.get('min_cgpa') or 0.0)
+    except Exception:
+        min_cgpa = 0.0
+
+    try:
+        max_backlogs = int(request.form.get('max_backlogs') or 99)
+    except Exception:
+        max_backlogs = 99
+
+    branches = request.form.getlist('branches')
+    gender = request.form.get('gender')
+
+    query = {'is_active': True}
+    if min_cgpa > 0:
+        query['cgpa'] = {'$gte': min_cgpa}
+    if branches and 'ALL' not in branches:
+        query['branch'] = {'$in': branches}
+    if gender and gender != 'ALL':
+        query['gender'] = gender
+
+    students = list(students_collection.find(query))
+
+    if max_backlogs < 99:
+        filtered = []
+        for s in students:
+            ug_backlogs = s.get('academic', {}).get('ug', {}).get('backlogs', 0)
+            try:
+                if int(ug_backlogs) <= max_backlogs:
+                    filtered.append(s)
+            except Exception:
+                filtered.append(s)
+        students = filtered
+
+    si = StringIO()
+    cw = csv.writer(si)
+    headers = [
+        'Roll No / Student ID', 'Full Name', 'Branch', 'CGPA', 'UG Backlogs',
+        'Email', 'Mobile', 'Gender', '10th %', '12th %', 'Key Skills'
+    ]
+    cw.writerow(headers)
+
+    for s in students:
+        user = users_collection.find_one({'_id': s.get('user_id')})
+        email = user.get('email', '') if user else ''
+        ac = s.get('academic', {})
+        cw.writerow([
+            s.get('student_id', 'N/A'),
+            s.get('name', 'N/A'),
+            s.get('branch', 'N/A'),
+            s.get('cgpa', 0.0),
+            ac.get('ug', {}).get('backlogs', 0),
+            email,
+            s.get('phone', ''),
+            s.get('gender', ''),
+            ac.get('tenth', {}).get('score', ''),
+            ac.get('twelfth', {}).get('score', ''),
+            ", ".join(s.get('skills', []))
+        ])
+
+    output = make_response(si.getvalue())
+    filename = f"Recruiter_Master_Sheet_CGPA_{min_cgpa}.csv"
+    output.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 
 
@@ -2503,6 +3144,10 @@ def all_students_list():
     ]
     students = list(users_collection.aggregate(pipeline))
     return render_template('admin/all_students.html', students=students)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     app.run(debug=True)

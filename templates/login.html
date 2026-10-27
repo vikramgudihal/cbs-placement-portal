@@ -1,145 +1,710 @@
-{% extends 'base.html' %} {% block title %}Login - CBS 3i-cell{%
-endblock %} {% block content %}
-<div class="auth-page-wrapper">
-  <!-- Dynamic Background -->
-  <div class="background-decor-wrapper">
-    <div class="decor-circle circle-1"></div>
-    <div class="decor-circle circle-2"></div>
-    <div class="decor-circle circle-3"></div>
-  </div>
+{% extends 'base.html' %}
+{% block title %}Login | CBS 3i-Cell Placement Portal{% endblock %}
 
-  <div class="auth-card-container">
-    <!-- Header Section -->
-    <div class="auth-header-section">
-      <div class="brand-logo-container">
-        <i class="ph-bold ph-graduation-cap"></i>
+{% block head %}
+<style>
+  /* ============================================================
+     SPLIT-SCREEN MODERN TECH AUTH EXPERIENCE (Login)
+     ============================================================ */
+
+  .auth-ambient-canvas {
+    min-height: calc(100vh - var(--topbar-h, 60px) - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.07) 0%, transparent 45%);
+  }
+
+  /* Split Master Card */
+  .auth-split-card {
+    width: 100%;
+    max-width: 1080px;
+    min-height: 620px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.6);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    position: relative;
+  }
+
+  [data-theme="dark"] .auth-split-card {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+
+  /* ============================================================
+     LEFT PANEL: ATMOSPHERIC CAMPUS & TRUST HUB
+     ============================================================ */
+  .auth-showcase-panel {
+    background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+    padding: 3.5rem 3rem;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle Campus Photographic Backdrop with Dark Vignette */
+  .auth-campus-bg-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image: url('{{ url_for("static", filename="images/campus.jpeg") }}');
+    background-size: cover;
+    background-position: center;
+    filter: saturate(1.2);
+    pointer-events: none;
+  }
+
+  .auth-showcase-glow {
+    position: absolute;
+    top: -30%;
+    left: -30%;
+    width: 160%;
+    height: 160%;
+    background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.35) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .showcase-top-brand {
+    position: relative;
+    z-index: 1;
+  }
+
+  .showcase-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e0e7ff;
+    letter-spacing: 0.03em;
+    margin-bottom: 1.25rem;
+  }
+
+  .showcase-heading {
+    font-size: 2.15rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    margin-bottom: 0.85rem;
+  }
+
+  .showcase-heading span {
+    background: linear-gradient(135deg, #60a5fa, #a5b4fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .showcase-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    max-width: 400px;
+  }
+
+  /* Floating Placement Success Pill */
+  .showcase-floating-card {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 1.35rem 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .floating-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+  }
+
+  .floating-card-tag {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #34d399;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .floating-card-metric {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #ffffff;
+  }
+
+  .floating-card-quote {
+    font-size: 0.86rem;
+    color: #e2e8f0;
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* Bottom Trust Badges */
+  .showcase-bottom-trust {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 1.25rem;
+  }
+
+  .bottom-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+
+  .bottom-trust-item i {
+    color: #818cf8;
+    font-size: 1rem;
+  }
+
+  /* ============================================================
+     RIGHT PANEL: THE MODERN FORM EXPERIENCE
+     ============================================================ */
+  .auth-form-panel {
+    padding: 3.5rem 3.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  [data-theme="dark"] .auth-form-panel {
+    background: transparent;
+  }
+
+  .form-panel-header {
+    margin-bottom: 2rem;
+  }
+
+  .form-panel-title {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+  }
+
+  .form-panel-sub {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  /* Segmented Role Switcher (Pill Style) */
+  .role-segmented-box {
+    background: var(--bg, #f1f5f9);
+    border: 1px solid var(--border);
+    padding: 0.35rem;
+    border-radius: 9999px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+    margin-bottom: 1.75rem;
+  }
+
+  [data-theme="dark"] .role-segmented-box {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .role-segment-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+  }
+
+  .role-segment-btn.active {
+    background: var(--surface);
+    color: var(--primary, #4f46e5);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  [data-theme="dark"] .role-segment-btn.active {
+    background: #1e293b;
+    color: #a5b4fc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Modern Input Rows */
+  .modern-input-group {
+    margin-bottom: 1.35rem;
+  }
+
+  .modern-input-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.45rem;
+    letter-spacing: 0.01em;
+  }
+
+  .modern-input-shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .modern-input-shell i.prefix-icon {
+    position: absolute;
+    left: 1.1rem;
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  .modern-input-field {
+    width: 100%;
+    padding: 0.85rem 1.1rem 0.85rem 2.85rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg, #f8fafc);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  [data-theme="dark"] .modern-input-field {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .modern-input-field:focus {
+    border-color: #4f46e5;
+    background: var(--surface);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  }
+
+  [data-theme="dark"] .modern-input-field:focus {
+    border-color: #818cf8;
+    background: #0f172a;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+  }
+
+  .modern-input-shell:focus-within i.prefix-icon {
+    color: #4f46e5;
+  }
+
+  .pwd-toggle-btn {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    padding: 0.25rem;
+  }
+
+  .pwd-toggle-btn:hover {
+    color: var(--text-main);
+  }
+
+  .form-meta-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .forgot-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4f46e5;
+    text-decoration: none;
+  }
+
+  .forgot-link:hover {
+    text-decoration: underline;
+  }
+
+  /* High-Impact Submit Button */
+  .btn-auth-submit {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.95rem 1.75rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px -5px rgba(79, 70, 229, 0.55);
+  }
+
+  /* Instant Demo Access Strip */
+  .demo-access-cluster {
+    margin-top: 1.75rem;
+    padding: 1rem;
+    background: rgba(79, 70, 229, 0.04);
+    border: 1px dashed rgba(79, 70, 229, 0.25);
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  [data-theme="dark"] .demo-access-cluster {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .demo-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #4f46e5;
+    margin-bottom: 0.6rem;
+  }
+
+  [data-theme="dark"] .demo-label {
+    color: #a5b4fc;
+  }
+
+  .demo-chips-row {
+    display: flex;
+    gap: 0.45rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .demo-pill-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .demo-pill-btn:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    transform: translateY(-1px);
+  }
+
+  .form-bottom-switch {
+    text-align: center;
+    margin-top: 1.75rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .form-bottom-switch a {
+    color: #4f46e5;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .form-bottom-switch a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsiveness */
+  @media (max-width: 960px) {
+    .auth-split-card {
+      grid-template-columns: 1fr;
+      max-width: 520px;
+    }
+    .auth-showcase-panel {
+      padding: 2.5rem 2rem;
+    }
+    .auth-form-panel {
+      padding: 2.5rem 2rem;
+    }
+    .showcase-floating-card {
+      display: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-ambient-canvas">
+  <div class="auth-split-card">
+
+    <!-- ============================================================
+         LEFT PANEL: CAMPUS ATMOSPHERE & TRUST HUB
+         ============================================================ -->
+    <div class="auth-showcase-panel">
+      <div class="auth-campus-bg-layer"></div>
+      <div class="auth-showcase-glow"></div>
+
+      <!-- Brand Header -->
+      <div class="showcase-top-brand">
+        <div class="showcase-chip">
+          <i class="ph-bold ph-shield-check"></i>
+          <span>Official University Placement Gateway</span>
+        </div>
+        <h2 class="showcase-heading">
+          Launch Your <br />
+          <span>Professional Ascent.</span>
+        </h2>
+        <p class="showcase-desc">
+          Chetan Business School 3i-Cell connects students with Fortune 500 recruiters through a transparent, verified, and automated placement pipeline.
+        </p>
       </div>
-      <h1 class="auth-heading">Welcome Back</h1>
-      <p class="auth-subheading">Sign in to your placement portal</p>
+
+      <!-- Floating Placement Milestone -->
+      <div class="showcase-floating-card">
+        <div class="floating-card-top">
+          <span class="floating-card-tag">
+            <i class="ph-fill ph-check-circle"></i> Season 2026-27 High
+          </span>
+          <span class="floating-card-metric">18.5 LPA</span>
+        </div>
+        <div class="floating-card-quote">
+          "The centralized portal streamlined interview schedules and transparent offer tracking with zero manual delays."
+        </div>
+      </div>
+
+      <!-- Trust Badges -->
+      <div class="showcase-bottom-trust">
+        <div class="bottom-trust-item">
+          <i class="ph-fill ph-seal-check"></i>
+          <span>Vetted Profiles</span>
+        </div>
+        <div class="bottom-trust-item">
+          <i class="ph-fill ph-lightning"></i>
+          <span>1-Click ATS Export</span>
+        </div>
+        <div class="bottom-trust-item">
+          <i class="ph-fill ph-buildings"></i>
+          <span>120+ Recruiter Network</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Login Form -->
-    <form
-      action="{{ url_for('login_post') }}"
-      method="POST"
-      class="auth-form-stack"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <!-- Role Selection Card -->
-      <div class="input-group-card">
-        <label class="input-label">I am a</label>
-        <input type="hidden" name="role" id="role-input" value="student" />
-        <div class="role-selection" style="display: flex; gap: 1rem">
-          <div
-            class="role-card"
-            data-role="student"
-            style="
-              flex: 1;
-              padding: 1rem;
-              text-align: center;
-              background: var(--surface-input);
-              border: 1px solid var(--border);
-              border-radius: var(--radius);
-              cursor: pointer;
-            "
-          >
-            <i
-              class="ph ph-user"
-              style="font-size: 2rem; color: var(--primary)"
-            ></i
-            ><br />Student
-          </div>
-          <div
-            class="role-card"
-            data-role="admin"
-            style="
-              flex: 1;
-              padding: 1rem;
-              text-align: center;
-              background: var(--surface-input);
-              border: 1px solid var(--border);
-              border-radius: var(--radius);
-              cursor: pointer;
-            "
-          >
-            <i
-              class="ph ph-users"
-              style="font-size: 2rem; color: var(--primary)"
-            ></i
-            ><br />Admin / Faculty
+    <!-- ============================================================
+         RIGHT PANEL: THE MODERN FORM EXPERIENCE
+         ============================================================ -->
+    <div class="auth-form-panel">
+      <div>
+        <div class="form-panel-header">
+          <h1 class="form-panel-title">Welcome Back</h1>
+          <p class="form-panel-sub">Sign in to access your placement dashboard</p>
+        </div>
+
+        {% if pending_approval %}
+        <div class="pending-approval-box" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(239, 68, 68, 0.08)); border: 1.5px solid #f59e0b; border-radius: 14px; padding: 1.25rem;">
+          <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+              <i class="ph-bold ph-hourglass-high"></i>
+            </div>
+            <div style="flex: 1;">
+              <h3 style="font-size: 0.98rem; font-weight: 700; color: #92400e; margin: 0 0 0.35rem 0;">Awaiting Main Super Admin Approval</h3>
+              <p style="font-size: 0.825rem; color: #78350f; line-height: 1.45; margin: 0 0 0.85rem 0;">
+                Hello <strong>{{ pending_name }}</strong> ({{ pending_email }}), your <strong>{{ pending_role }}</strong> registration is currently pending authorization from the main Super Admin. Please wait for approval before logging in.
+              </p>
+              
+              <form action="{{ url_for('notify_admin_approval') }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="email" value="{{ pending_email }}"/>
+                <button type="submit" class="btn" style="background: #d97706; border: none; color: white; font-weight: 700; font-size: 0.825rem; padding: 0.5rem 1.15rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);">
+                  <i class="ph-bold ph-bell-ringing"></i>
+                  <span>Notify Super Admin</span>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
-      <script>
-        const roleInput = document.getElementById("role-input");
-        document.querySelectorAll(".role-card").forEach((card) => {
-          card.addEventListener("click", () => {
-            document
-              .querySelectorAll(".role-card")
-              .forEach((c) => (c.style.borderColor = "var(--border)"));
-            card.style.borderColor = "var(--primary)";
-            roleInput.value = card.dataset.role;
-          });
-        });
-        // default highlight
-        document.querySelector(
-          '.role-card[data-role="student"]',
-        ).style.borderColor = "var(--primary)";
-      </script>
+        {% endif %}
 
-      <!-- Email Input -->
-      <div class="input-group-card">
-        <label for="email" class="input-label">Email Address</label>
-        <div class="custom-input-wrapper">
-          <i class="ph ph-envelope input-icon"></i>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="name@example.com"
-            class="custom-input-field"
-          />
+        <!-- Form -->
+        <form action="{{ url_for('login_post') }}" method="POST" id="loginForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="role" id="role-input" value="student"/>
+
+          <!-- Segmented Role Switcher -->
+          <div class="role-segmented-box">
+            <button type="button" class="role-segment-btn active" data-role="student" id="role-btn-student">
+              <i class="ph-fill ph-student"></i>
+              <span>Student</span>
+            </button>
+            <button type="button" class="role-segment-btn" data-role="admin" id="role-btn-admin">
+              <i class="ph-fill ph-users-three"></i>
+              <span>Admin / Faculty</span>
+            </button>
+          </div>
+
+          <!-- Email Input -->
+          <div class="modern-input-group">
+            <label for="email" class="modern-input-label">Email Address</label>
+            <div class="modern-input-shell">
+              <i class="ph ph-envelope prefix-icon"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder="name@cbs.edu"
+                class="modern-input-field"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="modern-input-group" style="margin-bottom: 0.5rem;">
+            <label for="password" class="modern-input-label">Password</label>
+            <div class="modern-input-shell">
+              <i class="ph ph-lock-key prefix-icon"></i>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                placeholder="Enter your account password"
+                class="modern-input-field"
+                autocomplete="current-password"
+                style="padding-right: 2.75rem;"
+              />
+              <button
+                type="button"
+                onclick="togglePwdVis('password', 'eye-icon-pw')"
+                class="pwd-toggle-btn"
+                aria-label="Toggle password visibility"
+              >
+                <i class="ph ph-eye" id="eye-icon-pw"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-meta-row">
+            <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot Password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-auth-submit">
+            <span>Sign In to Portal</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Quick Demo Access Bar -->
+        <div class="demo-access-cluster">
+          <div class="demo-label">⚡ Instant Demo Sandbox Credentials</div>
+          <div class="demo-chips-row">
+            <button type="button" class="demo-pill-btn" onclick="fillDemo('student@cbs.edu', 'Student@123', 'student')">
+              🎓 Student (Vikram Gudihal)
+            </button>
+            <button type="button" class="demo-pill-btn" onclick="fillDemo('admin@cbs.edu', 'Admin@123', 'admin')">
+              👑 Super Admin
+            </button>
+            <button type="button" class="demo-pill-btn" onclick="fillDemo('faculty@cbs.edu', 'Faculty@123', 'admin')">
+              👔 Faculty TPO
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Password Input -->
-      <div class="input-group-card">
-        <label for="password" class="input-label">Password</label>
-        <div class="custom-input-wrapper">
-          <i class="ph ph-lock-key input-icon"></i>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            placeholder="Enter your password"
-            class="custom-input-field"
-          />
-        </div>
-        <div class="forgot-pass-link">
-          <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
-        </div>
+      <!-- Bottom Nav Switch -->
+      <div class="form-bottom-switch">
+        Don't have an account? <a href="{{ url_for('signup') }}">Register as Candidate</a>
       </div>
-
-      <!-- Submit Button -->
-      <button type="submit" class="auth-submit-btn">
-        <span>Sign In</span>
-        <div class="btn-icon-circle">
-          <i class="ph-bold ph-arrow-right"></i>
-        </div>
-      </button>
-    </form>
-
-    <!-- Footer -->
-    <div class="auth-footer-section">
-      <p>
-        Don't have an account?
-        <a href="{{ url_for('signup') }}">Create Account</a>
-      </p>
     </div>
+
   </div>
 </div>
 
+<script>
+  // Segmented Role Switcher
+  const roleInput = document.getElementById('role-input');
+  const roleButtons = document.querySelectorAll('.role-segment-btn');
 
+  roleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      roleInput.value = btn.dataset.role;
+    });
+  });
+
+  // Demo Credentials Auto-Fill
+  function fillDemo(email, pwd, role) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pwd;
+    roleInput.value = role;
+
+    roleButtons.forEach(b => {
+      if (b.dataset.role === role) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+  }
+
+  // Password Visibility Toggle
+  function togglePwdVis(fieldId, iconId) {
+    const field = document.getElementById(fieldId);
+    const icon  = document.getElementById(iconId);
+    if (field.type === 'password') {
+      field.type = 'text';
+      icon.className = 'ph ph-eye-slash';
+    } else {
+      field.type = 'password';
+      icon.className = 'ph ph-eye';
+    }
+  }
+</script>
 {% endblock %}

@@ -23,32 +23,55 @@ School{% endblock %} {% block content %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <!-- SECTION 1: Personal Details -->
     <h3 class="section-title">
-      <i class="ph-bold ph-user"></i> 1. Personal Details
+      <i class="ph-bold ph-user"></i> 1. Personal & University Details
     </h3>
-    <div class="grid-2-col">
-      <div class="input-group">
+
+    <!-- University Registration / Roll Number Banner & Name -->
+    <div class="grid-2-col" style="margin-bottom: 1rem; background: rgba(37, 99, 235, 0.05); padding: 1.15rem; border-radius: 12px; border: 1.5px solid rgba(37, 99, 235, 0.25);">
+      <div class="input-group" style="margin-bottom: 0;">
+        <label style="font-weight: 700; color: var(--primary);">
+          <i class="ph-bold ph-identification-card"></i> University Registration / Roll Number *
+        </label>
+        <input
+          type="text"
+          name="student_id"
+          required
+          class="form-control"
+          value="{{ student.student_id if student and student.student_id else '' }}"
+          placeholder="e.g. P02DR25S126001"
+          style="text-transform: uppercase; font-family: monospace; letter-spacing: 0.05em; font-weight: 700; color: #1e3a8a; background: #fff;"
+          oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+        />
+        <small class="text-muted">Official University USN / Roll No (e.g. <strong>P02DR25S126001</strong> for MCA / MBA). Editable if correction is needed.</small>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 0;">
         <label>Full Name (As per certificates) *</label>
         <input
           type="text"
           name="name"
           required
           class="form-control"
-          placeholder="YOUR NAME"
+          value="{{ student.name if student and student.name else '' }}"
+          placeholder="e.g. Vikram Gudihal"
         />
-        <small class="text-muted">Must match 10th Marks Card</small>
+        <small class="text-muted">Must match official 10th Marks Card</small>
       </div>
+    </div>
+
+    <div class="grid-2-col">
       <div class="input-group">
         <label>Gender *</label>
         <select name="gender" required class="form-control">
-          <option value="" disabled selected>Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
+          <option value="" disabled {% if not student or not student.gender %}selected{% endif %}>Select</option>
+          <option value="Male" {% if student and student.gender == 'Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if student and student.gender == 'Female' %}selected{% endif %}>Female</option>
+          <option value="Other" {% if student and student.gender == 'Other' %}selected{% endif %}>Other</option>
         </select>
       </div>
       <div class="input-group">
         <label>Date of Birth *</label>
-        <input type="date" name="dob" required class="form-control" />
+        <input type="date" name="dob" required class="form-control" value="{{ student.dob if student and student.dob else '' }}" />
       </div>
       <div class="input-group">
         <label>Mobile Number *</label>
@@ -59,6 +82,7 @@ School{% endblock %} {% block content %}
           placeholder="10-digit number"
           pattern="[0-9]{10}"
           class="form-control"
+          value="{{ student.phone if student and student.phone else '' }}"
         />
       </div>
       <div class="input-group">
@@ -69,6 +93,7 @@ School{% endblock %} {% block content %}
           placeholder="Optional"
           pattern="[0-9]{10}"
           class="form-control"
+          value="{{ student.alt_phone if student and student.alt_phone else '' }}"
         />
       </div>
       <div class="input-group">
@@ -79,6 +104,7 @@ School{% endblock %} {% block content %}
           required
           class="form-control"
           placeholder="gmail.com etc"
+          value="{{ student.personal_email if student and student.personal_email else (student.email if student and student.email else '') }}"
         />
       </div>
       <div class="input-group">
@@ -88,14 +114,14 @@ School{% endblock %} {% block content %}
           name="nationality"
           required
           class="form-control"
-          value="Indian"
+          value="{{ student.nationality if student and student.nationality else 'Indian' }}"
         />
       </div>
       <div class="input-group">
         <label>Marital Status</label>
         <select name="marital_status" class="form-control">
-          <option value="Single">Single</option>
-          <option value="Married">Married</option>
+          <option value="Single" {% if not student or student.marital_status != 'Married' %}selected{% endif %}>Single</option>
+          <option value="Married" {% if student and student.marital_status == 'Married' %}selected{% endif %}>Married</option>
         </select>
       </div>
     </div>
@@ -109,6 +135,7 @@ School{% endblock %} {% block content %}
           class="form-control"
           placeholder="12-digit UID"
           pattern="[0-9]{12}"
+          value="{{ student.aadhaar if student and student.aadhaar else '' }}"
         />
       </div>
       <div class="input-group">
@@ -118,6 +145,7 @@ School{% endblock %} {% block content %}
           name="pan"
           class="form-control"
           placeholder="Permanent Account Number"
+          value="{{ student.pan if student and student.pan else '' }}"
         />
       </div>
     </div>
@@ -131,7 +159,7 @@ School{% endblock %} {% block content %}
           rows="3"
           class="form-control"
           placeholder="House No, Street, City, State, Pincode"
-        ></textarea>
+        >{{ student.address.permanent if student and student.address and student.address.permanent else '' }}</textarea>
       </div>
       <div class="input-group">
         <label>Current Address *</label>
@@ -141,7 +169,7 @@ School{% endblock %} {% block content %}
           rows="3"
           class="form-control"
           placeholder="If different from Permanent"
-        ></textarea>
+        >{{ student.address.current if student and student.address and student.address.current else '' }}</textarea>
       </div>
     </div>
 

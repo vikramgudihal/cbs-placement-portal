@@ -1,1324 +1,1208 @@
-{% extends 'base.html' %} {% block title %}Dashboard - CBS 3i-cell{% endblock %}
-{% block content %}
-<div class="student-dashboard">
-  <!-- Header Section -->
-  <header class="dashboard-header-new">
-    <div class="header-left">
-      <div class="profile-avatar">{{ student.name[0].upper() }}</div>
-      <div class="header-info">
-        <h1>
-          Hello, <span class="highlight">{{ student.name.split()[0] }}</span>!
-          👋
-        </h1>
-        <p class="header-subtitle">Welcome to your placement command center</p>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="date-badge">
-        <i class="ph-bold ph-calendar-blank"></i>
-        {{ act.updated_at.strftime('%d %b %Y') if activities and activities[0]
-        and activities[0].updated_at else 'Today' }}
-      </div>
-    </div>
-  </header>
+{% extends 'base.html' %}
+{% block title %}Student Dashboard | CBS 3i-cell{% endblock %}
+{% block page_title %}Candidate Hub{% endblock %}
 
-  <!-- Stats Cards Grid -->
-  <section class="stats-section">
-    <div class="stats-grid-new">
-      <div class="stat-card stat-applied">
-        <div class="stat-icon">
-          <i class="ph-duotone ph-file-text"></i>
-        </div>
-        <div class="stat-details">
-          <span class="stat-number">{{ my_applications|length }}</span>
-          <span class="stat-label">Applied</span>
-          <span class="stat-trend positive">
-            <i class="ph-bold ph-trend-up"></i> Active
-          </span>
-        </div>
-        <div class="stat-decoration"></div>
-      </div>
-
-      <div class="stat-card stat-shortlisted">
-        <div class="stat-icon">
-          <i class="ph-duotone ph-star"></i>
-        </div>
-        <div class="stat-details">
-          <span class="stat-number">{{ shortlisted_count }}</span>
-          <span class="stat-label">Shortlisted</span>
-          <span class="stat-trend">
-            <i class="ph-bold ph-star"></i> Keep going!
-          </span>
-        </div>
-        <div class="stat-decoration"></div>
-      </div>
-
-      <div class="stat-card stat-selected">
-        <div class="stat-icon">
-          <i class="ph-duotone ph-trophy"></i>
-        </div>
-        <div class="stat-details">
-          <span class="stat-number">{{ selected_count }}</span>
-          <span class="stat-label">Selected</span>
-          <span class="stat-trend success">
-            <i class="ph-bold ph-crown"></i> Success
-          </span>
-        </div>
-        <div class="stat-decoration"></div>
-      </div>
-
-      <div class="stat-card stat-profile">
-        <div class="stat-icon">
-          <i class="ph-duotone ph-user-circle"></i>
-        </div>
-        <div class="stat-details">
-          <span class="stat-number">100%</span>
-          <span class="stat-label">Profile</span>
-          <span class="stat-trend">
-            <i class="ph-bold ph-check-circle"></i> Complete
-          </span>
-        </div>
-        <div class="stat-decoration"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main Grid Layout -->
-  <div class="dashboard-main-grid">
-    <!-- Left Column -->
-    <div class="dashboard-left">
-      <!-- Quick Actions -->
-      <section class="card-section quick-actions-section">
-        <div class="section-header">
-          <h2><i class="ph-duotone ph-lightning"></i> Quick Actions</h2>
-        </div>
-        <div class="quick-actions-grid-new">
-          <a
-            href="{{ url_for('student_jobs') }}"
-            class="action-card action-jobs"
-          >
-            <div class="action-icon">
-              <i class="ph-duotone ph-briefcase"></i>
-            </div>
-            <span>Find Jobs</span>
-          </a>
-          <a
-            href="{{ url_for('student_profile') }}"
-            class="action-card action-profile"
-          >
-            <div class="action-icon">
-              <i class="ph-duotone ph-user-circle"></i>
-            </div>
-            <span>Profile</span>
-          </a>
-          <a
-            href="{{ url_for('student_announcements') }}"
-            class="action-card action-townhall"
-          >
-            <div class="action-icon">
-              <i class="ph-duotone ph-megaphone"></i>
-            </div>
-            <span>Town Hall</span>
-          </a>
-          <a
-            href="{{ url_for('dynamic_forms.list_student_forms') }}"
-            class="action-card action-forms"
-          >
-            <div class="action-icon">
-              <i class="ph-duotone ph-clipboard-text"></i>
-            </div>
-            <span>Forms</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- My Applications -->
-      <section class="card-section applications-section">
-        <div class="section-header">
-          <h2><i class="ph-duotone ph-briefcase"></i> My Applications</h2>
-          <a href="{{ url_for('student_applications') }}" class="view-all-link"
-            >View All</a
-          >
-        </div>
-
-        {% if my_applications|selectattr('is_multiple_applicant')|list|length >
-        0 %}
-        <div class="multiple-warning">
-          <i class="ph-bold ph-warning-circle"></i>
-          <span
-            >You have applied to multiple companies. Employers may see
-            this.</span
-          >
-        </div>
-        {% endif %} {% if my_applications %}
-        <div class="applications-list">
-          {% for app in my_applications[:5] %}
-          <div
-            class="application-item {% if app.is_multiple_applicant %}multiple-app{% endif %}"
-          >
-            <div class="app-company-logo">
-              {{ app.job_info.company_name[0].upper() }}
-            </div>
-            <div class="app-details">
-              <h4>{{ app.job_info.company_name }}</h4>
-              <p>{{ app.job_info.role }}</p>
-              <div class="app-meta">
-                <span class="package"
-                  ><i class="ph-bold ph-currency-dollar"></i> {{
-                  app.job_info.package }}</span
-                >
-                <span class="status-badge {{ app.status|lower }}"
-                  >{{ app.status }}</span
-                >
-              </div>
-            </div>
-            <div class="app-actions">
-              <a
-                href="{{ url_for('student_applications') }}"
-                class="action-btn"
-              >
-                <i class="ph-bold ph-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state-new">
-          <i class="ph-duotone ph-file-text"></i>
-          <p>No applications yet</p>
-          <a href="{{ url_for('student_jobs') }}" class="btn-primary-custom"
-            >Browse Jobs</a
-          >
-        </div>
-        {% endif %}
-      </section>
-
-      <!-- Recommended Jobs -->
-      <section class="card-section jobs-section">
-        <div class="section-header">
-          <h2><i class="ph-duotone ph-briefcase"></i> Recommended Jobs</h2>
-          <a href="{{ url_for('student_jobs') }}" class="view-all-link"
-            >View All</a
-          >
-        </div>
-
-        {% if recent_jobs %}
-        <div class="jobs-grid-new">
-          {% for job in recent_jobs %}
-          <div class="job-card-new">
-            <div class="job-header">
-              <div class="job-company-logo">
-                {{ job.company_name[0].upper() }}
-              </div>
-              <div class="job-company-info">
-                <h4>{{ job.company_name }}</h4>
-                <p>{{ job.role }}</p>
-              </div>
-            </div>
-            <div class="job-details">
-              <div class="job-detail">
-                <i class="ph-bold ph-currency-dollar"></i>
-                <span>{{ job.package }}</span>
-              </div>
-              <div class="job-detail">
-                <i class="ph-bold ph-map-pin"></i>
-                <span>{{ job.location }}</span>
-              </div>
-              <div class="job-detail">
-                <i class="ph-bold ph-clock"></i>
-                <span>Full Time</span>
-              </div>
-            </div>
-            <div class="job-deadline">
-              <i class="ph-bold ph-calendar"></i>
-              <span
-                >Apply by: {{ job.deadline.strftime('%d %b %Y') if job.deadline
-                else 'Open' }}</span
-              >
-            </div>
-            <a href="{{ url_for('student_jobs') }}" class="btn-apply">
-              Apply Now <i class="ph-bold ph-arrow-right"></i>
-            </a>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state-new">
-          <i class="ph-duotone ph-briefcase"></i>
-          <p>No new jobs matching your profile yet</p>
-          <a href="{{ url_for('student_jobs') }}" class="btn-primary-custom"
-            >Browse All Jobs</a
-          >
-        </div>
-        {% endif %}
-      </section>
-    </div>
-
-    <!-- Right Column -->
-    <div class="dashboard-right">
-      <!-- Action Required -->
-      {% if activities %}
-      <section class="card-section action-section">
-        <div class="section-header alert">
-          <h2><i class="ph-bold ph-warning-circle"></i> Action Required</h2>
-        </div>
-        <div class="action-list">
-          {% for act in activities %} {% if act.status == 'Shortlisted' or
-          act.status == 'GD' or act.status == 'Interview' %}
-          <div class="action-card-new">
-            <div class="action-company">
-              <div class="company-avatar">
-                {{ act.job_info.company_name[0].upper() }}
-              </div>
-              <div class="company-details">
-                <h4>{{ act.job_info.company_name }}</h4>
-                <p>{{ act.job_info.role }}</p>
-              </div>
-            </div>
-            <div class="action-status-badge {{ act.status|lower }}">
-              {{ act.status }}
-            </div>
-
-            {% if not act.student_response %}
-            <div class="response-buttons">
-              <form
-                action="{{ url_for('respond_application', app_id=act._id) }}"
-                method="POST"
-              >
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <input type="hidden" name="response" value="Attending" />
-                <button class="btn-accept">
-                  <i class="ph-bold ph-check"></i> Accept
-                </button>
-              </form>
-              <form
-                action="{{ url_for('respond_application', app_id=act._id) }}"
-                method="POST"
-              >
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <input type="hidden" name="response" value="Not Attending" />
-                <button class="btn-decline">
-                  <i class="ph-bold ph-x"></i> Decline
-                </button>
-              </form>
-            </div>
-            {% else %}
-            <div class="response-status">
-              <i class="ph-bold ph-check-circle"></i>
-              Response: {{ act.student_response }}
-            </div>
-            {% endif %}
-          </div>
-          {% endif %} {% endfor %}
-        </div>
-      </section>
-      {% endif %}
-
-      <!-- Recent Updates -->
-      <section class="card-section updates-section">
-        <div class="section-header">
-          <h2><i class="ph-duotone ph-broadcast"></i> Recent Updates</h2>
-          <a href="{{ url_for('student_announcements') }}" class="view-all-link"
-            >View All</a
-          >
-        </div>
-        <div class="updates-list">
-          {% if announcements %} {% for ann in announcements[:5] %}
-          <div class="update-item">
-            <div class="update-badge {{ ann.category|lower }}">
-              {{ ann.category }}
-            </div>
-            <div class="update-content">
-              <h4>{{ ann.title }}</h4>
-              <p>
-                {{ ann.content[:100] }}{{ '...' if ann.content|length > 100 else
-                '' }}
-              </p>
-            </div>
-            <div class="update-date">
-              {% if ann.created_at %} {{ ann.created_at.strftime('%d %b') }} {%
-              endif %}
-            </div>
-          </div>
-          {% endfor %} {% else %}
-          <div class="empty-updates">
-            <i class="ph-duotone ph-bell"></i>
-            <p>No recent updates</p>
-          </div>
-          {% endif %}
-        </div>
-      </section>
-
-      <section class="card-section events-section">
-        <div class="section-header">
-          <h2><i class="ph-duotone ph-calendar-check"></i> Upcoming Drives</h2>
-        </div>
-        <div class="events-list">
-          {% if upcoming_drives %}
-            {% for drive in upcoming_drives %}
-            <div class="event-item">
-              <div class="event-date">
-                <span class="day">{{ drive.drive_date.strftime('%d') if drive.drive_date else '?' }}</span>
-                <span class="month">{{ drive.drive_date.strftime('%b') if drive.drive_date else '?' }}</span>
-              </div>
-              <div class="event-details">
-                <h4>{{ drive.company_name }}</h4>
-                <p><i class="ph-bold ph-briefcase"></i> {{ drive.role }}</p>
-                <p><i class="ph-bold ph-clock"></i> {{ drive.drive_date.strftime('%I:%M %p') if drive.drive_date else 'TBD' }}</p>
-              </div>
-            </div>
-            {% endfor %}
-          {% else %}
-            <div class="empty-state-mini">
-              <p>No upcoming drives scheduled</p>
-            </div>
-          {% endif %}
-        </div>
-      </section>
-    </div>
-  </div>
-</div>
-
+{% block head %}
 <style>
-  /* Student Dashboard New Design */
-  .student-dashboard {
-    min-height: 100vh;
-    padding: 1.5rem;
-    background: var(--background);
+  /* ============================================================
+     CBS 3i-CELL CANDIDATE COMMAND HUB (Modern Tech & Fluid Layout)
+     ============================================================ */
+
+  :root {
+    --dash-indigo: #4f46e5;
+    --dash-blue: #2563eb;
+    --dash-emerald: #10b981;
+    --dash-amber: #f59e0b;
+    --dash-purple: #8b5cf6;
+    --dash-rose: #f43f5e;
   }
 
-  /* Header */
-  .dashboard-header-new {
+  .candidate-hub-container {
+    padding-bottom: 3rem;
+  }
+
+  /* ============================================================
+     1. CANDIDATE HERO BANNER
+     ============================================================ */
+  .candidate-hero-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .candidate-hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(6, 182, 212, 0.15) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-banner-inner {
+    position: relative;
+    z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
-    padding: 1.5rem 2rem;
-    background: var(--surface);
-    backdrop-filter: var(--glass);
-    border-radius: 24px;
-    border: 1px solid var(--border);
+    gap: 1.5rem;
+    flex-wrap: wrap;
   }
 
-  .header-left {
+  .candidate-meta-group {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
-  .profile-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--gradient);
+  .candidate-avatar-disc {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    color: #ffffff;
+    font-size: 1.75rem;
+    font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.25) inset;
+    flex-shrink: 0;
   }
 
-  .header-info h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-  }
-
-  .header-info .highlight {
-    background: var(--gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .header-subtitle {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-  }
-
-  .header-right {
+  .candidate-title-block h1 {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.35rem 0;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.65rem;
+    flex-wrap: wrap;
   }
 
-  .date-badge {
-    padding: 0.5rem 1rem;
-    background: var(--surface-input);
-    border-radius: 50px;
-    font-size: 0.9rem;
-    color: var(--text-main);
+  .verification-pill {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .verification-pill.verified {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+
+  .verification-pill.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+
+  .candidate-specs-row {
     display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    flex-wrap: wrap;
+  }
+
+  .spec-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 0.2rem 0.65rem;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .hero-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-hero-primary {
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
   }
 
-  .notification-bell {
-    position: relative;
-    width: 45px;
-    height: 45px;
-    background: var(--surface-input);
-    border-radius: 50%;
-    display: flex;
+  .btn-hero-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.55);
+    color: #ffffff;
+  }
+
+  .btn-hero-glass {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    color: var(--text-main);
-    cursor: pointer;
-    transition: all 0.3s ease;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
   }
 
-  .notification-bell:hover {
-    background: var(--primary);
-    color: white;
+  .btn-hero-glass:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
   }
 
-  .notification-dot {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 10px;
-    height: 10px;
-    background: #ef4444;
-    border-radius: 50%;
-    border: 2px solid var(--surface);
-  }
-
-  /* Stats Grid */
-  .stats-section {
+  /* ============================================================
+     2. FLUID METRIC RIBBON (Connected counters, no isolated boxes)
+     ============================================================ */
+  .candidate-metric-ribbon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.75rem 2rem;
     margin-bottom: 2rem;
-  }
-
-  .stats-grid-new {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    backdrop-filter: var(--glass);
-    border-radius: 20px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    box-shadow: var(--shadow-sm);
     position: relative;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: all 0.3s ease;
   }
 
-  .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
+  [data-theme="dark"] .candidate-metric-ribbon {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
   }
 
-  .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    position: relative;
-    z-index: 1;
-  }
-
-  .stat-applied .stat-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-  }
-
-  .stat-shortlisted .stat-icon {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-  }
-
-  .stat-selected .stat-icon {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-  }
-
-  .stat-profile .stat-icon {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-  }
-
-  .stat-details {
+  .candidate-metric-col {
+    padding: 0 1.5rem;
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    position: relative;
-    z-index: 1;
+    justify-content: center;
   }
 
-  .stat-number {
-    font-size: 2rem;
-    font-weight: 800;
+  .candidate-metric-col:first-child {
+    padding-left: 0;
+  }
+
+  .candidate-metric-col:last-child {
+    border-right: none;
+  }
+
+  .cand-metric-number {
+    font-size: 2.2rem;
+    font-weight: 900;
     line-height: 1;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.35rem;
+  }
+
+  .cand-metric-number.indigo {
+    color: var(--dash-indigo);
+  }
+
+  .cand-metric-number.amber {
+    color: var(--dash-amber);
+  }
+
+  .cand-metric-number.emerald {
+    color: var(--dash-emerald);
+  }
+
+  .cand-metric-number.blue {
+    color: var(--dash-blue);
+  }
+
+  .cand-metric-label {
+    font-size: 0.82rem;
+    font-weight: 800;
     color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.15rem;
   }
 
-  .stat-label {
-    font-size: 0.85rem;
+  .cand-metric-sub {
+    font-size: 0.76rem;
     color: var(--text-muted);
-    margin-bottom: 0.25rem;
   }
 
-  .stat-trend {
-    font-size: 0.75rem;
-    color: #f59e0b;
+  /* ============================================================
+     3. TWO-COLUMN SPLIT DASHBOARD LAYOUT
+     ============================================================ */
+  .candidate-hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  /* Common Fluid Card Shell */
+  .fluid-dash-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.75rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .fluid-dash-card {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .fluid-dash-card:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+  }
+
+  .card-fluid-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-fluid-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .card-fluid-title i {
+    font-size: 1.25rem;
+    color: var(--dash-indigo);
+  }
+
+  .card-fluid-link {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--dash-indigo);
+    text-decoration: none;
+    display: inline-flex;
     align-items: center;
     gap: 0.25rem;
   }
 
-  .stat-trend.positive {
-    color: #10b981;
-  }
-
-  .stat-trend.success {
-    color: #6366f1;
-  }
-
-  .stat-decoration {
-    position: absolute;
-    right: -20px;
-    bottom: -20px;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    opacity: 0.1;
-    z-index: 0;
-  }
-
-  .stat-applied .stat-decoration {
-    background: #10b981;
-  }
-  .stat-shortlisted .stat-decoration {
-    background: #f59e0b;
-  }
-  .stat-selected .stat-decoration {
-    background: #6366f1;
-  }
-  .stat-profile .stat-decoration {
-    background: #8b5cf6;
-  }
-
-  /* Main Grid */
-  .dashboard-main-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-  }
-
-  .dashboard-left,
-  .dashboard-right {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  /* Card Sections */
-  .card-section {
-    background: var(--surface);
-    backdrop-filter: var(--glass);
-    border-radius: 24px;
-    padding: 1.5rem;
-    border: 1px solid var(--border);
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.25rem;
-  }
-
-  .section-header h2 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-main);
-  }
-
-  .section-header.alert h2 {
-    color: #ea580c;
-  }
-
-  .view-all-link {
-    font-size: 0.85rem;
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s ease;
-  }
-
-  .view-all-link:hover {
-    color: var(--primary-dark);
+  .card-fluid-link:hover {
     text-decoration: underline;
   }
 
-  /* Quick Actions */
-  .quick-actions-grid-new {
+  /* ============================================================
+     4. HIRING PIPELINE JOURNEY (Visual Stages Tracker)
+     ============================================================ */
+  .pipeline-journey-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.35rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .pipeline-journey-item {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.18);
+  }
+
+  .pipeline-journey-item:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -5px rgba(15, 23, 42, 0.08);
+  }
+
+  .pipeline-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .pipeline-company-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .company-avatar-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pipeline-company-name {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .pipeline-role-name {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .package-badge-pill {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--dash-emerald);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+  }
+
+  /* 4-Stage Horizontal Journey Stepper */
+  .journey-stepper-track {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    position: relative;
+    padding-top: 0.5rem;
   }
 
-  .action-card {
+  .journey-stepper-track::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+
+  .journey-step-node {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem;
-    background: var(--surface-input);
-    border-radius: 16px;
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
+    text-align: center;
   }
 
-  .action-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--primary);
-    box-shadow: var(--shadow);
-  }
-
-  .action-card .action-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-  }
-
-  .action-jobs .action-icon {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  }
-  .action-profile .action-icon {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  }
-  .action-townhall .action-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  }
-  .action-forms .action-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  }
-
-  /* Applications List */
-  .multiple-warning {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
-    color: #ef4444;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
-  }
-
-  .applications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .application-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--surface-input);
-    border-radius: 16px;
-    transition: all 0.2s ease;
-  }
-
-  .application-item:hover {
-    background: var(--surface);
-  }
-
-  .application-item.multiple-app {
-    border-left: 3px solid #ef4444;
-    background: rgba(239, 68, 68, 0.05);
-  }
-
-  .app-company-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(
-      135deg,
-      var(--primary) 0%,
-      var(--secondary) 100%
-    );
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
-  }
-
-  .app-details {
-    flex: 1;
-  }
-
-  .app-details h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: var(--text-main);
-  }
-
-  .app-details p {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-  }
-
-  .app-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .app-meta .package {
-    font-size: 0.8rem;
-    color: var(--primary);
-    font-weight: 600;
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .status-badge.applied {
-    background: rgba(99, 102, 241, 0.15);
-    color: #6366f1;
-  }
-  .status-badge.shortlisted {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-  }
-  .status-badge.selected {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
-  }
-  .status-badge.rejected {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-  }
-
-  .app-actions .action-btn {
-    width: 36px;
-    height: 36px;
+  .journey-step-dot {
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: var(--surface);
+    border: 2px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary);
-    text-decoration: none;
+    font-size: 0.65rem;
+    margin-bottom: 0.4rem;
+    color: var(--text-muted);
     transition: all 0.2s ease;
   }
 
-  .app-actions .action-btn:hover {
-    background: var(--primary);
-    color: white;
-  }
-
-  /* Jobs Grid */
-  .jobs-grid-new {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .job-card-new {
-    background: var(--surface-input);
-    border-radius: 16px;
-    padding: 1.25rem;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-  }
-
-  .job-card-new:hover {
-    background: var(--surface);
-    border-color: var(--primary);
-    transform: translateY(-3px);
-  }
-
-  .job-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .job-company-logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
+  .journey-step-lbl {
+    font-size: 0.72rem;
     font-weight: 700;
-    color: white;
-  }
-
-  .job-company-info h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.125rem;
-    color: var(--text-main);
-  }
-
-  .job-company-info p {
-    font-size: 0.8rem;
     color: var(--text-muted);
   }
 
-  .job-details {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+  /* Node States */
+  .journey-step-node.completed .journey-step-dot {
+    background: var(--dash-emerald);
+    border-color: var(--dash-emerald);
+    color: #ffffff;
   }
 
-  .job-detail {
+  .journey-step-node.completed .journey-step-lbl {
+    color: var(--dash-emerald);
+  }
+
+  .journey-step-node.current .journey-step-dot {
+    background: var(--dash-indigo);
+    border-color: var(--dash-indigo);
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+  }
+
+  .journey-step-node.current .journey-step-lbl {
+    color: var(--dash-indigo);
+    font-weight: 800;
+  }
+
+  /* ============================================================
+     5. ACTION REQUIRED RADAR (High-Priority Interview/GD Calls)
+     ============================================================ */
+  .action-required-radar {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .radar-header {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .job-detail i {
-    color: var(--primary);
-  }
-
-  .job-deadline {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    gap: 0.65rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #b45309;
     margin-bottom: 1rem;
   }
 
-  .job-deadline i {
-    color: #f59e0b;
+  [data-theme="dark"] .radar-header {
+    color: #fbbf24;
   }
 
-  .btn-apply {
+  .radar-item-card {
+    background: var(--surface);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 14px;
+    padding: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
+
+  [data-theme="dark"] .radar-item-card {
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .radar-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+  }
+
+  .radar-action-buttons {
+    display: flex;
+    gap: 0.65rem;
+  }
+
+  .btn-accept-call {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    background: var(--gradient);
-    color: white;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
+    gap: 0.35rem;
     transition: all 0.2s ease;
   }
 
-  .btn-apply:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  .btn-accept-call:hover {
+    background: #059669;
   }
 
-  /* Right Sidebar */
-  .action-card-new {
-    background: var(--surface-input);
-    border-radius: 16px;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    border-left: 3px solid #ea580c;
-  }
-
-  .action-company {
+  .btn-decline-call {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
   }
 
-  .company-avatar {
+  .btn-decline-call:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* ============================================================
+     6. ELIGIBILITY MATCHED DRIVES (Recommended Jobs)
+     ============================================================ */
+  .matched-drive-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.15rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .matched-drive-row {
+    background: rgba(30, 41, 59, 0.45);
+    border-color: rgba(99, 102, 241, 0.18);
+  }
+
+  .matched-drive-row:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: var(--surface);
+    transform: translateX(3px);
+  }
+
+  .drive-main-col {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .drive-avatar-mini {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 700;
-    color: white;
-  }
-
-  .company-details h4 {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: #ffffff;
+    font-weight: 800;
     font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 0.125rem;
-    color: var(--text-main);
-  }
-
-  .company-details p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .action-status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-  }
-
-  .action-status-badge.interview {
-    background: rgba(99, 102, 241, 0.15);
-    color: #6366f1;
-  }
-  .action-status-badge.gd {
-    background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
-  }
-  .action-status-badge.shortlisted {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-  }
-
-  .response-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .response-buttons form {
-    flex: 1;
-  }
-
-  .btn-accept,
-  .btn-decline {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.375rem;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s ease;
   }
 
-  .btn-accept {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
+  .drive-role-title {
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--text-main);
   }
 
-  .btn-accept:hover {
-    background: #22c55e;
-    color: white;
-  }
-
-  .btn-decline {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-  }
-
-  .btn-decline:hover {
-    background: #ef4444;
-    color: white;
-  }
-
-  .response-status {
+  .drive-meta-tags {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
-    color: #22c55e;
-  }
-
-  /* Updates List */
-  .updates-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .update-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: var(--surface-input);
-    border-radius: 12px;
-    transition: all 0.2s ease;
-  }
-
-  .update-item:hover {
-    background: var(--surface);
-  }
-
-  .update-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .update-badge.important {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-  }
-  .update-badge.info {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
-  }
-  .update-badge.event {
-    background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
-  }
-  .update-badge.general {
-    background: rgba(107, 114, 128, 0.15);
-    color: #6b7280;
-  }
-
-  .update-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .update-content h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .update-content p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .update-date {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-
-  .empty-updates {
-    text-align: center;
-    padding: 2rem;
+    margin-top: 0.25rem;
+    font-size: 0.76rem;
     color: var(--text-muted);
   }
 
-  .empty-updates i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    opacity: 0.5;
-  }
-
-  /* Events */
-  .events-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .event-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background: var(--surface-input);
-    border-radius: 12px;
-  }
-
-  .event-date {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-  }
-
-  .event-date .day {
-    font-size: 1.1rem;
+  .tag-eligibility-met {
     font-weight: 700;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .btn-drive-apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 9999px;
+    background: var(--dash-indigo);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-drive-apply:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
+
+  /* ============================================================
+     7. RIGHT RAIL WIDGETS (Upcoming Calendar & Bulletins)
+     ============================================================ */
+  .drive-calendar-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 0.65rem;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .drive-calendar-pill {
+    background: rgba(30, 41, 59, 0.45);
+    border-color: rgba(99, 102, 241, 0.18);
+  }
+
+  .calendar-date-block {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(79, 70, 229, 0.1);
+    border: 1px solid rgba(79, 70, 229, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .cal-day {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--dash-indigo);
     line-height: 1;
   }
 
-  .event-date .month {
+  .cal-month {
     font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--text-muted);
     text-transform: uppercase;
-    opacity: 0.9;
   }
 
-  .event-details h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: var(--text-main);
-  }
-
-  .event-details p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+  .townhall-snippet {
     display: flex;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .townhall-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dash-indigo);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  /* Quick Actions Grid */
+  .quick-pill-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .quick-action-pill {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.375rem;
+    justify-content: center;
+    padding: 0.85rem 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
   }
 
-  /* Empty State */
-  .empty-state-new {
-    text-align: center;
-    padding: 2.5rem 2rem;
-    background: var(--surface-input);
-    border-radius: 16px;
+  .quick-action-pill i {
+    font-size: 1.35rem;
+    color: var(--dash-indigo);
+    margin-bottom: 0.35rem;
   }
 
-  .empty-state-new i {
-    font-size: 3rem;
-    color: var(--text-muted);
-    opacity: 0.5;
-    margin-bottom: 1rem;
+  .quick-action-pill:hover {
+    border-color: var(--dash-indigo);
+    background: var(--surface);
+    transform: translateY(-2px);
+    color: var(--dash-indigo);
   }
 
-  .empty-state-new p {
-    color: var(--text-muted);
-    margin-bottom: 1.25rem;
-  }
-
-  .empty-state-new .btn-primary-custom {
-    display: inline-flex;
-  }
-
-  /* Responsive */
-  @media (max-width: 1200px) {
-    .stats-grid-new {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .dashboard-main-grid {
+  /* Responsive Rules */
+  @media (max-width: 1024px) {
+    .candidate-hub-grid {
       grid-template-columns: 1fr;
     }
-
-    .dashboard-right {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+    .candidate-metric-ribbon {
+      grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
-
-    .jobs-grid-new {
-      grid-template-columns: 1fr;
+    .candidate-metric-col {
+      border-right: none;
+      padding: 0;
     }
   }
 
-  @media (max-width: 768px) {
-    .student-dashboard {
-      padding: 1rem;
+  @media (max-width: 640px) {
+    .candidate-hero-banner {
+      padding: 1.75rem 1.25rem;
     }
-
-    .dashboard-header-new {
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1.25rem;
+    .candidate-metric-ribbon {
+      grid-template-columns: 1fr;
     }
-
-    .header-left {
-      flex-direction: column;
-      text-align: center;
+    .hero-action-buttons {
+      width: 100%;
     }
-
-    .header-right {
+    .hero-action-buttons a {
       width: 100%;
       justify-content: center;
     }
-
-    .stats-grid-new {
-      grid-template-columns: 1fr;
-    }
-
-    .quick-actions-grid-new {
+    .quick-pill-actions {
       grid-template-columns: repeat(2, 1fr);
-    }
-
-    .dashboard-right {
-      grid-template-columns: 1fr;
-    }
-    
-    .application-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-    
-    .job-card-new .job-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-    
-    .job-details {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .action-card-new .action-company {
-      flex-direction: column;
-      text-align: center;
-    }
-    
-    .action-card-new .response-buttons {
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .action-card-new .response-buttons button {
-      width: 100%;
     }
   }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="candidate-hub-container">
+
+  <!-- ============================================================
+       1. CANDIDATE AMBIENT HERO BANNER
+       ============================================================ -->
+  <section class="candidate-hero-banner">
+    <div class="hero-banner-inner">
+      <div class="candidate-meta-group">
+        <div class="candidate-avatar-disc">
+          {{ (student.name or 'S')[0]|upper }}
+        </div>
+        <div class="candidate-title-block">
+          <h1>
+            <span>Hello, {{ (student.name or 'Candidate').split(' ')[0] }}!</span>
+            {% if student.is_approved %}
+            <span class="verification-pill verified">
+              <i class="ph-bold ph-shield-check"></i> Verified Profile
+            </span>
+            {% else %}
+            <span class="verification-pill pending">
+              <i class="ph-bold ph-clock"></i> Verification Pending
+            </span>
+            {% endif %}
+          </h1>
+          <div class="candidate-specs-row">
+            <span class="spec-pill">
+              <i class="ph-bold ph-identification-card"></i> {{ student.student_id or 'CBS-N/A' }}
+            </span>
+            <span class="spec-pill">
+              <i class="ph-bold ph-graduation-cap"></i> {{ student.branch or 'General' }}
+            </span>
+            <span class="spec-pill">
+              <i class="ph-bold ph-chart-bar"></i> {{ student.cgpa or '0.0' }} CGPA
+            </span>
+            <span class="spec-pill" style="color: #38bdf8;">
+              <i class="ph-bold ph-scales"></i> Single Offer Active
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-action-buttons">
+        <a href="{{ url_for('student_jobs') }}" class="btn-hero-primary">
+          <i class="ph-bold ph-briefcase"></i>
+          <span>Explore Open Drives</span>
+        </a>
+        <a href="{{ url_for('student_applications') }}" class="btn-hero-glass">
+          <i class="ph-bold ph-chart-donut"></i>
+          <span>My Applications ({{ my_applications|length }})</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. FLUID CONNECTED METRICS RIBBON (NO SEPARATE BOXES)
+       ============================================================ */
+  -->
+  <section class="candidate-metric-ribbon">
+    <div class="candidate-metric-col">
+      <div class="cand-metric-number indigo">{{ my_applications|length }}</div>
+      <div class="cand-metric-label">Applications Active</div>
+      <div class="cand-metric-sub">Registered across campus recruitment cycles</div>
+    </div>
+
+    <div class="candidate-metric-col">
+      <div class="cand-metric-number amber">{{ shortlisted_count }}</div>
+      <div class="cand-metric-label">Shortlisted Rounds</div>
+      <div class="cand-metric-sub">Advanced to GD, Aptitude or Tech Evaluation</div>
+    </div>
+
+    <div class="candidate-metric-col">
+      <div class="cand-metric-number emerald">{{ selected_count }}</div>
+      <div class="cand-metric-label">Offers &amp; Selected</div>
+      <div class="cand-metric-sub">Certified institutional job offers awarded</div>
+    </div>
+
+    <div class="candidate-metric-col">
+      <div class="cand-metric-number blue">
+        {% if student.cgpa and student.cgpa >= 7.0 %}
+          92%
+        {% elif student.cgpa and student.cgpa >= 6.0 %}
+          78%
+        {% else %}
+          65%
+        {% endif %}
+      </div>
+      <div class="cand-metric-label">Eligibility Radar</div>
+      <div class="cand-metric-sub">Drives matching your academic criteria</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3. TWO-COLUMN SPLIT DASHBOARD LAYOUT
+       ============================================================ -->
+  <div class="candidate-hub-grid">
+
+    <!-- LEFT COLUMN: Main Pipeline & Drives -->
+    <div>
+
+      <!-- ACTION REQUIRED: High Priority Interview / GD Callouts -->
+      {% set action_items = [] %}
+      {% if activities %}
+        {% for act in activities %}
+          {% if act.status in ['Shortlisted', 'GD', 'Interview'] %}
+            {% set _ = action_items.append(act) %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if action_items %}
+      <section class="action-required-radar">
+        <div class="radar-header">
+          <i class="ph-fill ph-bell-ringing" style="font-size: 1.3rem;"></i>
+          <span>Action Required: Recruitment Round Confirmations ({{ action_items|length }})</span>
+        </div>
+
+        {% for act in action_items %}
+        <div class="radar-item-card">
+          <div class="radar-item-top">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div class="company-avatar-box" style="width: 38px; height: 38px; font-size: 0.9rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
+                {{ (act.job_info.company_name or 'C')[0]|upper }}
+              </div>
+              <div>
+                <strong style="color: var(--text-main); font-size: 0.95rem;">{{ act.job_info.company_name }}</strong>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ act.job_info.role }}</div>
+              </div>
+            </div>
+            <span class="verification-pill" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3);">
+              {{ act.status }} Round
+            </span>
+          </div>
+
+          {% if not act.student_response %}
+          <div class="radar-action-buttons">
+            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="response" value="Attending"/>
+              <button type="submit" class="btn-accept-call">
+                <i class="ph-bold ph-check"></i> Confirm Attendance
+              </button>
+            </form>
+            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="response" value="Not Attending"/>
+              <button type="submit" class="btn-decline-call">
+                <i class="ph-bold ph-x"></i> Cannot Attend
+              </button>
+            </form>
+          </div>
+          {% else %}
+          <div style="font-size: 0.85rem; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="ph-fill ph-check-circle"></i> Attendance Response Logged: {{ act.student_response }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      <!-- HIRING PIPELINE JOURNEY (Visual Stepper for Applications) -->
+      <section class="fluid-dash-card">
+        <div class="card-fluid-header">
+          <div class="card-fluid-title">
+            <i class="ph-duotone ph-git-fork"></i>
+            <span>Active Application Pipeline</span>
+          </div>
+          <a href="{{ url_for('student_applications') }}" class="card-fluid-link">
+            <span>All Applications ({{ my_applications|length }})</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
+        </div>
+
+        {% if my_applications %}
+          {% for app in my_applications[:4] %}
+          <div class="pipeline-journey-item">
+            <div class="pipeline-item-top">
+              <div class="pipeline-company-meta">
+                <div class="company-avatar-box">
+                  {{ (app.job_info.company_name or 'C')[0]|upper }}
+                </div>
+                <div>
+                  <div class="pipeline-company-name">{{ app.job_info.company_name }}</div>
+                  <div class="pipeline-role-name">{{ app.job_info.role or 'Software Engineer' }}</div>
+                </div>
+              </div>
+              <span class="package-badge-pill">
+                {{ app.job_info.package or 'Disclosed in Drive' }}
+              </span>
+            </div>
+
+            <!-- Horizontal Journey Stepper -->
+            <div class="journey-stepper-track">
+              <!-- Step 1: Applied -->
+              <div class="journey-step-node completed">
+                <div class="journey-step-dot"><i class="ph-bold ph-check"></i></div>
+                <div class="journey-step-lbl">Applied</div>
+              </div>
+
+              <!-- Step 2: Shortlisted -->
+              <div class="journey-step-node {% if app.status in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}completed{% elif app.status == 'Rejected' %}rejected{% else %}current{% endif %}">
+                <div class="journey-step-dot">
+                  {% if app.status in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}
+                    <i class="ph-bold ph-check"></i>
+                  {% else %}
+                    2
+                  {% endif %}
+                </div>
+                <div class="journey-step-lbl">Shortlisted</div>
+              </div>
+
+              <!-- Step 3: Interview / GD -->
+              <div class="journey-step-node {% if app.status in ['GD', 'Interview', 'Selected'] %}completed{% elif app.status == 'Shortlisted' %}current{% else %}{% endif %}">
+                <div class="journey-step-dot">
+                  {% if app.status in ['GD', 'Interview', 'Selected'] %}
+                    <i class="ph-bold ph-check"></i>
+                  {% else %}
+                    3
+                  {% endif %}
+                </div>
+                <div class="journey-step-lbl">Interview</div>
+              </div>
+
+              <!-- Step 4: Offer / Selected -->
+              <div class="journey-step-node {% if app.status == 'Selected' %}completed{% else %}{% endif %}">
+                <div class="journey-step-dot">
+                  {% if app.status == 'Selected' %}
+                    <i class="ph-bold ph-trophy"></i>
+                  {% else %}
+                    4
+                  {% endif %}
+                </div>
+                <div class="journey-step-lbl">Offer</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+            <i class="ph-duotone ph-briefcase" style="font-size: 2.5rem; color: var(--dash-indigo); margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">No Active Applications Yet</h3>
+            <p style="font-size: 0.85rem; max-width: 360px; margin: 0 auto 1.25rem auto;">
+              Explore upcoming campus recruitment drives and apply with your standardized placement resume.
+            </p>
+            <a href="{{ url_for('student_jobs') }}" class="btn-hero-primary" style="display: inline-flex;">
+              <i class="ph-bold ph-magnifying-glass"></i> Explore Drives
+            </a>
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- ELIGIBILITY MATCHED DRIVES (Recommended Jobs) -->
+      <section class="fluid-dash-card">
+        <div class="card-fluid-header">
+          <div class="card-fluid-title">
+            <i class="ph-duotone ph-sparkle"></i>
+            <span>Matched Campus Recruitment Drives</span>
+          </div>
+          <a href="{{ url_for('student_jobs') }}" class="card-fluid-link">
+            <span>Browse All Drives</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
+        </div>
+
+        {% if recent_jobs %}
+          {% for job in recent_jobs[:5] %}
+          <div class="matched-drive-row">
+            <div class="drive-main-col">
+              <div class="drive-avatar-mini">
+                {{ (job.company_name or 'C')[0]|upper }}
+              </div>
+              <div>
+                <div class="drive-role-title">{{ job.company_name }} &bull; {{ job.role }}</div>
+                <div class="drive-meta-tags">
+                  <span class="tag-eligibility-met">
+                    <i class="ph-bold ph-check"></i> Criteria Met (Min {{ job.min_cgpa or '0.0' }})
+                  </span>
+                  <span><i class="ph-bold ph-currency-dollar"></i> {{ job.package or 'Disclosed in Drive' }}</span>
+                  <span><i class="ph-bold ph-map-pin"></i> {{ job.location or 'Campus Drive' }}</span>
+                </div>
+              </div>
+            </div>
+
+            {% if job._id in applied_job_ids %}
+            <span class="verification-pill verified" style="font-size: 0.75rem;">
+              <i class="ph-bold ph-check"></i> Applied
+            </span>
+            {% else %}
+            <a href="{{ url_for('student_jobs') }}" class="btn-drive-apply">
+              <span>Apply</span>
+              <i class="ph-bold ph-arrow-right"></i>
+            </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.88rem;">
+            <i class="ph-duotone ph-hourglass" style="font-size: 2rem; color: var(--dash-indigo); margin-bottom: 0.5rem;"></i>
+            <p>No new campus drives published today. Check announcements for drive schedules.</p>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+
+    <!-- RIGHT RAIL: Fast Navigation, Schedule & Town Hall -->
+    <div>
+
+      <!-- Quick Action Navigation Pills -->
+      <section class="quick-pill-actions">
+        <a href="{{ url_for('student_jobs') }}" class="quick-action-pill">
+          <i class="ph-fill ph-briefcase"></i>
+          <span>Drives</span>
+        </a>
+        <a href="{{ url_for('student_profile') }}" class="quick-action-pill">
+          <i class="ph-fill ph-user-circle"></i>
+          <span>Resume</span>
+        </a>
+        <a href="{{ url_for('student_announcements') }}" class="quick-action-pill">
+          <i class="ph-fill ph-megaphone"></i>
+          <span>Town Hall</span>
+        </a>
+        <a href="{{ url_for('dynamic_forms.list_student_forms') }}" class="quick-action-pill">
+          <i class="ph-fill ph-clipboard-text"></i>
+          <span>Forms</span>
+        </a>
+        <a href="{{ url_for('student_applications') }}" class="quick-action-pill">
+          <i class="ph-fill ph-files"></i>
+          <span>Pipeline</span>
+        </a>
+        <a href="{{ url_for('notifications_page') }}" class="quick-action-pill">
+          <i class="ph-fill ph-bell"></i>
+          <span>Alerts</span>
+        </a>
+      </section>
+
+      <!-- Upcoming Drive Calendar Schedule -->
+      <section class="fluid-dash-card">
+        <div class="card-fluid-header">
+          <div class="card-fluid-title">
+            <i class="ph-duotone ph-calendar-check"></i>
+            <span>Drive Schedule</span>
+          </div>
+        </div>
+
+        {% if upcoming_drives %}
+          {% for drive in upcoming_drives[:4] %}
+          <div class="drive-calendar-pill">
+            <div class="calendar-date-block">
+              <span class="cal-day">{{ drive.drive_date.strftime('%d') if drive.drive_date else '?' }}</span>
+              <span class="cal-month">{{ drive.drive_date.strftime('%b') if drive.drive_date else 'DRIVE' }}</span>
+            </div>
+            <div style="min-width: 0; flex-grow: 1;">
+              <strong style="color: var(--text-main); font-size: 0.88rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ drive.company_name }}
+              </strong>
+              <div style="font-size: 0.78rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ drive.role }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.82rem;">
+            No upcoming drives scheduled this week.
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Placement Town Hall Updates -->
+      <section class="fluid-dash-card">
+        <div class="card-fluid-header">
+          <div class="card-fluid-title">
+            <i class="ph-duotone ph-broadcast"></i>
+            <span>Town Hall Bulletins</span>
+          </div>
+          <a href="{{ url_for('student_announcements') }}" class="card-fluid-link">All &rarr;</a>
+        </div>
+
+        {% if announcements %}
+          {% for ann in announcements[:4] %}
+          <div class="townhall-snippet">
+            <span class="townhall-dot"></span>
+            <div style="flex-grow: 1; min-width: 0;">
+              <strong style="color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 0.15rem;">
+                {{ ann.title }}
+              </strong>
+              <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                {{ ann.content[:75] }}{{ '...' if ann.content|length > 75 else '' }}
+              </div>
+            </div>
+            <span style="font-size: 0.7rem; color: var(--text-subtle); flex-shrink: 0;">
+              {{ ann.created_at.strftime('%d %b') if ann.created_at else '' }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.82rem;">
+            No announcements posted.
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Academic Records Health Card -->
+      <section class="fluid-dash-card" style="background: linear-gradient(145deg, rgba(79, 70, 229, 0.05), rgba(6, 182, 212, 0.05));">
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem;">
+          <i class="ph-fill ph-seal-check" style="font-size: 1.35rem; color: var(--dash-emerald);"></i>
+          <span style="font-weight: 800; font-size: 0.92rem; color: var(--text-main);">TPO Locked Profile</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem;">
+          Academic records for {{ student.name }} are verified. Marks card lock ensures recruiter export compliance.
+        </p>
+        <a href="{{ url_for('student_profile') }}" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; font-size: 0.82rem;">
+          <i class="ph-bold ph-user"></i> View Academic Profile
+        </a>
+      </section>
+
+    </div>
+
+  </div>
+</div>
 {% endblock %}

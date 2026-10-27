@@ -1,408 +1,654 @@
-{% extends 'base.html' %} {% block title %}Town Hall - CBS 3i-cell{% endblock %}
-{% block content %}
-<div class="section-card glass-card">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    "
-  >
-    <div>
-      <h2
-        style="
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          color: var(--primary);
-        "
-      >
-        <i class="ph-bold ph-building"></i> Town Hall
-      </h2>
-      <div
-        style="
-          color: var(--text-muted);
-          font-size: 0.95rem;
-          margin-top: 0.25rem;
-        "
-      >
-        Official campus announcements, notices, and updates.
-      </div>
-    </div>
-    <div
-      style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap"
-    >
-      <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">
-        <i class="ph-bold ph-arrow-left"></i> Back
-      </a>
-      <button class="btn-primary" onclick="openModal()">
-        <i class="ph-bold ph-megaphone"></i> New Announcement
-      </button>
-    </div>
-  </div>
+{% extends 'base.html' %}
+{% block title %}Town Hall Circulars &amp; Announcements | CBS 3i-cell{% endblock %}
+{% block page_title %}Town Hall Management{% endblock %}
 
-  <!-- Filter/Status Tabs -->
-  <div
-    class="status-tabs-container"
-    style="margin-bottom: 2rem; border-bottom: 1px solid var(--border)"
-  >
-    <button class="status-tab active" onclick="filterItems('all')">
-      All Updates ({{ announcements|length }})
-    </button>
-    <button class="status-tab" onclick="filterItems('published')">
-      Published
-    </button>
-    <button class="status-tab" onclick="filterItems('draft')">Drafts</button>
-  </div>
-
-  <!-- Grid -->
-  <div class="items-grid">
-    {% for ann in announcements %}
-    <div
-      class="item-card glass-card item-card-element"
-      data-status="{{ ann.status or 'draft' }}"
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem;
-        flex-direction: column;
-        height: 100%;
-        position: relative;
-        border-left: 4px solid var(--primary);
-      "
-    >
-      <div style="flex: 1">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <span
-              class="badge"
-              style="
-                background: rgba(99, 102, 241, 0.1);
-                color: var(--primary);
-                margin-bottom: 0.5rem;
-                display: inline-block;
-              "
-            >
-              {{ ann.category or 'General' }}
-            </span>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem">
-              {{ ann.title }}
-            </h3>
-          </div>
-          {% if ann.status == 'published' %}
-          <i
-            class="ph-fill ph-check-circle"
-            style="color: #10b981; font-size: 1.5rem"
-            title="Published"
-          ></i>
-          {% else %}
-          <i
-            class="ph-fill ph-circle-dashed"
-            style="color: #f59e0b; font-size: 1.5rem"
-            title="Draft"
-          ></i>
-          {% endif %}
-        </div>
-
-        <p
-          style="
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-          "
-        >
-          {{ ann.content[:150] }}...
-        </p>
-
-        <div class="d-flex gap-2 flex-wrap mb-3">
-          {% if ann.priority == 'urgent' %}
-          <span
-            class="badge"
-            style="background: rgba(239, 68, 68, 0.1); color: #ef4444"
-            ><i class="ph-bold ph-warning"></i> Urgent</span
-          >
-          {% endif %} {% if ann.attachment_id %}
-          <span class="badge badge-outline"
-            ><i class="ph-bold ph-paperclip"></i> File</span
-          >
-          {% endif %} {% if ann.external_url %}
-          <span class="badge badge-outline"
-            ><i class="ph-bold ph-link"></i> Link</span
-          >
-          {% endif %}
-        </div>
-
-        <div
-          style="
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            padding-top: 0.75rem;
-          "
-        >
-          Is Public:
-          <strong>{{ 'Yes' if ann.target_all_students else 'No' }}</strong> • {%
-          if ann.created_at %} {{ ann.created_at.strftime('%d %b %H:%M') }} {%
-          else %} N/A {% endif %}
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="anno-btns d-flex gap-2 mt-3 pt-3 border-top">
-        <button
-          class="btn-sm btn-edit flex-grow-1"
-          data-index="{{ loop.index0 }}"
-          onclick="openModal(this.dataset.index)"
-        >
-          Edit
-        </button>
-        {% if ann.status != 'published' %}
-        <form
-          action="{{ url_for('publish_announcement', ann_id=ann._id) }}"
-          method="POST"
-          style="flex-grow: 1"
-        >
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-sm btn-add w-100">
-            Publish
-          </button>
-        </form>
-        {% endif %}
-        <form
-          action="{{ url_for('delete_announcement', ann_id=ann._id) }}"
-          method="POST"
-          onsubmit="return confirm('Delete?');"
-        >
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button
-            type="submit"
-            class="btn-sm btn-delete"
-          >
-            <i class="ph-bold ph-trash"></i>
-          </button>
-        </form>
-      </div>
-    </div>
-    {% else %}
-    <div
-      style="
-        grid-column: 1/-1;
-        text-align: center;
-        padding: 3rem;
-        color: var(--text-muted);
-      "
-    >
-      <p>No town hall updates yet.</p>
-    </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Modal -->
-<div id="annModal" class="modal-overlay">
-  <div
-    class="glass-card-heavy modal-content"
-    style="max-width: 600px; width: 95%; margin: auto"
-  >
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 id="modalTitle" style="color: var(--primary)">New Announcement</h2>
-      <button onclick="closeModal()" class="btn-icon">
-        <i class="ph-bold ph-x"></i>
-      </button>
-    </div>
-
-    <form
-      id="annForm"
-      method="POST"
-      enctype="multipart/form-data"
-      style="text-align: left"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <style>
-        /* Local Form Override */
-        .form-group label {
-          text-align: left;
-          display: block;
-          margin-bottom: 0.5rem;
-          color: var(--text-main);
-          font-weight: 600;
-        }
-        .form-control {
-          background: var(--surface-input) !important;
-          border: 1px solid var(--border) !important;
-          color: var(--text-main) !important;
-          padding: 0.75rem;
-          border-radius: 8px;
-        }
-        .form-control:focus {
-          border-color: var(--primary) !important;
-          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-          outline: none;
-        }
-      </style>
-      <input type="hidden" name="action" id="action" value="draft" />
-
-      <div class="form-group mb-3">
-        <label class="form-label">Title *</label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-          class="form-control"
-          required
-          placeholder="Header"
-        />
-      </div>
-
-      <div class="row">
-        <div class="col-6 form-group mb-3">
-          <label class="form-label">Category</label>
-          <select name="category" id="category" class="form-control">
-            <option value="General">General</option>
-            <option value="Academic">Academic</option>
-            <option value="Event">Event</option>
-            <option value="Placement">Placement</option>
-          </select>
-        </div>
-        <div class="col-6 form-group mb-3">
-          <label class="form-label">Priority</label>
-          <select name="priority" id="priority" class="form-control">
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group mb-3">
-        <label class="form-label">Content *</label>
-        <textarea
-          name="content"
-          id="content"
-          rows="5"
-          class="form-control"
-          required
-          placeholder="Details..."
-        ></textarea>
-      </div>
-
-      <div class="form-group mb-3">
-        <label class="form-label">Attachment (Optional)</label>
-        <input
-          type="file"
-          name="attachment"
-          id="attachment"
-          class="form-control"
-        />
-      </div>
-
-      <div class="form-group mb-3">
-        <label class="form-label">Link (Optional)</label>
-        <input
-          type="url"
-          name="url"
-          id="url"
-          class="form-control"
-          placeholder="https://..."
-        />
-      </div>
-
-      <div class="form-group mb-4">
-        <label class="d-flex align-items-center gap-2" style="cursor: pointer">
-          <input
-            type="checkbox"
-            name="target_all_students"
-            id="target_all_students"
-            checked
-          />
-          <span>Notify all students</span>
-        </label>
-      </div>
-
-      <div class="d-flex justify-content-end gap-3 pt-3 border-top">
-        <button type="button" class="btn-secondary" onclick="closeModal()">
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="btn-secondary"
-          onclick="setAction('draft')"
-        >
-          Save Draft
-        </button>
-        <button
-          type="submit"
-          class="btn-primary"
-          onclick="setAction('publish')"
-        >
-          Publish Now
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
+{% block head %}
 <style>
-  .items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+  /* ============================================================
+     CBS 3i-CELL TOWN HALL ANNOUNCEMENTS (Modern Fluid Layout)
+     ============================================================ */
+
+  :root {
+    --th-indigo: #4f46e5;
+    --th-blue: #2563eb;
+    --th-emerald: #10b981;
+    --th-amber: #f59e0b;
+    --th-rose: #ef4444;
   }
 
-  .status-tabs-container {
+  .townhall-container {
+    padding-bottom: 4rem;
+  }
+
+  /* 1. Ambient Banner */
+  .townhall-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .townhall-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .banner-inner {
+    position: relative;
+    z-index: 1;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 1.5rem;
-    overflow-x: auto;
+    flex-wrap: wrap;
   }
 
-  .status-tab {
-    background: none;
+  .banner-left h1 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.35rem 0;
+  }
+
+  .banner-left p {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .banner-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-banner-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
     border: none;
-    padding: 0.5rem 0;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.55);
+  }
+
+  .btn-banner-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-glass:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
+
+  /* 2. Filter Status Ribbon */
+  .filter-tabs-ribbon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.35rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="dark"] .filter-tabs-ribbon {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .tab-filter-btn {
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1.35rem;
+    border-radius: 9999px;
+    font-size: 0.86rem;
+    font-weight: 700;
     color: var(--text-muted);
     cursor: pointer;
-    border-bottom: 2px solid transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .status-tab.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+  .tab-filter-btn.active {
+    background: var(--th-indigo);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
   }
 
-  .badge-outline {
+  /* 3. Modern Announcements Grid */
+  .modern-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .notice-hub-card {
+    background: var(--surface);
     border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
+    border-radius: 22px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
   }
 
+  [data-theme="dark"] .notice-hub-card {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .notice-hub-card:hover {
+    border-color: rgba(99, 102, 241, 0.45);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 35px -8px rgba(15, 23, 42, 0.12);
+  }
+
+  .notice-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .category-pill {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .category-pill.placement {
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--th-indigo);
+    border: 1px solid rgba(79, 70, 229, 0.25);
+  }
+
+  .category-pill.general {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--th-blue);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+  }
+
+  .category-pill.academic {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--th-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .notice-title-text {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+  }
+
+  .notice-body-excerpt {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .notice-chips-row {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .notice-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .notice-chip.urgent {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+  }
+
+  .notice-meta-footer {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .notice-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .btn-notice-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-notice-action:hover {
+    border-color: var(--th-indigo);
+    background: var(--surface);
+    color: var(--th-indigo);
+    transform: translateY(-1px);
+  }
+
+  .btn-notice-action.publish {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+  }
+
+  .btn-notice-action.danger {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+    color: #e11d48;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.95rem;
+    font-weight: 700;
+  }
+
+  .btn-notice-action.danger:hover {
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  }
+
+  /* Modal */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(15, 23, 42, 0.65);
     z-index: 2000;
-    align-items: flex-start; /* Fix for scrolling */
+    align-items: flex-start;
     justify-content: center;
-    padding: 2rem 1rem;
-    backdrop-filter: blur(4px);
-    overflow-y: auto; /* Enable scrolling */
+    padding: 2.5rem 1rem;
+    backdrop-filter: blur(8px);
+    overflow-y: auto;
+  }
+
+  .modal-modern-card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.25rem;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] .modal-modern-card {
+    background: #0f172a;
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+
+  @media (max-width: 768px) {
+    .modern-items-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="townhall-container">
+
+  <!-- ============================================================
+       1. TOWNHALL BANNER
+       ============================================================ -->
+  <section class="townhall-banner">
+    <div class="banner-inner">
+      <div class="banner-left">
+        <h1>Placement Town Hall &amp; Circulars</h1>
+        <p>Broadcast enterprise hiring alerts, schedule modifications, workshop invitations, and institutional placement policies.</p>
+      </div>
+
+      <div class="banner-actions">
+        <button class="btn-banner-primary" onclick="openModal()">
+          <i class="ph-bold ph-megaphone"></i>
+          <span>New Town Hall Notice</span>
+        </button>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-banner-glass">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. FILTER STATUS TABS
+       ============================================================ -->
+  <div class="filter-tabs-ribbon">
+    <button class="tab-filter-btn active" onclick="filterItems('all')">
+      All Circulars ({{ announcements|length }})
+    </button>
+    <button class="tab-filter-btn" onclick="filterItems('published')">
+      Published
+    </button>
+    <button class="tab-filter-btn" onclick="filterItems('draft')">
+      Drafts
+    </button>
+  </div>
+
+  <!-- ============================================================
+       3. MODERN ANNOUNCEMENTS GRID
+       ============================================================ -->
+  <div class="modern-items-grid">
+    {% for ann in announcements %}
+    {% set cat = (ann.category or 'General')|lower %}
+    <div
+      class="notice-hub-card item-card-element"
+      data-status="{{ ann.status or 'draft' }}"
+    >
+      <div>
+        <div class="notice-top-row">
+          <span class="category-pill {% if cat == 'placement' %}placement{% elif cat == 'academic' %}academic{% else %}general{% endif %}">
+            {{ ann.category or 'General' }}
+          </span>
+
+          {% if ann.status == 'published' %}
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 800; color: #059669;">
+            <i class="ph-fill ph-check-circle" style="font-size: 1.15rem;"></i> Active Broadcast
+          </span>
+          {% else %}
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; font-weight: 800; color: #d97706;">
+            <i class="ph-fill ph-circle-dashed" style="font-size: 1.15rem;"></i> Draft
+          </span>
+          {% endif %}
+        </div>
+
+        <h3 class="notice-title-text">{{ ann.title }}</h3>
+        <p class="notice-body-excerpt">{{ ann.content[:160] }}{{ '...' if ann.content|length > 160 else '' }}</p>
+
+        <!-- Attached Document / Image Visual Preview -->
+        {% if ann.attachment_id %}
+        <div class="circular-attachment-preview" style="margin-bottom: 1.25rem;">
+          {% if ann.attachment_type == 'image' %}
+          <div class="attachment-image-container" style="border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); background: var(--bg); position: relative;">
+            <img 
+              src="{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}" 
+              alt="{{ ann.attachment_filename or 'Notice Attachment' }}"
+              style="width: 100%; max-height: 180px; object-fit: cover; display: block; cursor: pointer; transition: transform 0.3s ease;"
+              onclick="openDocPreviewModal('{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}', '{{ ann.title|replace('\'', '\\\'') }}', 'image')"
+              onmouseover="this.style.transform='scale(1.02)'"
+              onmouseout="this.style.transform='scale(1)'"
+            />
+            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.72rem; color: #ffffff; display: flex; align-items: center; gap: 0.35rem; pointer-events: none;">
+              <i class="ph-bold ph-image"></i> Click to Zoom
+            </div>
+          </div>
+          {% else %}
+          <div class="attachment-doc-card" style="display: flex; align-items: center; justify-content: space-between; gap: 0.85rem; padding: 0.85rem 1rem; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0;">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="ph-bold ph-file-pdf"></i>
+              </div>
+              <div style="min-width: 0;">
+                <div style="font-size: 0.86rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {{ ann.attachment_filename or 'Official Circular.pdf' }}
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">
+                  {{ ann.attachment_size_kb or 150 }} KB · PDF Document
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
+              <button 
+                type="button" 
+                onclick="openDocPreviewModal('{{ url_for('file_serving.view_file_inline', file_id=ann.attachment_id) }}', '{{ ann.title|replace('\'', '\\\'') }}', 'pdf')"
+                class="btn btn-secondary btn-sm" 
+                style="padding: 0.35rem 0.65rem; font-size: 0.78rem;"
+                title="Preview PDF"
+              >
+                <i class="ph-bold ph-eye"></i> Preview
+              </button>
+              <a 
+                href="{{ url_for('file_serving.serve_file', file_id=ann.attachment_id) }}" 
+                download
+                class="btn btn-secondary btn-sm" 
+                style="padding: 0.35rem 0.65rem; font-size: 0.78rem;"
+                title="Download PDF"
+              >
+                <i class="ph-bold ph-download-simple"></i>
+              </a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Attribute Chips -->
+        <div class="notice-chips-row">
+          {% if ann.priority == 'urgent' %}
+          <span class="notice-chip urgent">
+            <i class="ph-bold ph-warning"></i> High Priority
+          </span>
+          {% endif %}
+          {% if ann.attachment_id %}
+          <span class="notice-chip">
+            <i class="ph-bold ph-paperclip"></i> Circular File
+          </span>
+          {% endif %}
+          {% if ann.external_url %}
+          <span class="notice-chip">
+            <i class="ph-bold ph-link"></i> Web Link
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Meta Footer -->
+        <div class="notice-meta-footer">
+          <span>Target: <strong>{{ 'All Students' if ann.target_all_students else 'Targeted Batch' }}</strong></span>
+          <span>Posted: <strong>{{ ann.created_at.strftime('%d %b %H:%M') if ann.created_at else 'Recent' }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="notice-actions-row">
+        <button
+          class="btn-notice-action"
+          data-index="{{ loop.index0 }}"
+          onclick="openModal(this.dataset.index)"
+          title="Edit Circular"
+        >
+          <i class="ph-bold ph-pencil"></i> Edit
+        </button>
+
+        {% if ann.status != 'published' %}
+        <form
+          action="{{ url_for('publish_announcement', ann_id=ann._id) }}"
+          method="POST"
+          style="flex: 1; margin: 0;"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-notice-action publish" style="width: 100%;">
+            <i class="ph-bold ph-megaphone"></i> Broadcast
+          </button>
+        </form>
+        {% endif %}
+
+        <form
+          action="{{ url_for('delete_announcement', ann_id=ann._id) }}"
+          method="POST"
+          onsubmit="return confirm('Permanently remove this announcement?');"
+          style="margin: 0;"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn-notice-action danger" title="Delete Circular">
+            <i class="ph-bold ph-trash"></i> Delete
+          </button>
+        </form>
+      </div>
+
+    </div>
+    {% else %}
+    <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 24px;">
+      <i class="ph-duotone ph-megaphone" style="font-size: 3.5rem; color: var(--th-indigo); margin-bottom: 1rem; display: block;"></i>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">No Town Hall Circulars Found</h3>
+      <p style="color: var(--text-muted); max-width: 420px; margin: 0 auto 1.5rem auto;">Post announcements to broadcast important drive schedules to the student body.</p>
+      <button class="btn-banner-primary" onclick="openModal()">
+        <i class="ph-bold ph-megaphone"></i> Post Announcement
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Modern Announcement Modal -->
+<div id="annModal" class="modal-overlay">
+  <div class="modal-modern-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+      <h2 id="modalTitle" style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin: 0;">New Town Hall Circular</h2>
+      <button onclick="closeModal()" style="background: none; border: none; font-size: 1.35rem; color: var(--text-muted); cursor: pointer;">
+        <i class="ph-bold ph-x"></i>
+      </button>
+    </div>
+
+    <form id="annForm" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="action" id="action" value="draft" />
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Announcement Title *</label>
+        <input type="text" name="title" id="title" required placeholder="e.g. Deloitte Campus Drive Shortlists Released" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Category</label>
+          <select name="category" id="category" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);">
+            <option value="Placement">Placement</option>
+            <option value="General">General</option>
+            <option value="Academic">Academic</option>
+            <option value="Event">Event</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Priority</label>
+          <select name="priority" id="priority" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Circular Details &amp; Message *</label>
+        <textarea name="content" id="content" rows="5" required placeholder="Detailed message, instructions, reporting venue, and dress code..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit;"></textarea>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Attachment (PDF/Image)</label>
+          <input type="file" name="attachment" id="attachment" class="form-control" style="width: 100%; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">External Link (Optional)</label>
+          <input type="url" name="url" id="url" placeholder="https://..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--text-main);">
+          <input type="checkbox" name="target_all_students" id="target_all_students" checked style="width: 18px; height: 18px; accent-color: var(--th-indigo);" />
+          <span>Notify all registered student portals</span>
+        </label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-secondary" onclick="setAction('draft')">Save Draft</button>
+        <button type="submit" class="btn btn-primary" onclick="setAction('publish')">Broadcast Now</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script id="announcements-data" type="application/json">
   {{ announcements_data | tojson | safe }}
 </script>
 <script>
   const data = JSON.parse(
-    document.getElementById("announcements-data").textContent,
+    document.getElementById("announcements-data").textContent
   );
 
   function setAction(status) {
@@ -416,7 +662,7 @@
 
     if (index >= 0 && data[index]) {
       const item = data[index];
-      title.textContent = "Edit Announcement";
+      title.textContent = "Edit Town Hall Circular";
 
       document.getElementById("title").value = item.title;
       document.getElementById("category").value = item.category || "General";
@@ -428,24 +674,22 @@
 
       form.action = `/admin/announcements/${item._id}/edit`;
     } else {
-      title.textContent = "New Announcement";
+      title.textContent = "New Town Hall Notice";
       form.reset();
       form.action = "{{ url_for('add_announcement') }}";
     }
 
     modal.style.display = "flex";
-    document.body.style.overflow = "hidden"; // Lock Body Scroll
+    document.body.style.overflow = "hidden";
   }
 
   function closeModal() {
     document.getElementById("annModal").style.display = "none";
-    document.body.style.overflow = ""; // Unlock Body Scroll
+    document.body.style.overflow = "";
   }
 
   function filterItems(status) {
-    document
-      .querySelectorAll(".status-tab")
-      .forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".tab-filter-btn").forEach((t) => t.classList.remove("active"));
     event.target.classList.add("active");
 
     document.querySelectorAll(".item-card-element").forEach((card) => {
@@ -457,9 +701,46 @@
     });
   }
 
-  // Close modal on outside click
   document.getElementById("annModal").addEventListener("click", (e) => {
     if (e.target === e.currentTarget) closeModal();
   });
+
+  function openDocPreviewModal(url, title, type) {
+    const modal = document.getElementById("adminDocPreviewModal");
+    const titleEl = document.getElementById("adminPreviewTitle");
+    const container = document.getElementById("adminPreviewContainer");
+    
+    titleEl.textContent = title;
+    if (type === 'image') {
+      container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; padding:1rem; background:rgba(0,0,0,0.85); border-radius:12px;"><img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;" alt="${title}"></div>`;
+    } else {
+      container.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none; border-radius:12px; background:#fff;"></iframe>`;
+    }
+    
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeAdminDocPreview() {
+    const modal = document.getElementById("adminDocPreviewModal");
+    const container = document.getElementById("adminPreviewContainer");
+    modal.style.display = "none";
+    container.innerHTML = "";
+    document.body.style.overflow = "";
+  }
 </script>
+
+<!-- Visual Document / Image Preview Lightbox Modal -->
+<div id="adminDocPreviewModal" class="modal-backdrop-blur" style="display: none; position: fixed; inset: 0; z-index: 2500; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 1.5rem;" onclick="if(event.target===this) closeAdminDocPreview();">
+  <div style="background: var(--surface); width: 95%; max-width: 980px; height: 88vh; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.4);">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg);">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="ph-bold ph-eye" style="color: var(--primary);"></i>
+        <h3 id="adminPreviewTitle" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Attachment Preview</h3>
+      </div>
+      <button onclick="closeAdminDocPreview()" class="btn btn-ghost btn-sm" style="font-size: 1.35rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    </div>
+    <div id="adminPreviewContainer" style="flex: 1; min-height: 0; padding: 0.5rem; background: var(--surface);"></div>
+  </div>
+</div>
 {% endblock %}

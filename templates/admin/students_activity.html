@@ -8,8 +8,8 @@
 
   <a
     href="{{ url_for('admin_dashboard') }}"
-    class="btn-secondary"
-    style="margin-bottom: 1rem"
+    class="btn-back"
+    style="margin-bottom: 1.5rem"
     >← Back to Dashboard</a
   >
 
@@ -72,10 +72,10 @@
             <td style="padding: 0.75rem">
               <button
                 onclick="openNotificationModal('{{ student.user_id }}')"
-                class="btn-primary"
-                style="padding: 0.5rem 1rem"
+                class="btn-notify"
+                style="padding: 0.5rem 1rem;"
               >
-                📢 Notify
+                <i class="ph-bold ph-bell-ringing"></i> Notify
               </button>
             </td>
           </tr>

@@ -1,222 +1,680 @@
-{% extends 'base.html' %} {% block title %}Sign Up - CBS 3i-cell{%
-endblock %} {% block content %}
-<div class="auth-page-wrapper">
-  <!-- Dynamic Background -->
-  <div class="background-decor-wrapper">
-    <div class="decor-circle circle-1"></div>
-    <div class="decor-circle circle-2"></div>
-    <div class="decor-circle circle-3"></div>
-  </div>
+{% extends 'base.html' %}
+{% block title %}Sign Up | CBS 3i-Cell Placement Portal{% endblock %}
 
-  <div class="auth-card-container size-lg">
-    <!-- Header Section -->
-    <div class="auth-header-section">
-      <div class="brand-logo-container">
-        <i class="ph-bold ph-user-plus"></i>
+{% block head %}
+<style>
+  /* ============================================================
+     SPLIT-SCREEN MODERN TECH AUTH EXPERIENCE (Sign Up)
+     ============================================================ */
+
+  .auth-ambient-canvas {
+    min-height: calc(100vh - var(--topbar-h, 60px) - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.07) 0%, transparent 45%);
+  }
+
+  /* Split Master Card */
+  .auth-split-card {
+    width: 100%;
+    max-width: 1080px;
+    min-height: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.6);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    position: relative;
+  }
+
+  [data-theme="dark"] .auth-split-card {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+
+  /* ============================================================
+     LEFT PANEL: CAMPUS ATMOSPHERE & REGISTRATION TRUST
+     ============================================================ */
+  .auth-showcase-panel {
+    background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+    padding: 3.5rem 3rem;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-campus-bg-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image: url('{{ url_for("static", filename="images/campus.jpeg") }}');
+    background-size: cover;
+    background-position: center;
+    filter: saturate(1.2);
+    pointer-events: none;
+  }
+
+  .auth-showcase-glow {
+    position: absolute;
+    top: -30%;
+    left: -30%;
+    width: 160%;
+    height: 160%;
+    background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.35) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .showcase-top-brand {
+    position: relative;
+    z-index: 1;
+  }
+
+  .showcase-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e0e7ff;
+    letter-spacing: 0.03em;
+    margin-bottom: 1.25rem;
+  }
+
+  .showcase-heading {
+    font-size: 2.15rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    margin-bottom: 0.85rem;
+  }
+
+  .showcase-heading span {
+    background: linear-gradient(135deg, #60a5fa, #a5b4fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .showcase-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    max-width: 400px;
+  }
+
+  /* Candidate Benefits Checklist */
+  .signup-benefits-list {
+    position: relative;
+    z-index: 1;
+    margin: 2rem 0;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .signup-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    font-weight: 600;
+  }
+
+  .signup-benefit-item i {
+    color: #34d399;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  /* Bottom Trust Badges */
+  .showcase-bottom-trust {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 1.25rem;
+  }
+
+  .bottom-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+
+  .bottom-trust-item i {
+    color: #818cf8;
+    font-size: 1rem;
+  }
+
+  /* ============================================================
+     RIGHT PANEL: REGISTRATION FORM
+     ============================================================ */
+  .auth-form-panel {
+    padding: 3.25rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  [data-theme="dark"] .auth-form-panel {
+    background: transparent;
+  }
+
+  .form-panel-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .form-panel-title {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+  }
+
+  .form-panel-sub {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  /* Segmented Role Switcher */
+  .role-segmented-box {
+    background: var(--bg, #f1f5f9);
+    border: 1px solid var(--border);
+    padding: 0.35rem;
+    border-radius: 9999px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+  }
+
+  [data-theme="dark"] .role-segmented-box {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .role-segment-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+  }
+
+  .role-segment-btn.active {
+    background: var(--surface);
+    color: var(--primary, #4f46e5);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  [data-theme="dark"] .role-segment-btn.active {
+    background: #1e293b;
+    color: #a5b4fc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Modern Input Groups */
+  .modern-input-group {
+    margin-bottom: 1.15rem;
+  }
+
+  .modern-input-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  .modern-input-shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .modern-input-shell i.prefix-icon {
+    position: absolute;
+    left: 1.1rem;
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  .modern-input-field {
+    width: 100%;
+    padding: 0.82rem 1.1rem 0.82rem 2.85rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg, #f8fafc);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  [data-theme="dark"] .modern-input-field {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .modern-input-field:focus {
+    border-color: #4f46e5;
+    background: var(--surface);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  }
+
+  [data-theme="dark"] .modern-input-field:focus {
+    border-color: #818cf8;
+    background: #0f172a;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+  }
+
+  .modern-input-shell:focus-within i.prefix-icon {
+    color: #4f46e5;
+  }
+
+  .pwd-toggle-btn {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    padding: 0.25rem;
+  }
+
+  .pwd-toggle-btn:hover {
+    color: var(--text-main);
+  }
+
+  /* Info Note for Student */
+  .student-onboarding-chip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    background: rgba(79, 70, 229, 0.06);
+    border: 1px solid rgba(79, 70, 229, 0.18);
+    border-radius: 14px;
+    margin-bottom: 1.35rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  [data-theme="dark"] .student-onboarding-chip {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #cbd5e1;
+  }
+
+  .student-onboarding-chip i {
+    color: #4f46e5;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* High-Impact Submit Button */
+  .btn-auth-submit {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.95rem 1.75rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px -5px rgba(79, 70, 229, 0.55);
+  }
+
+  .form-bottom-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .form-bottom-switch a {
+    color: #4f46e5;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .form-bottom-switch a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsiveness */
+  @media (max-width: 960px) {
+    .auth-split-card {
+      grid-template-columns: 1fr;
+      max-width: 520px;
+    }
+    .auth-showcase-panel {
+      padding: 2.5rem 2rem;
+    }
+    .auth-form-panel {
+      padding: 2.5rem 2rem;
+    }
+    .signup-benefits-list {
+      display: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-ambient-canvas">
+  <div class="auth-split-card">
+
+    <!-- ============================================================
+         LEFT PANEL: CAMPUS ATMOSPHERE & REGISTRATION TRUST
+         ============================================================ -->
+    <div class="auth-showcase-panel">
+      <div class="auth-campus-bg-layer"></div>
+      <div class="auth-showcase-glow"></div>
+
+      <!-- Brand Header -->
+      <div class="showcase-top-brand">
+        <div class="showcase-chip">
+          <i class="ph-bold ph-user-plus"></i>
+          <span>Placement Ecosystem Onboarding</span>
+        </div>
+        <h2 class="showcase-heading">
+          Unlock Your <br />
+          <span>Campus Career.</span>
+        </h2>
+        <p class="showcase-desc">
+          Register with your institutional credentials to participate in accredited campus recruitment drives, auto-generate ATS resumes, and track live shortlists.
+        </p>
       </div>
-      <h1 class="auth-heading">Create Account</h1>
-      <p class="auth-subheading">Join the placement cell portal</p>
+
+      <!-- Candidate Benefits -->
+      <div class="signup-benefits-list">
+        <div class="signup-benefit-item">
+          <i class="ph-bold ph-check-circle"></i>
+          <span>Instant eligibility matching with active campus drives</span>
+        </div>
+        <div class="signup-benefit-item">
+          <i class="ph-bold ph-check-circle"></i>
+          <span>1-click standardized placement resume export</span>
+        </div>
+        <div class="signup-benefit-item">
+          <i class="ph-bold ph-check-circle"></i>
+          <span>Tamper-proof academic record verification</span>
+        </div>
+      </div>
+
+      <!-- Trust Badges -->
+      <div class="showcase-bottom-trust">
+        <div class="bottom-trust-item">
+          <i class="ph-fill ph-seal-check"></i>
+          <span>NAAC A+ Accredited</span>
+        </div>
+        <div class="bottom-trust-item">
+          <i class="ph-fill ph-lock-key"></i>
+          <span>Strict Single Offer Policy</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Signup Form -->
-    <form
-      action="{{ url_for('signup_post') }}"
-      method="POST"
-      enctype="multipart/form-data"
-      class="auth-form-stack"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <!-- Basics Grid -->
-      <div class="input-group-card">
-        <!-- Role Selection Card -->
-        <div class="input-group-card">
-          <label class="input-label">I am a</label>
-          <input type="hidden" name="role" id="role-input" value="student" />
-          <div class="role-selection" style="display: flex; gap: 1rem">
-            <div
-              class="role-card"
-              data-role="student"
-              style="
-                flex: 1;
-                padding: 1rem;
-                text-align: center;
-                background: var(--surface-input);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                cursor: pointer;
-              "
-            >
-              <i
-                class="ph ph-user"
-                style="font-size: 2rem; color: var(--primary)"
-              ></i
-              ><br />Student
-            </div>
-            <div
-              class="role-card"
-              data-role="admin"
-              style="
-                flex: 1;
-                padding: 1rem;
-                text-align: center;
-                background: var(--surface-input);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                cursor: pointer;
-              "
-            >
-              <i
-                class="ph ph-users"
-                style="font-size: 2rem; color: var(--primary)"
-              ></i
-              ><br />Admin / Faculty
+    <!-- ============================================================
+         RIGHT PANEL: REGISTRATION FORM
+         ============================================================ -->
+    <div class="auth-form-panel">
+      <div>
+        <div class="form-panel-header">
+          <h1 class="form-panel-title">Create Account</h1>
+          <p class="form-panel-sub">Join the Chetan Business School placement network</p>
+        </div>
+
+        <!-- Form -->
+        <form action="{{ url_for('signup_post') }}" method="POST" id="signupForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="role" id="role-input" value="student"/>
+
+          <!-- Segmented Role Switcher -->
+          <div class="role-segmented-box">
+            <button type="button" class="role-segment-btn active" data-role="student" id="role-btn-student">
+              <i class="ph-fill ph-student"></i>
+              <span>Student</span>
+            </button>
+            <button type="button" class="role-segment-btn" data-role="admin" id="role-btn-admin">
+              <i class="ph-fill ph-users-three"></i>
+              <span>Admin / Faculty</span>
+            </button>
+          </div>
+
+          <!-- Full Name -->
+          <div class="modern-input-group">
+            <label for="name" class="modern-input-label">Full Name</label>
+            <div class="modern-input-shell">
+              <i class="ph ph-user prefix-icon"></i>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder="e.g. Vikram Gudihal"
+                class="modern-input-field"
+                autocomplete="name"
+              />
             </div>
           </div>
-        </div>
-        <script>
-          const roleInput = document.getElementById("role-input");
-          document.querySelectorAll(".role-card").forEach((card) => {
-            card.addEventListener("click", () => {
-              document
-                .querySelectorAll(".role-card")
-                .forEach((c) => (c.style.borderColor = "var(--border)"));
-              card.style.borderColor = "var(--primary)";
-              roleInput.value = card.dataset.role;
-              updateFormFields();
-            });
-          });
-          // default highlight
-          document.querySelector(
-            '.role-card[data-role="student"]',
-          ).style.borderColor = "var(--primary)";
-        </script>
-      </div>
 
-      <div class="input-group-card">
-        <label for="name" class="input-label">Full Name</label>
-        <div class="custom-input-wrapper">
-          <i class="ph ph-user input-icon"></i>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            placeholder="John Doe"
-            class="custom-input-field"
-          />
-        </div>
-      </div>
-
-      <div class="input-group-card">
-        <label for="email" class="input-label">Email Address</label>
-        <div class="custom-input-wrapper">
-          <i class="ph ph-envelope input-icon"></i>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="name@example.com"
-            class="custom-input-field"
-          />
-        </div>
-      </div>
-
-      <div class="input-group-card">
-        <label for="password" class="input-label">Password</label>
-        <div class="custom-input-wrapper">
-          <i class="ph ph-lock-key input-icon"></i>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            placeholder="Create strong password"
-            class="custom-input-field"
-          />
-        </div>
-      </div>
-
-      <!-- Role Selection handled by JS above -->
-
-      <!-- Admin/Student logic simplified: Just Role choice first -->
-      <!-- Details will be collected AFTER login for Students -->
-      <!-- For Admin, we can keep the simple level selection or move it too. User focused on Student. Let's keep Admin simple here for now or just hide extra fields/ -->
-      <!-- Actually, let's keep Admin Level for Admins, but REMOVE Student Profile Fields (Branch, CGPA, Resume, College ID) -->
-
-      <div id="student-fields" style="display: none">
-        <div class="info-alert-box">
-          <i class="ph-bold ph-info"></i>
-          <p>
-            You will be asked to complete your full profile after registration.
-          </p>
-        </div>
-      </div>
-
-      <!-- Admin Specific Fields -->
-      <div
-        id="admin-faculty-fields"
-        style="display: none; animation: slideDown 0.3s ease-out"
-      >
-        <div class="input-group-card">
-          <label for="admin_level" class="input-label">Access Level</label>
-          <div class="custom-select-wrapper">
-            <i class="ph ph-shield-check input-icon"></i>
-            <select
-              id="admin_level"
-              name="admin_level"
-              class="custom-input-field"
-            >
-              <option value="" disabled selected>Select level</option>
-              <option value="super_admin">Super Admin</option>
-              <option value="faculty">Faculty</option>
-            </select>
-            <i class="ph ph-caret-down select-chevron"></i>
+          <!-- Student Roll Number / Registration Number Field -->
+          <div id="student-roll-group" class="modern-input-group">
+            <label for="roll_no" class="modern-input-label">
+              University Registration / Roll No <span style="color: #ef4444;">*</span>
+            </label>
+            <div class="modern-input-shell">
+              <i class="ph ph-identification-card prefix-icon"></i>
+              <input
+                type="text"
+                id="roll_no"
+                name="roll_no"
+                placeholder="e.g. P02DR25S126001"
+                class="modern-input-field"
+                style="text-transform: uppercase; font-family: monospace; letter-spacing: 0.05em; font-weight: 600;"
+                autocomplete="off"
+                oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+              />
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+              <i class="ph-bold ph-info" style="color: var(--tpo-indigo);"></i>
+              <span>Required format e.g. <strong>P02DR25S126001</strong> (MCA / MBA university pattern).</span>
+            </div>
           </div>
-        </div>
+
+          <!-- Email Address -->
+          <div class="modern-input-group">
+            <label for="email" class="modern-input-label">Email Address</label>
+            <div class="modern-input-shell">
+              <i class="ph ph-envelope prefix-icon"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder="name@cbs.edu"
+                class="modern-input-field"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="modern-input-group">
+            <label for="password" class="modern-input-label">Password</label>
+            <div class="modern-input-shell">
+              <i class="ph ph-lock-key prefix-icon"></i>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                placeholder="Create a secure password"
+                class="modern-input-field"
+                autocomplete="new-password"
+                style="padding-right: 2.75rem;"
+              />
+              <button
+                type="button"
+                onclick="togglePwdVis('password', 'eye-icon-su')"
+                class="pwd-toggle-btn"
+                aria-label="Toggle password visibility"
+              >
+                <i class="ph ph-eye" id="eye-icon-su"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Student Onboarding Note -->
+          <div id="student-fields" class="student-onboarding-chip">
+            <i class="ph-bold ph-info"></i>
+            <div>
+              <strong>Profile Setup Next:</strong> You'll be guided to enter your semester marks, branch, and generate your placement resume immediately after registration.
+            </div>
+          </div>
+
+          <!-- Admin / Faculty Fields -->
+          <div id="admin-faculty-fields" style="display: none; margin-bottom: 1.25rem;">
+            <div class="modern-input-group">
+              <label for="admin_level" class="modern-input-label">Administrative Hierarchy</label>
+              <div class="modern-input-shell">
+                <i class="ph ph-shield-check prefix-icon"></i>
+                <select id="admin_level" name="admin_level" class="modern-input-field" style="appearance: none; cursor: pointer;">
+                  <option value="" disabled selected>Select Access Hierarchy</option>
+                  <option value="faculty">Faculty Placement Coordinator</option>
+                  <option value="super_admin">Placement Officer (Super Admin)</option>
+                </select>
+                <i class="ph ph-caret-down" style="position: absolute; right: 1rem; color: var(--text-muted); pointer-events: none;"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-auth-submit">
+            <span>Create Candidate Account</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </form>
       </div>
 
-      <button type="submit" class="auth-submit-btn">
-        <span>Create Account</span>
-        <div class="btn-icon-circle">
-          <i class="ph-bold ph-arrow-right"></i>
-        </div>
-      </button>
-    </form>
-
-    <div class="auth-footer-section">
-      <p>
-        Already have an account? <a href="{{ url_for('login') }}">Sign In</a>
-      </p>
+      <!-- Bottom Switch to Login -->
+      <div class="form-bottom-switch">
+        Already registered? <a href="{{ url_for('login') }}">Sign In to Portal</a>
+      </div>
     </div>
+
   </div>
 </div>
 
-
-
 <script>
-  function updateFormFields() {
-    const role = document.getElementById("role-input").value;
-    const studentFields = document.getElementById("student-fields");
-    const adminFacultyFields = document.getElementById("admin-faculty-fields");
-    const branchInput = document.getElementById("branch");
-    const collegeIdInput = document.getElementById("college_id");
-    const cgpaInput = document.getElementById("cgpa");
-    const resumeInput = document.getElementById("resume");
-    const adminLevelInput = document.getElementById("admin_level");
+  const roleInput = document.getElementById('role-input');
+  const roleButtons = document.querySelectorAll('.role-segment-btn');
+  const studentFields = document.getElementById('student-fields');
+  const studentRollGroup = document.getElementById('student-roll-group');
+  const rollNoInput = document.getElementById('roll_no');
+  const adminFacultyFields = document.getElementById('admin-faculty-fields');
+  const adminLevelInput = document.getElementById('admin_level');
 
-    if (role === "student") {
-      studentFields.style.display = "block";
-      adminFacultyFields.style.display = "none";
+  roleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      roleInput.value = btn.dataset.role;
+      updateFormFields();
+    });
+  });
+
+  function updateFormFields() {
+    const role = roleInput.value;
+    if (role === 'student') {
+      studentFields.style.display = 'flex';
+      studentRollGroup.style.display = 'block';
+      rollNoInput.required = true;
+      adminFacultyFields.style.display = 'none';
       adminLevelInput.required = false;
-    } else if (role === "admin") {
-      studentFields.style.display = "none";
-      adminFacultyFields.style.display = "block";
-      adminLevelInput.required = true;
+      document.querySelector('.btn-auth-submit span').textContent = 'Create Candidate Account';
     } else {
-      studentFields.style.display = "none";
-      adminFacultyFields.style.display = "none";
+      studentFields.style.display = 'none';
+      studentRollGroup.style.display = 'none';
+      rollNoInput.required = false;
+      adminFacultyFields.style.display = 'block';
+      adminLevelInput.required = true;
+      document.querySelector('.btn-auth-submit span').textContent = 'Create Officer Account';
     }
   }
+
+  function togglePwdVis(fieldId, iconId) {
+    const field = document.getElementById(fieldId);
+    const icon  = document.getElementById(iconId);
+    if (field.type === 'password') {
+      field.type = 'text';
+      icon.className = 'ph ph-eye-slash';
+    } else {
+      field.type = 'password';
+      icon.className = 'ph ph-eye';
+    }
+  }
+
+  updateFormFields();
 </script>
 {% endblock %}

@@ -1,0 +1,29 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*/__pycache__/
+
+# Environments & Virtual Environments
+venv/
+env/
+ENV/
+.env
+.env.local
+.venv
+
+# Database & Storage
+mongodb_data/
+logs/
+*.log
+
+# Scratch scripts
+scratch/
+test_resume.pdf
+
+# IDE & OS artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -11,51 +11,6 @@ function confirmLogout() {
   window.location.href = "/logout";
 }
 
-// Track unsaved changes
-let hasUnsavedChanges = false;
-
-// Mark form as modified when user makes changes
-document.addEventListener("input", function (e) {
-  if (
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA" ||
-    e.target.tagName === "SELECT"
-  ) {
-    hasUnsavedChanges = true;
-  }
-});
-
-// Reset unsaved changes on form submission
-document.addEventListener("submit", function (e) {
-  if (e.target.tagName === "FORM") {
-    hasUnsavedChanges = false;
-  }
-});
-
-// Warn users before they leave the page with unsaved changes
-window.addEventListener("beforeunload", function (e) {
-  if (hasUnsavedChanges) {
-    const confirmationMessage =
-      "You have unsaved changes! Are you sure you want to leave?";
-    e.preventDefault();
-    e.returnValue = confirmationMessage;
-    return confirmationMessage;
-  }
-});
-
-// Allow safe navigation
-document.addEventListener("click", function (e) {
-  if (e.target.tagName === "A" && e.target.href && !e.target.target) {
-    if (hasUnsavedChanges) {
-      if (!confirm("You have unsaved changes. Do you want to leave?")) {
-        e.preventDefault();
-      } else {
-        hasUnsavedChanges = false;
-      }
-    }
-  }
-});
-
 // Close modal when clicking outside
 window.onclick = function (event) {
   const modal = document.getElementById("logoutModal");

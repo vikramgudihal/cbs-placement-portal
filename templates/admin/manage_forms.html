@@ -1,100 +1,443 @@
 {% extends 'base.html' %}
+{% block title %}Manage Custom Forms &amp; Surveys | CBS 3i-cell{% endblock %}
+{% block page_title %}Custom Forms Engine{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL CUSTOM FORMS MANAGEMENT (Modern Fluid Layout)
+     ============================================================ */
+
+  :root {
+    --fm-indigo: #4f46e5;
+    --fm-blue: #2563eb;
+    --fm-emerald: #10b981;
+    --fm-amber: #f59e0b;
+    --fm-rose: #ef4444;
+  }
+
+  .forms-mgmt-container {
+    padding-bottom: 4rem;
+  }
+
+  /* 1. Ambient Banner */
+  .forms-mgmt-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .forms-mgmt-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .banner-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner-left h1 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.35rem 0;
+  }
+
+  .banner-left p {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .banner-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-banner-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.55);
+    color: #ffffff;
+  }
+
+  .btn-banner-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-glass:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
+
+  /* 2. Modern Table Shell */
+  .fluid-table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="dark"] .fluid-table-card {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .modern-forms-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .modern-forms-table th {
+    padding: 1rem 1.5rem;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .modern-forms-table td {
+    padding: 1.15rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .modern-forms-table tr:hover {
+    background: rgba(79, 70, 229, 0.02);
+  }
+
+  [data-theme="dark"] .modern-forms-table tr:hover {
+    background: rgba(99, 102, 241, 0.06);
+  }
+
+  .form-identity-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+  }
+
+  .form-icon-disc {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(37, 99, 235, 0.12));
+    border: 1px solid rgba(79, 70, 229, 0.25);
+    color: var(--fm-indigo);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .form-title-text {
+    font-weight: 800;
+    font-size: 0.98rem;
+    color: var(--text-main);
+    margin-bottom: 0.2rem;
+  }
+
+  .form-desc-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* Status Badges */
+  .status-pill-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .status-pill-badge.active {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .status-pill-badge.inactive {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  /* Action Buttons Cluster */
+  .actions-cluster {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .btn-action-tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-action-tool:hover {
+    border-color: var(--fm-indigo);
+    background: var(--surface);
+    color: var(--fm-indigo);
+    transform: translateY(-1px);
+  }
+
+  .btn-action-tool.primary {
+    background: var(--fm-indigo);
+    border-color: var(--fm-indigo);
+    color: #ffffff;
+  }
+
+  .btn-action-tool.primary:hover {
+    background: #4338ca;
+    color: #ffffff;
+  }
+
+  .btn-action-tool.toggle-btn {
+    border-color: rgba(245, 158, 11, 0.25);
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+  }
+
+  .btn-action-tool.toggle-btn:hover {
+    background: #d97706;
+    color: #ffffff;
+  }
+
+  .btn-action-tool.danger {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+    color: #e11d48;
+    font-weight: 700;
+  }
+
+  .btn-action-tool.danger:hover {
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+  }
+
+  @media (max-width: 768px) {
+    .banner-actions {
+      width: 100%;
+    }
+    .banner-actions a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: var(--primary);">Manage Custom Forms</h2><br>
-    <div style="display: flex; gap: 1rem;">
-      <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">
-        <i class="ph-bold ph-arrow-left"></i> Back
-      </a>
-      <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-primary">
-        <i class="ph-bold ph-plus"></i> Create Form
-      </a>
-    </div>
-  </div>
-  <br>
+<div class="forms-mgmt-container">
 
-  <div class="glass-card p-0" style="overflow: hidden;">
-    <div class="data-table-container">
-      <table class="data-table">
+  <!-- ============================================================
+       1. AMBIENT BANNER
+       ============================================================ -->
+  <section class="forms-mgmt-banner">
+    <div class="banner-inner">
+      <div class="banner-left">
+        <h1>Custom Candidate Surveys &amp; Forms</h1>
+        <p>Design dynamic student data collection forms, track submissions, and export responses for placement drives.</p>
+      </div>
+
+      <div class="banner-actions">
+        <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-banner-primary">
+          <i class="ph-bold ph-plus-circle"></i>
+          <span>Create Custom Form</span>
+        </a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-banner-glass">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. MODERN TABLE CONTAINER
+       ============================================================ -->
+  <div class="fluid-table-card">
+    <div style="overflow-x: auto;">
+      <table class="modern-forms-table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Created At</th>
+            <th>Form Identity &amp; Details</th>
+            <th>Creation Date</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th style="text-align: right;">Operations</th>
           </tr>
         </thead>
         <tbody>
           {% for form in forms %}
           <tr>
             <td>
-              <strong>{{ form.title }}</strong>
+              <div class="form-identity-cell">
+                <div class="form-icon-disc">
+                  <i class="ph-duotone ph-clipboard-text"></i>
+                </div>
+                <div>
+                  <div class="form-title-text">{{ form.title }}</div>
+                  <div class="form-desc-text">{{ form.description or 'No description provided' }}</div>
+                </div>
+              </div>
             </td>
-            <td>{{ form.created_at.strftime('%Y-%m-%d') }}</td>
+
+            <td>
+              <span style="font-weight: 600; color: var(--text-main);">
+                {{ form.created_at.strftime('%d %b %Y') if form.created_at else 'N/A' }}
+              </span>
+            </td>
+
             <td>
               {% if form.is_active %}
-              <span class="status-badge selected">Active</span>
+              <span class="status-pill-badge active">
+                <i class="ph-bold ph-check-circle"></i> Active
+              </span>
               {% else %}
-              <span class="status-badge rejected">Inactive</span>
+              <span class="status-pill-badge inactive">
+                <i class="ph-bold ph-pause-circle"></i> Inactive
+              </span>
               {% endif %}
             </td>
+
             <td>
-              <div class="d-flex gap-2">
-                <a href="{{ url_for('dynamic_forms.view_form_responses', form_id=form._id) }}" class="btn-sm btn-primary" title="View Responses">
-                    <i class="ph-bold ph-list-dashes"></i> Responses
+              <div class="actions-cluster">
+                <a href="{{ url_for('dynamic_forms.view_form_responses', form_id=form._id) }}" class="btn-action-tool primary" title="View Responses">
+                  <i class="ph-bold ph-list-dashes"></i> Responses
                 </a>
 
-                <form action="{{ url_for('dynamic_forms.toggle_form', form_id=form._id) }}" method="POST" style="display:inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn-sm btn-secondary" title="{{ 'Deactivate' if form.is_active else 'Activate' }}">
-                        {% if form.is_active %}
-                        <i class="ph-bold ph-stop"></i>
-                        {% else %}
-                        <i class="ph-bold ph-play"></i>
-                        {% endif %}
-                    </button>
+                <form action="{{ url_for('dynamic_forms.toggle_form', form_id=form._id) }}" method="POST" style="display: inline; margin: 0;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="btn-action-tool toggle-btn" title="{{ 'Deactivate Form' if form.is_active else 'Activate Form' }}">
+                    {% if form.is_active %}
+                    <i class="ph-bold ph-stop"></i> Pause
+                    {% else %}
+                    <i class="ph-bold ph-play"></i> Activate
+                    {% endif %}
+                  </button>
                 </form>
                 
-                <a href="{{ url_for('dynamic_forms.edit_form', form_id=form._id) }}" class="btn-sm btn-secondary" title="Edit Form">
-                    <i class="ph-bold ph-pencil"></i>
+                <a href="{{ url_for('dynamic_forms.edit_form', form_id=form._id) }}" class="btn-action-tool" title="Edit Form Schema">
+                  <i class="ph-bold ph-pencil"></i> Edit
                 </a>
 
-                <button onclick="confirmDeleteForm('{{ form._id }}', '{{ form.title }}')" class="btn-sm btn-secondary" style="color: var(--accent); border-color: var(--accent);" title="Delete Form">
-                    <i class="ph-bold ph-trash"></i>
+                <button onclick="confirmDeleteForm('{{ form._id }}', '{{ form.title }}')" class="btn-action-tool danger" title="Delete Form">
+                  <i class="ph-bold ph-trash"></i> Delete
                 </button>
               </div>
             </td>
           </tr>
           {% else %}
           <tr>
-            <td colspan="4" class="text-center py-4">No forms created yet.</td>
+            <td colspan="4" style="text-align: center; padding: 4rem 1.5rem; color: var(--text-muted);">
+              <i class="ph-duotone ph-clipboard" style="font-size: 3rem; color: var(--fm-indigo); margin-bottom: 0.75rem; display: block;"></i>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">No Custom Forms Created</h3>
+              <p style="font-size: 0.88rem; max-width: 380px; margin: 0 auto 1.25rem auto;">
+                Create dynamic surveys and forms to collect drive preferences, certifications, and project records from students.
+              </p>
+              <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-banner-primary" style="display: inline-flex;">
+                <i class="ph-bold ph-plus-circle"></i> Create First Form
+              </a>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+
 </div>
 
 <script>
 function confirmDeleteForm(formId, formTitle) {
-    if(confirm(`Are you sure you want to delete the form "${formTitle}"? This action cannot be undone and will delete all associated responses.`)) {
-        // Create a form to submit the delete request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/admin/forms/delete/${formId}`;
-        
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = "{{ csrf_token() }}";
-        form.appendChild(csrfInput);
+  if (confirm(`Are you sure you want to delete "${formTitle}"? This will delete the form schema and all student responses.`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/forms/delete/${formId}`;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = "{{ csrf_token() }}";
+    form.appendChild(csrfInput);
 
-        document.body.appendChild(form);
-        form.submit();
-    }
+    document.body.appendChild(form);
+    form.submit();
+  }
 }
 </script>
 {% endblock %}

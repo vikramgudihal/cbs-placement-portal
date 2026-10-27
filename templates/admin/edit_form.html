@@ -1,131 +1,1019 @@
 {% extends 'base.html' %}
+{% block title %}Edit Form: {{ form.title }} | Google Forms Engine | CBS 3i-cell{% endblock %}
+{% block page_title %}Edit Form Studio{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL GOOGLE FORMS STUDIO (Edit Mode)
+     ============================================================ */
+
+  :root {
+    --gf-purple: #673ab7;
+    --gf-purple-dark: #512da8;
+    --gf-purple-light: #ede7f6;
+    --gf-purple-glow: rgba(103, 58, 183, 0.18);
+    --gf-bg: #f0ebf8;
+    --gf-card-bg: #ffffff;
+    --gf-border: #dadce0;
+    --gf-text-main: #202124;
+    --gf-text-muted: #5f6368;
+    --gf-hover-bg: #f8f9fa;
+  }
+
+  body {
+    background-color: var(--gf-bg) !important;
+  }
+
+  .google-forms-studio {
+    max-width: 860px;
+    margin: 1.5rem auto 5rem auto;
+    padding: 0 1rem;
+    position: relative;
+  }
+
+  /* 1. Studio Top Navigation Bar */
+  .studio-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 0.85rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.75rem;
+    border: 1px solid var(--gf-border);
+  }
+
+  .nav-left-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand-logo-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--gf-purple);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+  }
+
+  .brand-title-box h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    margin: 0;
+  }
+
+  .brand-title-box p {
+    font-size: 0.75rem;
+    color: var(--gf-text-muted);
+    margin: 0;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .btn-gf-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--gf-text-muted);
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-gf-secondary:hover {
+    background: var(--gf-hover-bg);
+    color: var(--gf-text-main);
+  }
+
+  .btn-gf-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.35rem;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #ffffff;
+    background: var(--gf-purple);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--gf-purple-glow);
+    transition: all 0.2s ease;
+  }
+
+  .btn-gf-primary:hover {
+    background: var(--gf-purple-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px var(--gf-purple-glow);
+  }
+
+  /* 2. Template Gallery Ribbon */
+  .template-gallery-panel {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--gf-border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+
+  .gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .gallery-header h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .gallery-toggle-btn {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gf-purple);
+    background: var(--gf-purple-light);
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: none;
+    cursor: pointer;
+  }
+
+  .gallery-cards-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  .template-thumb-card {
+    background: #ffffff;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .template-thumb-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--gf-purple);
+  }
+
+  .template-preview-canvas {
+    height: 80px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .template-thumb-card .blank-plus-icon {
+    font-size: 2rem;
+    color: var(--gf-purple);
+  }
+
+  .template-card-footer {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .template-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 3. Form Header Card */
+  .gf-header-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--gf-border);
+    border-top: 10px solid var(--gf-purple);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12), 0 2px 8px 2px rgba(60, 64, 67, 0.06);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .gf-title-input {
+    width: 100%;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--gf-text-main);
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.4rem 0;
+    outline: none;
+    box-sizing: border-box;
+    background: transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .gf-title-input:focus {
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  .gf-desc-input {
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--gf-text-muted);
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.5rem 0;
+    outline: none;
+    box-sizing: border-box;
+    background: transparent;
+    resize: none;
+    min-height: 50px;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .gf-desc-input:focus {
+    border-bottom: 2px solid var(--gf-purple);
+    color: var(--gf-text-main);
+  }
+
+  .header-banner-preview-box {
+    margin-bottom: 1.25rem;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 180px;
+    display: {% if form.header_image_id %}block{% else %}none{% endif %};
+  }
+
+  .header-banner-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .remove-header-img-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 4. Question Cards */
+  .questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .gf-question-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--gf-border);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+    padding: 1.5rem 1.75rem;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .gf-question-card.active-card {
+    border-left: 6px solid var(--gf-purple);
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15), 0 4px 14px 2px rgba(60, 64, 67, 0.1);
+  }
+
+  .q-top-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.25rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .q-title-input {
+    width: 100%;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    background: #f8f9fa;
+    border: none;
+    border-bottom: 1px solid #bdc1c6;
+    padding: 0.75rem 0.85rem;
+    border-radius: 4px 4px 0 0;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .q-title-input:focus {
+    background: #ffffff;
+    border-bottom: 2px solid var(--gf-purple);
+  }
+
+  .q-type-select {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+    background: #ffffff;
+    color: var(--gf-text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    min-width: 180px;
+  }
+
+  .q-type-select:focus {
+    border-color: var(--gf-purple);
+  }
+
+  .q-attached-image-box {
+    margin-bottom: 1.25rem;
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .q-attached-image-box img {
+    max-height: 220px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--gf-border);
+  }
+
+  .q-remove-img-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .q-options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .q-option-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .q-opt-indicator {
+    color: #9aa0a6;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .q-opt-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.92rem;
+    color: var(--gf-text-main);
+    outline: none;
+    background: transparent;
+  }
+
+  .q-opt-input:focus {
+    border-bottom: 1px solid var(--gf-purple);
+  }
+
+  .q-opt-delete-btn {
+    background: transparent;
+    border: none;
+    color: #9aa0a6;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .q-opt-delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .add-option-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5f6368;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.4rem 0.25rem;
+    width: fit-content;
+  }
+
+  .add-option-prompt:hover {
+    color: var(--gf-purple);
+  }
+
+  .q-dummy-preview {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px dotted #bdc1c6;
+    color: #80868b;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+    background: #fafafa;
+    border-radius: 4px;
+  }
+
+  .q-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1.25rem;
+    border-top: 1px solid var(--gf-border);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .q-tool-btn {
+    background: transparent;
+    border: none;
+    color: #5f6368;
+    font-size: 1.25rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .q-tool-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--gf-text-main);
+  }
+
+  .q-tool-btn.q-delete-btn:hover {
+    color: #e11d48;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .q-footer-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--gf-border);
+  }
+
+  .q-required-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gf-text-main);
+    user-select: none;
+  }
+
+  .q-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+  }
+
+  .q-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .q-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #bdc1c6;
+    transition: .25s ease;
+    border-radius: 34px;
+  }
+
+  .q-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .25s ease;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .q-toggle-switch input:checked + .q-toggle-slider {
+    background-color: var(--gf-purple);
+  }
+
+  .q-toggle-switch input:checked + .q-toggle-slider:before {
+    transform: translateX(16px);
+  }
+
+  .gf-floating-dock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    margin: 1.5rem auto 2.5rem auto;
+    width: fit-content;
+  }
+
+  .dock-btn {
+    background: transparent;
+    border: none;
+    color: var(--gf-text-muted);
+    font-size: 1.35rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dock-btn:hover {
+    background: var(--gf-purple-light);
+    color: var(--gf-purple);
+    transform: scale(1.1);
+  }
+
+  .dock-btn.primary-add {
+    background: var(--gf-purple);
+    color: #ffffff;
+    box-shadow: 0 4px 12px var(--gf-purple-glow);
+  }
+
+  .studio-bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--gf-border);
+    border-radius: 16px;
+    padding: 1.25rem 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
-    <h2 class="mb-4" style="color: var(--primary);">Edit Form</h2>
-    
-    <form action="{{ url_for('dynamic_forms.edit_form', form_id=form._id) }}" method="POST" id="editForm">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="form-group mb-4">
-        <label class="form-label">Form Title</label>
-        <input type="text" name="title" class="form-control" required value="{{ form.title }}">
-      </div>
-      
-      <div class="form-group mb-4">
-        <label class="form-label">Description</label>
-        <textarea name="description" class="form-control" rows="3">{{ form.description }}</textarea>
-      </div>
-      
-      <hr style="border-color: var(--border); margin: 2rem 0;">
-      
-      <h4 class="mb-3">Form Fields</h4>
-      <div id="fieldsContainer">
-        <!-- Dynamic fields will appear here -->
-      </div>
-      
-      <button type="button" class="btn-secondary w-100 mb-4" onclick="addField()">
-        <i class="ph-bold ph-plus"></i> Add Field
-      </button>
+<div class="google-forms-studio">
 
-      <!-- Hidden input to store JSON structure -->
-      <input type="hidden" name="fields_data" id="fieldsData" value='{{ form.fields | tojson | safe }}'>
-      
-      <div class="d-flex gap-3">
-          <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-secondary w-100">Cancel</a>
-          <button type="submit" class="btn-primary w-100">Update Form</button>
+  <!-- Top Navigation Bar -->
+  <div class="studio-nav-bar">
+    <div class="nav-left-brand">
+      <div class="brand-logo-icon">
+        <i class="ph-bold ph-pencil-simple"></i>
       </div>
-    </form>
+      <div class="brand-title-box">
+        <h2>Edit Form Schema</h2>
+        <p>Google Forms Studio Engine</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-gf-secondary">
+        <i class="ph-bold ph-arrow-left"></i> Back
+      </a>
+      <button type="button" class="btn-gf-primary" onclick="submitStudioForm()">
+        <i class="ph-bold ph-floppy-disk"></i> Update Form
+      </button>
+    </div>
   </div>
+
+  <!-- Form Submission Wrapper -->
+  <form id="studioForm" action="{{ url_for('dynamic_forms.edit_form', form_id=form._id) }}" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="fields_data" id="fieldsData"/>
+    <input type="hidden" name="header_image_id" id="headerImageId" value="{{ form.header_image_id or '' }}"/>
+
+    <!-- Hidden file input for header image upload -->
+    <input type="file" id="headerImageFileInput" accept="image/*" style="display: none;" onchange="handleHeaderImageUpload(this)">
+
+    <!-- Form Title & Description Header Card -->
+    <div class="gf-header-card">
+      <div class="header-banner-preview-box" id="headerBannerPreviewBox">
+        <img id="headerBannerImg" src="{% if form.header_image_id %}/files/view/{{ form.header_image_id }}{% endif %}" alt="Header Banner">
+        <button type="button" class="remove-header-img-btn" onclick="removeHeaderImage()" title="Remove Banner">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <input
+        type="text"
+        name="title"
+        id="formTitleInput"
+        class="gf-title-input"
+        placeholder="Untitled Form"
+        value="{{ form.title }}"
+        required
+      />
+
+      <textarea
+        name="description"
+        id="formDescInput"
+        class="gf-desc-input"
+        placeholder="Form description..."
+      >{{ form.description }}</textarea>
+    </div>
+
+    <!-- Questions List Container -->
+    <div class="questions-list" id="questionsContainer">
+      <!-- Dynamic Google Forms style question cards rendered here -->
+    </div>
+
+    <!-- Floating Dock Toolbar -->
+    <div class="gf-floating-dock">
+      <button type="button" class="dock-btn primary-add" onclick="addQuestionCard()" title="Add Question">
+        <i class="ph-bold ph-plus"></i>
+      </button>
+      <button type="button" class="dock-btn" onclick="triggerHeaderImageUpload()" title="Add Header Banner Image">
+        <i class="ph-bold ph-image"></i>
+      </button>
+      <button type="button" class="dock-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Scroll to Top">
+        <i class="ph-bold ph-arrow-up"></i>
+      </button>
+    </div>
+
+    <!-- Studio Action Footer -->
+    <div class="studio-bottom-actions">
+      <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-gf-secondary">
+        Cancel Changes
+      </a>
+      <button type="button" class="btn-gf-primary" onclick="submitStudioForm()">
+        <i class="ph-bold ph-floppy-disk"></i> Save &amp; Update Form
+      </button>
+    </div>
+  </form>
+
 </div>
 
-<template id="fieldTemplate">
-  <div class="field-item glass-card-heavy p-3 mb-3" style="border-left: 4px solid var(--primary);">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h5 class="m-0">Field <span class="field-index"></span></h5>
-      <button type="button" class="btn-sm btn-danger remove-btn" style="background:none; border:none; color: var(--accent);">
-        <i class="ph-bold ph-trash"></i>
-      </button>
-    </div>
-    
-    <div class="grid-2">
-      <div class="form-group">
-        <label>Label</label>
-        <input type="text" class="form-control field-label" required placeholder="Question/Label">
-      </div>
-      <div class="form-group">
-        <label>Type</label>
-        <select class="form-control field-type">
-          <option value="text">Text Input</option>
-          <option value="textarea">Long Text</option>
-          <option value="number">Number</option>
-          <option value="date">Date</option>
-          <option value="file">File Upload</option>
-        </select>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
-let fieldCount = 0;
-
-function addField(data = null) {
-  fieldCount++;
-  const container = document.getElementById('fieldsContainer');
-  const template = document.getElementById('fieldTemplate');
-  const clone = template.content.cloneNode(true);
-  
-  clone.querySelector('.field-index').textContent = fieldCount;
-  clone.querySelector('.remove-btn').onclick = function(e) {
-    e.target.closest('.field-item').remove();
-    updateJson();
-  };
-  
-  const labelInput = clone.querySelector('.field-label');
-  const typeSelect = clone.querySelector('.field-type');
-  
-  if (data) {
-      labelInput.value = data.label;
-      typeSelect.value = data.type;
+  // Initial Form Fields from Server
+  let questionsData = {{ form.fields | tojson | safe }};
+  if (!Array.isArray(questionsData) || questionsData.length === 0) {
+    questionsData = [
+      { label: "Untitled Question", type: "text", required: false, options: [] }
+    ];
   }
-  
-  // Attach listeners to update JSON on change
-  labelInput.addEventListener('input', updateJson);
-  typeSelect.addEventListener('change', updateJson);
-  
-  container.appendChild(clone);
-}
 
-function updateJson() {
-  const fields = [];
-  document.querySelectorAll('.field-item').forEach(item => {
-    fields.push({
-      label: item.querySelector('.field-label').value,
-      type: item.querySelector('.field-type').value
+  function addQuestionCard() {
+    questionsData.push({
+      label: "Untitled Question",
+      type: "text",
+      required: false,
+      options: ["Option 1"]
     });
-  });
-  document.getElementById('fieldsData').value = JSON.stringify(fields);
-}
-
-document.getElementById('editForm').onsubmit = function() {
-  updateJson(); // Ensure latest data
-  if (document.getElementById('fieldsData').value === '[]') {
-    alert("Please add at least one field.");
-    return false;
+    renderQuestions();
   }
-  return true;
-};
 
-// Initialize Existing Fields
-document.addEventListener('DOMContentLoaded', () => {
-    const rawData = document.getElementById('fieldsData').value;
-    try {
-        const fields = JSON.parse(rawData);
-        fields.forEach(field => addField(field));
-    } catch(e) {
-        console.error("Error parsing initial fields", e);
+  function duplicateQuestion(index) {
+    if (index >= 0 && index < questionsData.length) {
+      const copy = JSON.parse(JSON.stringify(questionsData[index]));
+      questionsData.splice(index + 1, 0, copy);
+      renderQuestions();
     }
-});
+  }
+
+  function deleteQuestion(index) {
+    if (questionsData.length <= 1) {
+      alert("A form must contain at least one question.");
+      return;
+    }
+    questionsData.splice(index, 1);
+    renderQuestions();
+  }
+
+  function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+
+    questionsData.forEach((q, idx) => {
+      const card = document.createElement('div');
+      card.className = 'gf-question-card active-card';
+      card.id = `qCard_${idx}`;
+
+      const hasOptions = ['radio', 'checkbox', 'select'].includes(q.type);
+      let optionsHtml = '';
+      if (hasOptions) {
+        if (!q.options || q.options.length === 0) {
+          q.options = ['Option 1'];
+        }
+        let rows = q.options.map((opt, optIdx) => `
+          <div class="q-option-row">
+            <span class="q-opt-indicator">
+              ${q.type === 'radio' ? '<i class="ph-bold ph-circle"></i>' : (q.type === 'checkbox' ? '<i class="ph-bold ph-square"></i>' : '<i class="ph-bold ph-list-numbers"></i>')}
+            </span>
+            <input type="text" class="q-opt-input" value="${escapeHtml(opt)}" oninput="updateOptionValue(${idx}, ${optIdx}, this.value)" placeholder="Option ${optIdx + 1}">
+            ${q.options.length > 1 ? `<button type="button" class="q-opt-delete-btn" onclick="removeOption(${idx}, ${optIdx})" title="Remove Option"><i class="ph-bold ph-x"></i></button>` : ''}
+          </div>
+        `).join('');
+
+        optionsHtml = `
+          <div class="q-options-container">
+            ${rows}
+            <div class="add-option-prompt" onclick="addOption(${idx})">
+              <span class="q-opt-indicator"><i class="ph-bold ph-plus-circle" style="color: var(--gf-purple);"></i></span>
+              <span>Add option</span>
+            </div>
+          </div>
+        `;
+      } else if (q.type === 'text') {
+        optionsHtml = `<div class="q-dummy-preview">Short answer text (one-line input)</div>`;
+      } else if (q.type === 'textarea') {
+        optionsHtml = `<div class="q-dummy-preview">Long answer text (multi-line paragraph response)</div>`;
+      } else if (q.type === 'file') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-upload-simple"></i> File Upload box (PDF, DOCX, ZIP, Max 5MB)</div>`;
+      } else if (q.type === 'image') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-image"></i> Image Upload box (JPG, PNG, WebP)</div>`;
+      } else if (q.type === 'date') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-calendar"></i> Date Picker (Day, Month, Year)</div>`;
+      } else if (q.type === 'number') {
+        optionsHtml = `<div class="q-dummy-preview"><i class="ph-bold ph-hash"></i> Numerical integer or decimal input</div>`;
+      }
+
+      let imgHtml = '';
+      if (q.image_url) {
+        imgHtml = `
+          <div class="q-attached-image-box">
+            <img src="${q.image_url}" alt="Question Image">
+            <button type="button" class="q-remove-img-btn" onclick="removeQuestionImage(${idx})" title="Remove Image">
+              <i class="ph-bold ph-x"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="q-top-row">
+          <input
+            type="text"
+            class="q-title-input"
+            value="${escapeHtml(q.label)}"
+            placeholder="Question"
+            oninput="updateQuestionLabel(${idx}, this.value)"
+          />
+          <select class="q-type-select" onchange="updateQuestionType(${idx}, this.value)">
+            <option value="text" ${q.type === 'text' ? 'selected' : ''}>Short answer</option>
+            <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>Paragraph</option>
+            <option value="radio" ${q.type === 'radio' ? 'selected' : ''}>Multiple choice</option>
+            <option value="checkbox" ${q.type === 'checkbox' ? 'selected' : ''}>Checkboxes</option>
+            <option value="select" ${q.type === 'select' ? 'selected' : ''}>Dropdown</option>
+            <option value="file" ${q.type === 'file' ? 'selected' : ''}>File upload</option>
+            <option value="image" ${q.type === 'image' ? 'selected' : ''}>Image upload</option>
+            <option value="date" ${q.type === 'date' ? 'selected' : ''}>Date</option>
+            <option value="number" ${q.type === 'number' ? 'selected' : ''}>Number</option>
+          </select>
+        </div>
+
+        ${imgHtml}
+        ${optionsHtml}
+
+        <div class="q-card-footer">
+          <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #5f6368; cursor: pointer;">
+            <i class="ph-bold ph-image"></i>
+            <span>Attach Image</span>
+            <input type="file" accept="image/*" style="display: none;" onchange="handleQuestionImageUpload(${idx}, this)">
+          </label>
+
+          <button type="button" class="q-tool-btn" onclick="duplicateQuestion(${idx})" title="Duplicate Question">
+            <i class="ph-bold ph-copy"></i>
+          </button>
+          
+          <button type="button" class="q-tool-btn q-delete-btn" onclick="deleteQuestion(${idx})" title="Delete Question">
+            <i class="ph-bold ph-trash"></i>
+          </button>
+
+          <div class="q-footer-divider"></div>
+
+          <div class="q-required-wrap">
+            <span>Required</span>
+            <label class="q-toggle-switch">
+              <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestionRequired(${idx}, this.checked)">
+              <span class="q-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function updateQuestionLabel(idx, val) {
+    if (questionsData[idx]) questionsData[idx].label = val;
+  }
+
+  function updateQuestionType(idx, val) {
+    if (questionsData[idx]) {
+      questionsData[idx].type = val;
+      if (['radio', 'checkbox', 'select'].includes(val) && (!questionsData[idx].options || questionsData[idx].options.length === 0)) {
+        questionsData[idx].options = ['Option 1'];
+      }
+      renderQuestions();
+    }
+  }
+
+  function updateQuestionRequired(idx, isReq) {
+    if (questionsData[idx]) questionsData[idx].required = isReq;
+  }
+
+  function updateOptionValue(qIdx, optIdx, val) {
+    if (questionsData[qIdx] && questionsData[qIdx].options) {
+      questionsData[qIdx].options[optIdx] = val;
+    }
+  }
+
+  function addOption(qIdx) {
+    if (questionsData[qIdx]) {
+      if (!questionsData[qIdx].options) questionsData[qIdx].options = [];
+      questionsData[qIdx].options.push(`Option ${questionsData[qIdx].options.length + 1}`);
+      renderQuestions();
+    }
+  }
+
+  function removeOption(qIdx, optIdx) {
+    if (questionsData[qIdx] && questionsData[qIdx].options) {
+      questionsData[qIdx].options.splice(optIdx, 1);
+      renderQuestions();
+    }
+  }
+
+  async function handleQuestionImageUpload(qIdx, input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('csrf_token', '{{ csrf_token() }}');
+
+      try {
+        const res = await fetch("{{ url_for('dynamic_forms.upload_form_image') }}", {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          questionsData[qIdx].image_url = data.url;
+          questionsData[qIdx].image_id = data.file_id;
+          renderQuestions();
+        } else {
+          alert("Image upload failed: " + (data.error || 'Server error'));
+        }
+      } catch(err) {
+        alert("Upload error: " + err.message);
+      }
+    }
+  }
+
+  function removeQuestionImage(qIdx) {
+    if (questionsData[qIdx]) {
+      delete questionsData[qIdx].image_url;
+      delete questionsData[qIdx].image_id;
+      renderQuestions();
+    }
+  }
+
+  function triggerHeaderImageUpload() {
+    document.getElementById('headerImageFileInput').click();
+  }
+
+  async function handleHeaderImageUpload(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('csrf_token', '{{ csrf_token() }}');
+
+      try {
+        const res = await fetch("{{ url_for('dynamic_forms.upload_form_image') }}", {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('headerImageId').value = data.file_id;
+          document.getElementById('headerBannerImg').src = data.url;
+          document.getElementById('headerBannerPreviewBox').style.display = 'block';
+        } else {
+          alert("Banner upload failed: " + (data.error || 'Server error'));
+        }
+      } catch(err) {
+        alert("Upload error: " + err.message);
+      }
+    }
+  }
+
+  function removeHeaderImage() {
+    document.getElementById('headerImageId').value = '';
+    document.getElementById('headerBannerPreviewBox').style.display = 'none';
+    document.getElementById('headerBannerImg').src = '';
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function submitStudioForm() {
+    const title = document.getElementById('formTitleInput').value.trim();
+    if (!title) {
+      alert("Please enter a form title.");
+      return;
+    }
+    if (questionsData.length === 0) {
+      alert("A form must contain at least one question.");
+      return;
+    }
+    for (let i = 0; i < questionsData.length; i++) {
+      if (!questionsData[i].label || !questionsData[i].label.trim()) {
+        alert(`Question #${i + 1} has an empty title.`);
+        return;
+      }
+    }
+    document.getElementById('fieldsData').value = JSON.stringify(questionsData);
+    document.getElementById('studioForm').submit();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderQuestions();
+  });
 </script>
 {% endblock %}

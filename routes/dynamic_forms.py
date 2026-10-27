@@ -1,11 +1,34 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response, current_app, jsonify
 from utils.db import get_db, get_fs
 from bson.objectid import ObjectId
 import datetime
 import csv
 import io
+import json
 
 dynamic_forms_bp = Blueprint('dynamic_forms', __name__)
+
+@dynamic_forms_bp.route('/admin/forms/upload-image', methods=['POST'])
+def upload_form_image():
+    """AJAX helper for uploading images directly in the form builder (header banner or question image)"""
+    if session.get('role') not in ['admin', 'faculty']:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    file = request.files.get('image') or request.files.get('file')
+    if not file or not file.filename:
+        return jsonify({'error': 'No image file uploaded'}), 400
+        
+    try:
+        fs = get_fs()
+        file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
+        return jsonify({
+            'success': True,
+            'file_id': str(file_id),
+            'filename': file.filename,
+            'url': url_for('file_serving.view_file_inline', file_id=str(file_id))
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @dynamic_forms_bp.route('/admin/forms/create', methods=['GET', 'POST'])
 def create_form():
@@ -14,30 +37,28 @@ def create_form():
         
     if request.method == 'POST':
         db = get_db()
-        title = request.form.get('title')
-        description = request.form.get('description')
+        title = request.form.get('title', '').strip() or 'Untitled Form'
+        description = request.form.get('description', '').strip()
+        header_image_id = request.form.get('header_image_id', '').strip()
         
-        # Process fields dynamically
-        # Expected format from frontend: field_label_1, field_type_1, field_required_1, etc.
-        # This part requires a specific frontend implementation (e.g., JS sending JSON or structured form data)
-        # For simplicity, let's assume the frontend sends a JSON string or we parse indexed keys if we build a standard form.
-        # Let's try to parse complex form data or assume a JS fetch approach that sends JSON. 
-        # But to stick with standard Flask forms, let's look for known keys or iterate.
+        # Check if header image uploaded directly via file input
+        if 'header_image_file' in request.files:
+            h_file = request.files['header_image_file']
+            if h_file and h_file.filename:
+                fs = get_fs()
+                header_image_id = str(fs.put(h_file, filename=h_file.filename, content_type=h_file.content_type))
         
-        # Actually, standard way is to generic Javascript to create hidden inputs or similar. 
-        # Let's grab the fields from a hidden JSON input which is easier to manage with frontend JS builder.
-        import json
         fields_json = request.form.get('fields_data')
-        
         try:
             fields = json.loads(fields_json) if fields_json else []
-        except:
+        except Exception:
             flash("Invalid form data structure", "error")
             return redirect(url_for('dynamic_forms.create_form'))
 
         form_data = {
             'title': title,
             'description': description,
+            'header_image_id': header_image_id if header_image_id else None,
             'fields': fields,
             'created_by': session.get('user_id'),
             'created_at': datetime.datetime.utcnow(),
@@ -49,13 +70,15 @@ def create_form():
         # Auto-create announcement to notify students
         announcement = {
             'title': f"New Form: {title}",
-            'content': f"A new form '{title}' has been assigned. Please fill it out at your earliest convenience.\n{description[:100]}...",
+            'content': f"A new questionnaire '{title}' has been released. Please complete it at your earliest convenience.\n{description[:120]}...",
             'created_by': session.get('user_id'),
-            'created_at': datetime.datetime.utcnow()
+            'created_at': datetime.datetime.utcnow(),
+            'category': 'Placement',
+            'is_public': True
         }
         db.announcements.insert_one(announcement)
         
-        flash("Form created and students notified via announcement!", "success")
+        flash("Form created successfully and published to students!", "success")
         return redirect(url_for('dynamic_forms.manage_forms'))
         
     return render_template('admin/create_form.html')
@@ -79,7 +102,7 @@ def toggle_form(form_id):
     if form:
         new_status = not form.get('is_active', True)
         db.forms.update_one({'_id': ObjectId(form_id)}, {'$set': {'is_active': new_status}})
-        flash(f"Form {'activated' if new_status else 'deactivate'} successfully", "success")
+        flash(f"Form {'activated' if new_status else 'deactivated'} successfully", "success")
     
     return redirect(url_for('dynamic_forms.manage_forms'))
 
@@ -136,7 +159,7 @@ def fill_form(form_id):
             label = field.get('label')
             field_type = field.get('type')
             
-            if field_type == 'file':
+            if field_type in ['file', 'image']:
                 if label in request.files:
                     file = request.files[label]
                     if file and file.filename:
@@ -144,10 +167,14 @@ def fill_form(form_id):
                         file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
                         answers[label] = str(file_id) # Store ID reference
                     else:
-                        # Handle required check if needed, though HTML5 required usually catches this
-                        pass 
+                        answers[label] = ''
+                else:
+                    answers[label] = ''
+            elif field_type == 'checkbox':
+                checked_vals = request.form.getlist(label)
+                answers[label] = ', '.join(checked_vals) if checked_vals else ''
             else:
-                answers[label] = request.form.get(label)
+                answers[label] = request.form.get(label, '')
                 
         response_data = {
             'form_id': ObjectId(form_id),
@@ -193,8 +220,6 @@ def export_form_responses(form_id):
         answers = resp.get('answers', {})
         for label in field_labels:
             val = answers.get(label, '')
-            # If it looks like a GridFS ID (24 hex chars), maybe append a download link?
-            # For now, just raw text.
             row.append(val)
             
         cw.writerow(row)
@@ -232,21 +257,27 @@ def edit_form(form_id):
         return redirect(url_for('dynamic_forms.manage_forms'))
 
     if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
+        title = request.form.get('title', '').strip() or 'Untitled Form'
+        description = request.form.get('description', '').strip()
+        header_image_id = request.form.get('header_image_id', '').strip() or form.get('header_image_id')
         
-        import json
+        if 'header_image_file' in request.files:
+            h_file = request.files['header_image_file']
+            if h_file and h_file.filename:
+                fs = get_fs()
+                header_image_id = str(fs.put(h_file, filename=h_file.filename, content_type=h_file.content_type))
+        
         fields_json = request.form.get('fields_data')
-        
         try:
             fields = json.loads(fields_json) if fields_json else []
-        except:
+        except Exception:
             flash("Invalid form data structure", "error")
             return redirect(url_for('dynamic_forms.edit_form', form_id=form_id))
 
         update_data = {
             'title': title,
             'description': description,
+            'header_image_id': header_image_id if header_image_id else None,
             'fields': fields,
             'updated_at': datetime.datetime.utcnow()
         }
@@ -273,28 +304,23 @@ def view_form_responses(form_id):
     # Enrichment: If student_name is Unknown, try to fetch it
     student_ids = [resp['student_id'] for resp in responses if str(resp.get('student_id'))]
     if student_ids:
-        # bulk fetch
-        # Convert string IDs back to ObjectId if needed, though they are likely already ObjectIds or strings
-        # Let's handle both.
         s_ids = []
         for sid in student_ids:
             try:
                 s_ids.append(ObjectId(sid))
-            except:
+            except Exception:
                 pass
                 
         students = list(db.students.find({'user_id': {'$in': s_ids}}))
         student_map = {str(s['user_id']): s.get('name', 'Unknown') for s in students}
         
-        # Also map from users collection just in case
         users = list(db.users.find({'_id': {'$in': s_ids}}))
         user_map = {str(u['_id']): u.get('full_name', '') or u.get('name', '') for u in users}
 
         for resp in responses:
             if resp.get('student_name') == 'Unknown' or not resp.get('student_name'):
                 sid = str(resp.get('student_id'))
-                # Try student map then user map
                 name = student_map.get(sid) or user_map.get(sid) or 'Unknown'
-                resp['student_name'] = name # Update in memory for display
+                resp['student_name'] = name
     
     return render_template('admin/form_responses.html', form=form, responses=responses)

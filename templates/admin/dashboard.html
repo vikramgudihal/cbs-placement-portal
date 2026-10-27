@@ -1,577 +1,1126 @@
-{% extends 'base.html' %} {% block title %}Admin Dashboard - Chetan Business
-School{% endblock %} {% block head %}
+{% extends 'base.html' %}
+{% block title %}TPO Operations Center | CBS 3i-cell{% endblock %}
+{% block page_title %}TPO Command Center{% endblock %}
+
+{% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %} {% block content %}
-<div style="padding-bottom: 100px">
-  <!-- Header Section -->
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    "
-  >
-    <div>
-      <h1
-        style="color: var(--text-main); margin-bottom: 0.5rem; font-size: 2rem"
-      >
-        <i
-          class="ph-bold ph-house"
-          style="color: var(--primary); margin-right: 0.5rem"
-        ></i>
-        Admin Dashboard
-      </h1>
-      <p style="color: var(--text-muted); font-size: 0.95rem">
-        Welcome back! Here's your placement management overview.
-      </p>
-    </div>
-    <div class="header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap">
-      {% if admin_level == 'super_admin' %}
-      <a href="{{ url_for('view_applications') }}" class="btn-secondary">
-        <i class="ph-bold ph-list"></i> Applications
-      </a>
-      {% endif %}
-    </div>
-  </div>
+<style>
+  /* ============================================================
+     CBS 3i-CELL TPO ADMIN OPERATIONS CENTER (Modern Tech & Fluid Layout)
+     ============================================================ */
 
-  <!-- Statistics Cards - Grid -->
-  <div
-    style="
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    "
-  >
-    <!-- Total Students Card -->
-    <div class="glass-card-heavy dashboard-stat-card">
-      <div class="stat-decor-circle" style="background: rgba(99, 102, 241, 0.1);"></div>
-      <div class="dashboard-stat-header">
-          <div>
-            <p class="dashboard-stat-label">Total Students</p>
-            <h2 class="dashboard-stat-value" style="color: var(--primary);">{{ stats.total_students }}</h2>
-          </div>
-          <div class="dashboard-stat-icon-box" style="background: var(--gradient); color: white;">
-            <i class="ph-fill ph-users"></i>
-          </div>
-      </div>
-      <div class="dashboard-stat-trend" style="color: #10b981;">
-          <i class="ph-bold ph-trend-up"></i> <span>Approved & Active</span>
-      </div>
-    </div>
+  :root {
+    --tpo-indigo: #4f46e5;
+    --tpo-blue: #2563eb;
+    --tpo-emerald: #10b981;
+    --tpo-amber: #f59e0b;
+    --tpo-rose: #ef4444;
+    --tpo-purple: #8b5cf6;
+  }
 
-    <!-- Active Jobs Card -->
-    <div class="glass-card-heavy dashboard-stat-card">
-      <div class="stat-decor-circle" style="background: rgba(6, 182, 212, 0.1);"></div>
-      <div class="dashboard-stat-header">
-          <div>
-            <p class="dashboard-stat-label">Active Jobs</p>
-            <h2 class="dashboard-stat-value" style="color: #06b6d4;">{{ stats.total_jobs }}</h2>
-          </div>
-          <div class="dashboard-stat-icon-box" style="background: linear-gradient(135deg, #06b6d4, #10b981);">
-            <i class="ph-fill ph-briefcase"></i>
-          </div>
-      </div>
-      <div class="dashboard-stat-trend" style="color: #06b6d4;">
-          <i class="ph-bold ph-lightning"></i> <span>Hiring Now</span>
-      </div>
-    </div>
+  .tpo-operations-container {
+    padding-bottom: 3.5rem;
+  }
 
-    <!-- Total Applications Card -->
-    <div class="glass-card-heavy dashboard-stat-card">
-      <div class="stat-decor-circle" style="background: rgba(244, 63, 94, 0.1);"></div>
-      <div class="dashboard-stat-header">
-          <div>
-            <p class="dashboard-stat-label">Total Applications</p>
-            <h2 class="dashboard-stat-value" style="color: #f43f5e;">{{ stats.total_applications }}</h2>
-          </div>
-          <div class="dashboard-stat-icon-box" style="background: linear-gradient(135deg, #f43f5e, #fb923c);">
-            <i class="ph-fill ph-file-text"></i>
-          </div>
-      </div>
-      <div class="dashboard-stat-trend" style="color: #f43f5e;">
-          <i class="ph-bold ph-paper-plane-tilt"></i> <span>Submitted</span>
-      </div>
-    </div>
+  /* ============================================================
+     1. TPO AMBIENT COMMAND HEADER
+     ============================================================ */
+  .tpo-command-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
 
-    <!-- Pending Approvals Card (Super Admin Only) -->
-    {% if admin_level == 'super_admin' %}
-    <div class="glass-card-heavy dashboard-stat-card">
-      <div class="stat-decor-circle" style="background: rgba(251, 146, 60, 0.1);"></div>
-      <div class="dashboard-stat-header">
-          <div>
-            <p class="dashboard-stat-label">Pending Approvals</p>
-            <h2 class="dashboard-stat-value" style="color: #fb923c;">{{ stats.pending_approvals | default(0) }}</h2>
-          </div>
-          <div class="dashboard-stat-icon-box" style="background: linear-gradient(135deg, #fb923c, #f97316);">
-            <i class="ph-fill ph-hourglass"></i>
-          </div>
-      </div>
-      <div class="dashboard-stat-trend" style="color: #fb923c;">
-          <i class="ph-bold ph-warning-circle"></i> <span>Action Required</span>
-      </div>
-    </div>
-    {% endif %}
-  </div>
+  .tpo-command-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
 
-  <!-- Main Content Grid -->
-  <div
-    style="
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    "
-  >
-    <!-- Quick Actions Section -->
-    <div class="glass-card-heavy" style="padding: 1.5rem">
-      <h3
-        style="
-          color: var(--primary);
-          margin-bottom: 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        "
-      >
-        <i class="ph-bold ph-lightning" style="font-size: 1.2rem"></i>
-        Quick Actions
-      </h3>
+  .command-banner-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
 
-      <div
-        style="
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 0.75rem;
-        "
-      >
-        <a
-          href="{{ url_for('manage_jobs') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-briefcase"
-            style="
-              font-size: 2rem;
-              color: var(--primary);
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Jobs</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Post & Manage
-          </p>
-        </a>
+  .command-title-block {
+    max-width: 650px;
+  }
 
-        <a
-          href="{{ url_for('manage_announcements') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-megaphone"
-            style="
-              font-size: 2rem;
-              color: var(--secondary);
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Announcements</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Post Updates
-          </p>
-        </a>
+  .tpo-kicker-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e0e7ff;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.85rem;
+  }
 
-        <a
-          href="{{ url_for('view_applications') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-list-numbers"
-            style="
-              font-size: 2rem;
-              color: var(--accent);
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Applications</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Review All
-          </p>
-        </a>
+  .tpo-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--tpo-emerald);
+    border-radius: 50%;
+    position: relative;
+  }
 
-        {% if admin_level == 'super_admin' %}
-        <a
-          href="{{ url_for('manage_users') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-users"
-            style="
-              font-size: 2rem;
-              color: #8b5cf6;
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Users</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Manage All
-          </p>
-        </a>
+  .tpo-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--tpo-emerald);
+    opacity: 0.4;
+    animation: livePulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  }
 
-        <a
-          href="{{ url_for('view_login_history') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-clock-clockwise"
-            style="
-              font-size: 2rem;
-              color: #ec4899;
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Login History</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Activity Log
-          </p>
-        </a>
-        {% endif %}
+  .command-heading {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.4rem 0;
+  }
 
-        <a
-          href="{{ url_for('students_activity') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease"
-        >
-          <i
-            class="ph-bold ph-chart-line"
-            style="
-              font-size: 2rem;
-              color: #06b6d4;
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem">Activity</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            Student Stats
-          </p>
-        </a>
-        
-        <a 
-          href="{{ url_for('export_applications') }}" 
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05);"
-        >
-            <i class="ph-bold ph-download-simple" style="font-size: 2rem; color: #10b981; display: block; margin-bottom: 0.5rem;"></i>
-            <span style="font-weight: 600; font-size: 0.9rem; color: #10b981;">Student Applications</span>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">Export CSV</p>
-        </a>
+  .command-subtitle {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
 
-        <a
-          href="{{ url_for('all_students_list') }}"
-          class="glass-card"
-          style="padding: 1rem; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.05);"
-        >
-          <i
-            class="ph-bold ph-student"
-            style="
-              font-size: 2rem;
-              color: var(--primary);
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-          ></i>
-          <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);">All Students</span>
-          <p
-            style="
-              font-size: 0.75rem;
-              color: var(--text-muted);
-              margin-top: 0.3rem;
-            "
-          >
-            View Details
-          </p>
-        </a>
-      </div>
-    </div>
+  .command-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 
-  </div>
+  .btn-command-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.45);
+    transition: all 0.2s ease;
+  }
 
-  <!-- Visual Insights Section -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; align-items: stretch;">
-    
-    <!-- Chart Card -->
-    <div class="glass-card-heavy" style="padding: 2rem; display: flex; flex-direction: column; justify-content: space-between;">
-        <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="ph-bold ph-chart-pie-slice" style="font-size: 1.2rem;"></i>
-            Application Insights
-        </h3>
-        <div style="position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center;">
-            <canvas id="applicationChart"></canvas>
-            {% if stats.total_applications == 0 %}
-            <div style="position: absolute; color: var(--text-muted); font-size: 0.9rem;">
-                No applications yet
-            </div>
-            {% endif %}
-        </div>
-    </div>
+  .btn-command-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px -4px rgba(79, 70, 229, 0.6);
+    color: #ffffff;
+  }
 
-    <!-- Stats Grid (Placement Stats) -->
-    <div class="glass-card-heavy" style="padding: 2rem; display: flex; flex-direction: column; justify-content: center;">
-        <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-          <i class="ph-bold ph-chart-bar" style="font-size: 1.2rem"></i>
-          Placement Statistics
-        </h3>
-    
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-          <!-- Placement Rate -->
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; background: rgba(99, 102, 241, 0.05); border-radius: 16px; border: 1px solid rgba(99, 102, 241, 0.1);">
-              <div>
-                  <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem;">Placement Rate</h4>
-                  <p style="color: var(--primary); font-size: 1.75rem; font-weight: 800; line-height: 1;">85%</p>
-              </div>
-              <div style="width: 48px; height: 48px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem;">
-                  <i class="ph-fill ph-trend-up"></i>
-              </div>
-          </div>
-    
-          <!-- Avg Package -->
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; background: rgba(6, 182, 212, 0.05); border-radius: 16px; border: 1px solid rgba(6, 182, 212, 0.1);">
-              <div>
-                  <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem;">Average Package</h4>
-                  <p style="color: var(--secondary); font-size: 1.75rem; font-weight: 800; line-height: 1;">12.5 LPA</p>
-              </div>
-              <div style="width: 48px; height: 48px; background: rgba(6, 182, 212, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--secondary); font-size: 1.5rem;">
-                  <i class="ph-fill ph-currency-inr"></i>
-              </div>
-          </div>
+  .btn-command-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
 
-          <!-- Companies Hiring -->
-           <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; background: rgba(244, 63, 94, 0.05); border-radius: 16px; border: 1px solid rgba(244, 63, 94, 0.1);">
-              <div>
-                  <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem;">Active Drives</h4>
-                  <p style="color: var(--accent); font-size: 1.75rem; font-weight: 800; line-height: 1;">{{ stats.total_jobs }}</p>
-              </div>
-              <div style="width: 48px; height: 48px; background: rgba(244, 63, 94, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.5rem;">
-                  <i class="ph-fill ph-buildings"></i>
-              </div>
-          </div>
-        </div>
-    </div>
-  </div>
-</div>
+  .btn-command-secondary:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
 
-<script id="dashboard-chart-data" type="application/json">
-    {{ chart_data | tojson | safe }}
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('applicationChart').getContext('2d');
-        const chartData = JSON.parse(document.getElementById('dashboard-chart-data').textContent);
-        
-        // Define theme colors
-        const colors = {
-            'Applied': '#3b82f6',    // Blue
-            'Shortlisted': '#eab308', // Yellow
-            'Selected': '#22c55e',    // Green
-            'Rejected': '#ef4444'     // Red
-        };
+  /* ============================================================
+     2. CONNECTED OPERATIONAL METRICS RIBBON (No isolated boxes)
+     ============================================================ */
+  .tpo-metric-ribbon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.85rem 2rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
 
-        const dataValues = [
-            chartData['Applied'] || 0,
-            chartData['Shortlisted'] || 0,
-            chartData['Selected'] || 0,
-            chartData['Rejected'] || 0
-        ];
-        
-        // Check if all zero
-        const total = dataValues.reduce((a, b) => a + b, 0);
+  [data-theme="dark"] .tpo-metric-ribbon {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
 
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Applied', 'Shortlisted', 'Selected', 'Rejected'],
-                datasets: [{
-                    data: total > 0 ? dataValues : [1], // Show dummy ring if empty
-                    backgroundColor: total > 0 ? [
-                        colors['Applied'],
-                        colors['Shortlisted'],
-                        colors['Selected'],
-                        colors['Rejected']
-                    ] : ['rgba(148, 163, 184, 0.2)'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: {
-                                family: "'Outfit', sans-serif",
-                                size: 12
-                            }
-                        }
-                    },
-                    tooltip: {
-                        enabled: total > 0,
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        padding: 12,
-                        cornerRadius: 8,
-                        titleFont: { family: "'Outfit', sans-serif" },
-                        bodyFont: { family: "'Outfit', sans-serif" }
-                    }
-                }
-            }
-        });
-    });
-</script>
+  .tpo-metric-col {
+    padding: 0 1.5rem;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-  <style>
+  .tpo-metric-col:first-child {
+    padding-left: 0;
+  }
+
+  .tpo-metric-col:last-child {
+    border-right: none;
+  }
+
+  .tpo-metric-number {
+    font-size: 2.25rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.35rem;
+  }
+
+  .tpo-metric-number.indigo { color: var(--tpo-indigo); }
+  .tpo-metric-number.emerald { color: var(--tpo-emerald); }
+  .tpo-metric-number.amber { color: var(--tpo-amber); }
+  .tpo-metric-number.rose { color: var(--tpo-rose); }
+
+  .tpo-metric-label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.15rem;
+  }
+
+  .tpo-metric-sub {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     3. TPO AUTOMATION TOOLBAR (REDESIGNED EXECUTIVE COMMAND SUITE)
+     ============================================================ */
+  .tpo-automation-deck {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.65rem 1.85rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] .tpo-automation-deck {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(30, 41, 59, 0.6));
+    border-color: rgba(99, 102, 241, 0.22);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  .deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.35rem;
+    padding-bottom: 0.95rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .deck-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    letter-spacing: -0.01em;
+  }
+
+  .deck-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.15rem;
+  }
+
+  @media (max-width: 1200px) {
+    .deck-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
   @media (max-width: 768px) {
-    [style*="grid-template-columns: 2fr 1fr"] {
-      grid-template-columns: 1fr !important;
-    }
-
-    h1 {
-      font-size: 1.5rem !important;
-    }
-
-    h2 {
-      font-size: 1.8rem !important;
-    }
-
-    .glass-card-heavy {
-      padding: 1rem !important;
+    .deck-grid {
+      grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 480px) {
-    [style*="grid-template-columns: 1fr 1fr"] {
-      grid-template-columns: 1fr !important;
-    }
+  .automation-tool-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.25rem 1.15rem;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    min-height: 135px;
+  }
 
-    h1 {
-      font-size: 1.3rem !important;
-    }
+  [data-theme="dark"] .automation-tool-card {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.16);
+  }
 
-    h2 {
-      font-size: 1.5rem !important;
-    }
+  .automation-tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px -4px rgba(79, 70, 229, 0.16);
+    border-color: var(--tpo-indigo);
+    background: var(--surface);
+  }
 
-    .glass-card-heavy {
-      padding: 0.75rem !important;
-    }
+  .card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.95rem;
+  }
 
-    .header-actions {
+  .tool-icon-disc {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 6px 14px -2px rgba(0, 0, 0, 0.15);
+  }
+
+  .tool-tag-pill {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--tpo-indigo);
+    border: 1px solid rgba(79, 70, 229, 0.15);
+  }
+
+  [data-theme="dark"] .tool-tag-pill {
+    background: rgba(99, 102, 241, 0.18);
+    color: #c7d2fe;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .tool-title {
+    font-weight: 800;
+    font-size: 0.92rem;
+    line-height: 1.25;
+    margin-bottom: 0.25rem;
+    color: var(--text-main);
+  }
+
+  .tool-desc {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+  }
+
+  .tool-action-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--tpo-indigo);
+    margin-top: 0.5rem;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all 0.22s ease;
+  }
+
+  .automation-tool-card:hover .tool-action-indicator {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Alias in case ph-file-spreadsheet is referenced */
+  .ph-file-spreadsheet:before { content: "\eb1c"; }
+
+  /* ============================================================
+     4. ACTIVE RECRUITMENT DRIVES PIPELINE TABLE
+     ============================================================ */
+  .fluid-card-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="dark"] .fluid-card-container {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .table-header-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-header-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .tpo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .tpo-table th {
+    padding: 0.85rem 1.25rem;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .tpo-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .tpo-table tr:hover {
+    background: rgba(79, 70, 229, 0.02);
+  }
+
+  [data-theme="dark"] .tpo-table tr:hover {
+    background: rgba(99, 102, 241, 0.06);
+  }
+
+  .company-cell-flex {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .company-avatar-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .package-pill-tag {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.1);
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .stat-bubble {
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+
+  .btn-tpo-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .btn-tpo-action:hover {
+    border-color: var(--tpo-indigo);
+    color: var(--tpo-indigo);
+    background: var(--bg);
+    transform: translateY(-1px);
+  }
+
+  /* ============================================================
+     5. BOTTOM INTELLIGENCE MATRIX (Funnel Chart & Activity Stream)
+     ============================================================ */
+  .intelligence-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  .analytics-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="dark"] .analytics-card {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .analytics-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .analytics-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Pending Approvals Strip (Conditional) */
+  .pending-approvals-card {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 1024px) {
+    .tpo-metric-ribbon {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    .tpo-metric-col {
+      border-right: none;
+      padding: 0;
+    }
+    .intelligence-split-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .tpo-command-banner {
+      padding: 1.75rem 1.25rem;
+    }
+    .tpo-metric-ribbon {
+      grid-template-columns: 1fr;
+    }
+    .command-action-buttons {
       width: 100%;
-      flex-direction: column;
     }
-
-    .btn-primary,
-    .btn-secondary {
-      width: 100% !important;
+    .command-action-buttons a {
+      width: 100%;
+      justify-content: center;
     }
-  }
-
-  .glass-card:hover {
-    transform: translateY(-5px);
   }
 </style>
+{% endblock %}
 
-<!-- Pending Approvals Modal -->
-{% if admin_level == 'super_admin' and stats.pending_approvals > 0 %}
-<div id="pendingApprovalsModal" class="modal-overlay" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;">
-  <div class="glass-card" style="padding: 2rem; max-width: 450px; width: 90%; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-    <div style="width: 80px; height: 80px; background: rgba(251, 146, 60, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
-        <i class="ph-fill ph-warning-circle" style="font-size: 3rem; color: #fb923c;"></i>
-    </div>
-    <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Pending Approvals</h3>
-    <p style="color: var(--text-muted); margin-bottom: 2rem;">There are <strong>{{ stats.pending_approvals }} student(s)</strong> waiting for account approval. Please review them.</p>
-    
-    <div style="display: flex; gap: 1rem; justify-content: center;">
-        <button onclick="closePendingModal()" class="btn-secondary">Later</button>
-        <a href="{{ url_for('manage_users') }}" class="btn-primary">Review Now</a>
+{% block content %}
+<div class="tpo-operations-container">
+
+  <!-- ============================================================
+       0. SUPER ADMIN PRIORITY NOTIFICATION & APPROVAL ALERT MODAL
+       (Displayed first upon Super Admin login when pending approvals exist)
+       ============================================================ -->
+  {% if admin_level == 'super_admin' and pending_students and pending_students|length > 0 %}
+  <div id="superAdminAlertModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(5px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div style="background: var(--surface); border: 2px solid #f59e0b; border-radius: 20px; max-width: 740px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); border-bottom: 1.5px solid #fde68a; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #d97706; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);">
+            <i class="ph-bold ph-bell-ringing"></i>
+          </div>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; color: #92400e; margin: 0;">Priority Authorizations &amp; Notifications</h2>
+            <p style="font-size: 0.8rem; color: #b45309; margin: 0.15rem 0 0 0;">
+              <strong>{{ pending_students|length }}</strong> user(s) awaiting your authorization before they can access the portal
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminAlertModal()" style="background: none; border: none; font-size: 1.4rem; color: #92400e; cursor: pointer; padding: 0.25rem;" title="Close">&times;</button>
+      </div>
+
+      <!-- Modal Body (Scrollable List) -->
+      <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.85rem;">
+        {% if urgent_notifications %}
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.65rem;">
+          <i class="ph-fill ph-warning-circle" style="color: #dc2626; font-size: 1.1rem; flex-shrink: 0;"></i>
+          <span style="font-size: 0.82rem; color: #991b1b; font-weight: 600;">
+            Urgent approval reminder(s) active! Users have clicked "Notify Admin" requesting authorization.
+          </span>
+        </div>
+        {% endif %}
+
+        {% for user in pending_students %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.95rem 1.15rem; background: var(--surface); border: 1.5px solid {% if user.has_urgent_reminder %}#f59e0b{% else %}var(--border){% endif %}; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); flex-wrap: wrap; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: {% if user.role == 'student' %}rgba(37, 99, 235, 0.1){% else %}rgba(124, 58, 237, 0.1){% endif %}; color: {% if user.role == 'student' %}#2563eb{% else %}#7c3aed{% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">
+              {{ (user.email or 'U')[0]|upper }}
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <strong style="font-size: 0.92rem; color: var(--text-main);">
+                  {{ (user.student_info.name if user.student_info and user.student_info.name else None) or user.name or user.full_name or user.email }}
+                </strong>
+                <span class="badge" style="background: {% if user.role == 'student' %}#eff6ff; color: #1d4ed8{% else %}#f5f3ff; color: #6d28d9{% endif %}; font-size: 0.72rem; padding: 0.15rem 0.5rem; text-transform: uppercase; font-weight: 700;">
+                  {{ user.role if user.role == 'student' else user.admin_level or 'Admin' }}
+                </span>
+                {% if user.has_urgent_reminder %}
+                <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.72rem; padding: 0.15rem 0.5rem; font-weight: 700;">
+                  🚨 Urgent Notification
+                </span>
+                {% endif %}
+              </div>
+
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                <span>{{ user.email }}</span>
+                {% if user.student_info and user.student_info.student_id %}
+                <span style="font-family: monospace; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 0.1rem 0.45rem; border-radius: 4px; letter-spacing: 0.04em;">
+                  Roll: {{ user.student_info.student_id }}
+                </span>
+                {% endif %}
+                <span>&bull; {{ user.created_at.strftime('%d %b %Y, %H:%M') if user.created_at else 'Recently' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <form action="{{ url_for('approve_user', user_id=user._id) }}" method="POST" style="margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-success btn-sm" style="font-size: 0.78rem; padding: 0.4rem 0.85rem; font-weight: 700;">
+                <i class="ph-bold ph-check"></i> Approve
+              </button>
+            </form>
+            <form action="{{ url_for('reject_user', user_id=user._id) }}" method="POST" onsubmit="return confirm('Reject and remove this registration?');" style="margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.78rem; padding: 0.4rem 0.85rem; font-weight: 700;">
+                <i class="ph-bold ph-x"></i> Reject
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02);">
+        <form action="{{ url_for('batch_approve_students') }}" method="POST" onsubmit="return confirm('Approve all pending students in 1 click?');" style="margin: 0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="approve_all" value="true"/>
+          <button type="submit" class="btn btn-primary btn-sm" style="background: #d97706; border-color: #d97706; font-size: 0.8rem; font-weight: 700;">
+            <i class="ph-bold ph-check-double"></i> 1-Click Approve All ({{ pending_students|length }})
+          </button>
+        </form>
+
+        <button type="button" onclick="closeAdminAlertModal()" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; font-weight: 600;">
+          Proceed to Dashboard Workspace &rarr;
+        </button>
+      </div>
     </div>
   </div>
+
+  <script>
+    function closeAdminAlertModal() {
+      const modal = document.getElementById('superAdminAlertModal');
+      if (modal) modal.style.display = 'none';
+    }
+  </script>
+  {% endif %}
+
+  <!-- ============================================================
+       1. TPO AMBIENT COMMAND BANNER
+       ============================================================ -->
+  <section class="tpo-command-banner">
+    <div class="command-banner-inner">
+      <div class="command-title-block">
+        <div class="tpo-kicker-chip">
+          <span class="tpo-pulse-dot"></span>
+          <span>Chetan Business School &bull; TPO Master Command Desk</span>
+        </div>
+        <h1 class="command-heading">Recruitment Operations Console</h1>
+        <p class="command-subtitle">
+          Real-time candidate pipeline monitoring, recruiter master sheet exports, and batch round progression automation for Academic Season 2026-27.
+        </p>
+      </div>
+
+      <div class="command-action-buttons">
+        <a href="{{ url_for('view_applications') }}" class="btn-command-primary">
+          <i class="ph-bold ph-lightning"></i>
+          <span>Batch Roll Advance Desk</span>
+        </a>
+        <a href="{{ url_for('export_applications') }}" class="btn-command-secondary">
+          <i class="ph-bold ph-download-simple"></i>
+          <span>Master HR Export</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+     2. CONNECTED OPERATIONAL METRICS RIBBON (No isolated boxes)
+     ============================================================ -->
+  <section class="tpo-metric-ribbon">
+    <div class="tpo-metric-col">
+      <div class="tpo-metric-number indigo">{{ stats.total_students }}</div>
+      <div class="tpo-metric-label">Registered Candidates</div>
+      <div class="tpo-metric-sub">
+        <strong style="color: var(--tpo-emerald);">{{ stats.placed_count }} Placed</strong> ({{ stats.placement_rate }}% Conversion Rate)
+      </div>
+    </div>
+
+    <div class="tpo-metric-col">
+      <div class="tpo-metric-number emerald">{{ stats.total_jobs }}</div>
+      <div class="tpo-metric-label">Campus Recruitment Drives</div>
+      <div class="tpo-metric-sub">Active On-Campus, Virtual &amp; Hybrid Drives</div>
+    </div>
+
+    <div class="tpo-metric-col">
+      <div class="tpo-metric-number amber">{{ stats.total_applications }}</div>
+      <div class="tpo-metric-label">Pipeline Entries</div>
+      <div class="tpo-metric-sub">Submissions active across selection stages</div>
+    </div>
+
+    <div class="tpo-metric-col">
+      <div class="tpo-metric-number rose">{{ stats.pending_approvals | default(0) }}</div>
+      <div class="tpo-metric-label">Action Required</div>
+      <div class="tpo-metric-sub">Candidate profiles awaiting TPO verification</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+     3. TPO AUTOMATION TOOLBAR
+     ============================================================ -->
+  <section class="tpo-automation-deck">
+    <div class="deck-header">
+      <div class="deck-title">
+        <i class="ph-bold ph-lightning" style="color: var(--tpo-indigo); font-size: 1.25rem;"></i>
+        <span>TPO Workflow Acceleration Tools</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 700; background: rgba(79, 70, 229, 0.08); color: var(--tpo-indigo); padding: 0.25rem 0.65rem; border-radius: 9999px;">
+          <i class="ph-fill ph-check-circle"></i> 1-Click Operations
+        </span>
+      </div>
+    </div>
+
+    <div class="deck-grid">
+      <!-- 1. Bulk Roll Advancement -->
+      <a href="{{ url_for('view_applications') }}" class="automation-tool-card">
+        <div class="card-top-row">
+          <div class="tool-icon-disc" style="background: linear-gradient(135deg, #4f46e5, #3b82f6);">
+            <i class="ph-bold ph-lightning"></i>
+          </div>
+          <span class="tool-tag-pill">Advance</span>
+        </div>
+        <div>
+          <div class="tool-title">Roll Batch Advance</div>
+          <div class="tool-desc">1-Click advance candidate rounds by pasting roll numbers</div>
+          <div class="tool-action-indicator">
+            <span>Open Batch Tool</span> <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+
+      <!-- 2. HR Recruiter Sheet -->
+      <a href="{{ url_for('view_applications') }}" class="automation-tool-card">
+        <div class="card-top-row">
+          <div class="tool-icon-disc" style="background: linear-gradient(135deg, #059669, #10b981);">
+            <i class="ph-bold ph-file-csv"></i>
+          </div>
+          <span class="tool-tag-pill" style="background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.25);">Excel / CSV</span>
+        </div>
+        <div>
+          <div class="tool-title">Recruiter Master Sheet</div>
+          <div class="tool-desc">Custom criteria filter with CGPA &amp; backlogs cutoff</div>
+          <div class="tool-action-indicator" style="color: #059669;">
+            <span>Configure Sheet</span> <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+
+      <!-- 3. Post Campus Drive -->
+      <a href="{{ url_for('manage_jobs') }}" class="automation-tool-card">
+        <div class="card-top-row">
+          <div class="tool-icon-disc" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">
+            <i class="ph-bold ph-plus-circle"></i>
+          </div>
+          <span class="tool-tag-pill" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; border-color: rgba(37, 99, 235, 0.25);">Drives</span>
+        </div>
+        <div>
+          <div class="tool-title">Launch New Drive</div>
+          <div class="tool-desc">Publish recruiter requirements &amp; package tiers</div>
+          <div class="tool-action-indicator" style="color: #2563eb;">
+            <span>Create Drive</span> <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+
+      <!-- 4. Notice Broadcast -->
+      <a href="{{ url_for('manage_announcements') }}" class="automation-tool-card">
+        <div class="card-top-row">
+          <div class="tool-icon-disc" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+            <i class="ph-bold ph-megaphone"></i>
+          </div>
+          <span class="tool-tag-pill" style="background: rgba(217, 119, 6, 0.1); color: #d97706; border-color: rgba(217, 119, 6, 0.25);">Alerts</span>
+        </div>
+        <div>
+          <div class="tool-title">Broadcast Alert</div>
+          <div class="tool-desc">Town hall notice with image &amp; PDF previews</div>
+          <div class="tool-action-indicator" style="color: #d97706;">
+            <span>Post Circular</span> <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+
+      <!-- 5. Marks Lock Verification -->
+      <a href="{{ url_for('manage_users') }}" class="automation-tool-card">
+        <div class="card-top-row">
+          <div class="tool-icon-disc" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+            <i class="ph-bold ph-shield-check"></i>
+          </div>
+          <span class="tool-tag-pill" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed; border-color: rgba(124, 58, 237, 0.25);">Audit</span>
+        </div>
+        <div>
+          <div class="tool-title">Candidate Audit</div>
+          <div class="tool-desc">Verify marks &amp; lock profiles for placement compliance</div>
+          <div class="tool-action-indicator" style="color: #7c3aed;">
+            <span>Open Audit</span> <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- PENDING SUPER ADMIN APPROVALS (If any) -->
+  {% if pending_students and admin_level == 'super_admin' %}
+  <section class="pending-approvals-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; color: #dc2626; font-weight: 800; font-size: 0.95rem;">
+        <i class="ph-fill ph-warning-circle"></i>
+        <span>Pending Candidate Approvals ({{ pending_students|length }})</span>
+      </div>
+      <span style="font-size: 0.78rem; color: var(--text-muted);">Immediate action required to allow student portal entry</span>
+    </div>
+
+    <div style="display: grid; gap: 0.75rem;">
+      {% for user in pending_students[:3] %}
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.15rem; background: var(--surface); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
+            {{ (user.email or 'S')[0]|upper }}
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <strong style="font-size: 0.88rem; color: var(--text-main);">
+                {{ (user.student_info.name if user.student_info and user.student_info.name else None) or user.name or user.full_name or user.email }}
+              </strong>
+              {% if user.student_info and user.student_info.student_id %}
+              <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 0.1rem 0.4rem; border-radius: 4px;">
+                {{ user.student_info.student_id }}
+              </span>
+              {% endif %}
+              {% if user.has_urgent_reminder %}
+              <span class="badge" style="background: #fef2f2; color: #dc2626; font-size: 0.7rem; font-weight: 700;">🚨 Urgent</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">{{ user.email }} &bull; Role: {{ user.role }} &bull; Registered {{ user.created_at.strftime('%d %b %Y') if user.created_at else 'Recently' }}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <form action="{{ url_for('approve_user', user_id=user._id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-success btn-sm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+              <i class="ph-bold ph-check"></i> Approve
+            </button>
+          </form>
+          <form action="{{ url_for('reject_user', user_id=user._id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+              <i class="ph-bold ph-x"></i> Reject
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============================================================
+     4. ACTIVE RECRUITMENT DRIVES PIPELINE (Core Workhorse)
+     ============================================================ -->
+  <section class="fluid-card-container">
+    <div class="table-header-strip">
+      <div class="table-header-title">
+        <i class="ph-duotone ph-buildings" style="color: var(--tpo-indigo);"></i>
+        <span>Active Enterprise Recruitment Drives</span>
+      </div>
+      <a href="{{ url_for('manage_jobs') }}" style="font-size: 0.82rem; font-weight: 700; color: var(--tpo-indigo); text-decoration: none;">
+        Manage All Drives &rarr;
+      </a>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="tpo-table">
+        <thead>
+          <tr>
+            <th>Company &amp; Role</th>
+            <th>Drive Schedule</th>
+            <th>Compensation</th>
+            <th>Eligibility</th>
+            <th style="text-align: center;">Applicants</th>
+            <th style="text-align: center;">Shortlisted</th>
+            <th style="text-align: right;">Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in jobs %}
+          {% set colors = ['linear-gradient(135deg, #4f46e5, #3b82f6)', 'linear-gradient(135deg, #059669, #10b981)', 'linear-gradient(135deg, #d97706, #f59e0b)', 'linear-gradient(135deg, #7c3aed, #a855f7)', 'linear-gradient(135deg, #0284c7, #2563eb)'] %}
+          {% set c_idx = loop.index0 % 5 %}
+          <tr>
+            <td>
+              <div class="company-cell-flex">
+                <div class="company-avatar-box" style="background: {{ colors[c_idx] }};">
+                  {{ (j.company_name or 'C')[0]|upper }}
+                </div>
+                <div>
+                  <strong style="color: var(--text-main); font-size: 0.92rem;">{{ j.company_name }}</strong>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);">{{ j.role }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span style="font-weight: 600; color: var(--text-main);">
+                {{ j.drive_date[:10] if j.drive_date is string else j.drive_date.strftime('%d %b %Y') if j.drive_date else 'Scheduled' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="package-pill-tag">
+                {{ j.package or 'Disclosed' }}
+              </span>
+            </td>
+
+            <td>
+              <span style="font-weight: 700; color: var(--text-main); font-size: 0.82rem;">
+                {{ j.min_cgpa or '0.0' }}+ CGPA
+              </span>
+            </td>
+
+            <td style="text-align: center;">
+              <span class="stat-bubble" style="color: var(--tpo-indigo);">{{ j.applicant_count }}</span>
+            </td>
+
+            <td style="text-align: center;">
+              <span class="stat-bubble" style="color: var(--tpo-emerald);">{{ j.shortlisted_count }}</span>
+            </td>
+
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.45rem;">
+                <a href="{{ url_for('view_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="View Candidate Pipeline">
+                  <i class="ph-bold ph-users-three"></i> Pipeline
+                </a>
+                <a href="{{ url_for('export_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="Download HR Excel Sheet">
+                  <i class="ph-bold ph-download-simple"></i> HR Sheet
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================
+     5. BOTTOM INTELLIGENCE MATRIX (Funnel Chart & Activity Feed)
+     ============================================================ -->
+  <section class="intelligence-split-grid">
+
+    <!-- Candidate Funnel Chart -->
+    <div class="analytics-card">
+      <div class="analytics-card-header">
+        <div class="analytics-card-title">
+          <i class="ph-duotone ph-chart-donut" style="color: var(--tpo-indigo);"></i>
+          <span>Candidate Pipeline Funnel</span>
+        </div>
+        <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+          Live Distribution
+        </span>
+      </div>
+
+      <div style="position: relative; height: 240px; display: flex; justify-content: center; align-items: center;">
+        <canvas id="applicationChart"></canvas>
+      </div>
+    </div>
+
+    <!-- TPO Activity & Audit Stream -->
+    <div class="analytics-card">
+      <div class="analytics-card-header">
+        <div class="analytics-card-title">
+          <i class="ph-duotone ph-clock-counter-clockwise" style="color: var(--tpo-indigo);"></i>
+          <span>Live Candidate Activity Stream</span>
+        </div>
+        <a href="{{ url_for('students_activity') }}" style="font-size: 0.8rem; font-weight: 700; color: var(--tpo-indigo); text-decoration: none;">
+          Full Log &rarr;
+        </a>
+      </div>
+
+      <div style="display: flex; flex-direction: column;">
+        {% if recent_activity %}
+          {% for item in recent_activity[:5] %}
+          <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(79, 70, 229, 0.1); color: var(--tpo-indigo); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;">
+              {{ (item.student_name or 'S')[0]|upper }}
+            </div>
+            <div style="flex-grow: 1; min-width: 0;">
+              <strong style="font-size: 0.85rem; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ item.student_name }}
+              </strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ item.action }}</div>
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-subtle); flex-shrink: 0;">
+              {{ item.timestamp.strftime('%d %b') if item.timestamp and item.timestamp.strftime is defined else 'Today' }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            <i class="ph-duotone ph-shield-check" style="font-size: 2rem; color: var(--tpo-emerald); display: block; margin-bottom: 0.5rem;"></i>
+            All candidate pipelines synchronized. Real-time events will stream here.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </section>
+
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show modal with a slight delay for better UX
-        setTimeout(() => {
-            const modal = document.getElementById('pendingApprovalsModal');
-            if(modal) {
-                modal.style.opacity = '1';
-                modal.style.pointerEvents = 'auto';
-                modal.querySelector('.glass-card').style.transform = 'scale(1)';
-            }
-        }, 800);
-    });
-
-    function closePendingModal() {
-        const modal = document.getElementById('pendingApprovalsModal');
-        if(modal) {
-            modal.style.opacity = '0';
-            modal.style.pointerEvents = 'none';
-            modal.querySelector('.glass-card').style.transform = 'scale(0.9)';
-        }
-    }
+<!-- Chart Script -->
+<script id="dashboard-chart-data" type="application/json">
+  {{ chart_data | tojson | safe }}
 </script>
-{% endif %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('applicationChart').getContext('2d');
+    const chartData = JSON.parse(document.getElementById('dashboard-chart-data').textContent);
+    const dataValues = [
+      chartData['Applied'] || 0,
+      chartData['Shortlisted'] || 0,
+      chartData['Interview'] || chartData['GD'] || 0,
+      chartData['Selected'] || 0,
+      chartData['Rejected'] || 0
+    ];
+    const total = dataValues.reduce((a, b) => a + b, 0);
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Applied', 'Shortlisted', 'Interview / GD', 'Selected (Offers)', 'Rejected'],
+        datasets: [{
+          data: total > 0 ? dataValues : [1],
+          backgroundColor: total > 0
+            ? ['#4f46e5', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444']
+            : ['#e2e8f0'],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 12,
+              padding: 14,
+              font: {
+                size: 11,
+                weight: '700'
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
 {% endblock %}

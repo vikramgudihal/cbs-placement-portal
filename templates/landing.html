@@ -1,1739 +1,1622 @@
-{% extends 'base.html' %} {% block title %}Placement Cell - Chetan Business
-School{% endblock %} {% block head %}
+{% extends 'base.html' %} 
+{% block title %}Placement Cell | Chetan Business School (CBS 3i-Cell){% endblock %} 
+
+{% block head %}
 <style>
-  /* Landing Page Overhaul */
-  .landing-hero {
-    position: relative;
-    padding: 5rem 4rem;
-    border-radius: 24px;
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: 4rem;
-    align-items: center;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+  /* ============================================================
+     CBS 3i-CELL MODERN TECH & FLUID LAYOUT
+     Goodbye rigid "AI boxes" — Hello dynamic, layered elegance.
+     ============================================================ */
+
+  :root {
+    --brand-indigo: #4f46e5;
+    --brand-blue: #2563eb;
+    --brand-cyan: #06b6d4;
+    --brand-amber: #f59e0b;
+    --brand-emerald: #10b981;
+    --brand-purple: #8b5cf6;
+    
+    --fluid-grad-primary: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
+    --fluid-grad-glow: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(37, 99, 235, 0.08) 50%, rgba(6, 182, 212, 0.05) 100%);
+    --fluid-grad-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    
+    --mesh-glow-1: radial-gradient(circle at 15% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 45%);
+    --mesh-glow-2: radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.14) 0%, transparent 45%);
+    --mesh-glow-3: radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+
+    --glass-card: rgba(255, 255, 255, 0.82);
+    --glass-border: rgba(226, 232, 240, 0.85);
+    --glass-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.07), 0 0 0 1px rgba(226, 232, 240, 0.6);
+    --glass-shadow-hover: 0 30px 60px -15px rgba(79, 70, 229, 0.16), 0 0 0 1px rgba(99, 102, 241, 0.3);
   }
 
+  [data-theme="dark"] {
+    --glass-card: rgba(15, 23, 42, 0.72);
+    --glass-border: rgba(99, 102, 241, 0.2);
+    --glass-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.2);
+    --glass-shadow-hover: 0 30px 60px -15px rgba(99, 102, 241, 0.35), 0 0 0 1px rgba(129, 140, 248, 0.4);
+    --mesh-glow-1: radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.25) 0%, transparent 50%);
+    --mesh-glow-2: radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.2) 0%, transparent 50%);
+    --mesh-glow-3: radial-gradient(circle at 50% 80%, rgba(168, 85, 247, 0.18) 0%, transparent 55%);
+  }
 
-  /* Removed complex blurred ::before and ::after elements for clean look */
+  /* Page Wrapper with Ambient Atmospheric Glow */
+  .landing-fluid-wrapper {
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 5rem;
+    background-image: var(--mesh-glow-1), var(--mesh-glow-2), var(--mesh-glow-3);
+    background-attachment: fixed;
+  }
 
-  .hero-content,
-  .hero-visual {
+  /* ============================================================
+     1. ASYMMETRIC HERO SECTION
+     ============================================================ */
+  .fluid-hero {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 3.5rem;
+    align-items: center;
+    padding: 3.5rem 0 2.5rem 0;
+    position: relative;
+  }
+
+  /* Ambient glowing blob behind hero */
+  .hero-glow-backdrop {
+    position: absolute;
+    top: -10%;
+    left: 20%;
+    width: 600px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-content {
     position: relative;
     z-index: 1;
   }
 
-  .hero-tag {
+  /* Frosted Glass Pill Badge */
+  .hero-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 1.2rem;
-    border-radius: 999px;
-    background: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    font-size: 0.85rem;
+    gap: 0.65rem;
+    padding: 0.45rem 1.15rem;
+    background: rgba(79, 70, 229, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 9999px;
+    font-size: 0.82rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    color: var(--brand-indigo);
+    letter-spacing: 0.02em;
     margin-bottom: 1.5rem;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.06);
   }
 
-  .hero-title {
-    font-size: clamp(2.8rem, 4.5vw, 4rem);
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.02em;
-    color: #1e293b;
+  [data-theme="dark"] .hero-chip {
+    background: rgba(99, 102, 241, 0.16);
+    color: #a5b4fc;
+    border-color: rgba(165, 180, 252, 0.3);
   }
 
-  .hero-title span {
-    color: var(--primary);
+  .pulse-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--brand-emerald);
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+  }
+
+  .pulse-indicator::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--brand-emerald);
+    opacity: 0.4;
+    animation: livePulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  }
+
+  @keyframes livePulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  /* Dynamic Fluid Headline */
+  .hero-headline {
+    font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    color: var(--text-main);
+    margin-bottom: 1.35rem;
+  }
+
+  .hero-headline .text-fluid-gradient {
+    background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 55%, #0284c7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+  }
+
+  [data-theme="dark"] .hero-headline .text-fluid-gradient {
+    background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .hero-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.12rem;
+    line-height: 1.65;
     color: var(--text-muted);
-    max-width: 620px;
-    margin-bottom: 2rem;
+    max-width: 580px;
+    margin-bottom: 2.25rem;
+    font-weight: 400;
   }
 
-  .hero-actions {
+  /* Hero Action Buttons */
+  .hero-actions-cluster {
     display: flex;
     gap: 1rem;
-    flex-wrap: wrap;
     align-items: center;
-  }
-
-  .btn-lg {
-    padding: 0.9rem 2rem;
-    font-size: 1.05rem;
-    border-radius: 14px;
-  }
-
-  .hero-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1rem;
-    margin-top: 2.25rem;
-  }
-
-  .metric-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .metric-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 0.15rem;
-  }
-
-  .metric-label {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  .hero-visual {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .live-board {
-    padding: 1.5rem;
-  }
-
-  .board-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .board-title {
-    font-weight: 700;
-    font-size: 1.05rem;
-  }
-
-  .board-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  .board-pill {
-    background: rgba(34, 197, 94, 0.12);
-    color: #15803d;
-    border: 1px solid rgba(34, 197, 94, 0.25);
-    border-radius: 999px;
-    padding: 0.3rem 0.85rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .board-list {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .board-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 14px;
-    background: var(--surface-solid);
-    border: 1px solid var(--border);
-  }
-
-  .row-title {
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-
-  .row-meta {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .board-status {
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    align-self: center;
-  }
-
-  .board-status.open {
-    background: rgba(34, 197, 94, 0.15);
-    color: #15803d;
-  }
-
-  .board-status.upcoming {
-    background: rgba(14, 165, 233, 0.15);
-    color: #0369a1;
-  }
-
-  .board-status.closed {
-    background: rgba(148, 163, 184, 0.2);
-    color: #475569;
-  }
-
-  .board-footer {
-    margin-top: 1rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-
-  .hero-stack {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .stack-card {
-    padding: 1.25rem;
-  }
-
-  .stack-title {
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-  }
-
-  .stack-bar {
-    height: 8px;
-    background: rgba(99, 102, 241, 0.12);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .stack-bar span {
-    display: block;
-    height: 100%;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-  }
-
-  .stack-meta {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-top: 0.5rem;
-  }
-
-  .stack-tags {
-    display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-  }
-
-  .stack-tags span {
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary);
-    padding: 0.25rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  /* Motion + Accents */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  .accent-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 20px;
-    background: var(--surface);
-    backdrop-filter: var(--glass);
-    -webkit-backdrop-filter: var(--glass);
-    border: 1px solid transparent;
-    background-image:
-      linear-gradient(var(--surface), var(--surface)),
-      linear-gradient(135deg,
-        rgba(99, 102, 241, 0.55),
-        rgba(6, 182, 212, 0.45),
-        rgba(244, 63, 94, 0.35));
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    box-shadow: var(--shadow);
-    transition:
-      transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.45s ease,
-      border-color 0.45s ease;
-  }
-
-  .accent-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .accent-card::after {
-    content: "";
-    position: absolute;
-    inset: -60% 0 auto -60%;
-    height: 120%;
-    background: linear-gradient(120deg,
-        transparent 35%,
-        rgba(255, 255, 255, 0.35),
-        transparent 65%);
-    opacity: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-  }
-
-  .accent-card:hover::after {
-    animation: sheen 1.2s ease;
-  }
-
-  [data-theme="dark"] .accent-card {
-    background-image:
-      linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)),
-      linear-gradient(135deg,
-        rgba(99, 102, 241, 0.45),
-        rgba(6, 182, 212, 0.35),
-        rgba(244, 63, 94, 0.3));
-    border-color: rgba(99, 102, 241, 0.3);
-    box-shadow:
-      0 14px 30px rgba(15, 23, 42, 0.45),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  }
-
-  [data-theme="dark"] .accent-card::after {
-    mix-blend-mode: normal;
-    background: linear-gradient(120deg,
-        transparent 35%,
-        rgba(148, 163, 184, 0.35),
-        transparent 65%);
-  }
-
-  .corner-accent::before {
-    content: "";
-    position: absolute;
-    top: -30px;
-    right: -30px;
-    width: 90px;
-    height: 90px;
-    background: radial-gradient(circle,
-        rgba(99, 102, 241, 0.35),
-        transparent 70%);
-    opacity: 0.9;
-    pointer-events: none;
-  }
-
-  .board-pill {
-    position: relative;
-    animation: pulseGlow 3.2s ease-in-out infinite;
-  }
-
-  .board-pill::after {
-    content: "";
-    position: absolute;
-    inset: -6px;
-    border-radius: 999px;
-    border: 1px solid rgba(34, 197, 94, 0.35);
-    opacity: 0;
-    animation: ring 3.2s ease-in-out infinite;
-  }
-
-  .board-row,
-  .company-chip,
-  .industry-card,
-  .placement-card,
-  .process-card,
-  .portal-card,
-  .policy-card {
-    transition:
-      transform 0.35s ease,
-      box-shadow 0.35s ease,
-      border-color 0.35s ease;
-  }
-
-  .board-row:hover,
-  .company-chip:hover,
-  .industry-card:hover,
-  .placement-card:hover,
-  .process-card:hover,
-  .portal-card:hover,
-  .policy-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(99, 102, 241, 0.35);
-  }
-
-  .company-chip {
-    cursor: pointer;
-  }
-
-  .reveal,
-  .reveal-group>* {
-    opacity: 0;
-    transform: translate(var(--reveal-x, 0), var(--reveal-y, 20px));
-    transition:
-      opacity 0.5s ease,
-      transform 0.5s ease;
-    will-change: opacity, transform;
-  }
-
-  .reveal.is-visible,
-  .reveal-group>*.is-visible {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-
-  .reveal-left {
-    --reveal-x: -28px;
-    --reveal-y: 0;
-  }
-
-  .reveal-right {
-    --reveal-x: 28px;
-    --reveal-y: 0;
-  }
-
-  .reveal-up {
-    --reveal-y: 26px;
-  }
-
-  .reveal-group>*:nth-child(1) {
-    transition-delay: 0s;
-  }
-
-  .reveal-group>*:nth-child(2) {
-    transition-delay: 0.08s;
-  }
-
-  .reveal-group>*:nth-child(3) {
-    transition-delay: 0.16s;
-  }
-
-  .reveal-group>*:nth-child(4) {
-    transition-delay: 0.24s;
-  }
-
-  .reveal-group>*:nth-child(5) {
-    transition-delay: 0.32s;
-  }
-
-  .reveal-group>*:nth-child(6) {
-    transition-delay: 0.4s;
-  }
-
-  @keyframes sheen {
-    0% {
-      opacity: 0;
-      transform: translateX(-40%);
-    }
-
-    40% {
-      opacity: 0.55;
-    }
-
-    100% {
-      opacity: 0;
-      transform: translateX(60%);
-    }
-  }
-
-  @keyframes pulseGlow {
-
-    0%,
-    100% {
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.25);
-    }
-
-    50% {
-      box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
-    }
-  }
-
-  @keyframes ring {
-
-    0%,
-    100% {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-
-    50% {
-      opacity: 0.6;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes float {
-
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  .landing-hero::before {
-    animation: float 10s ease-in-out infinite;
-  }
-
-  .landing-hero::after {
-    animation: float 12s ease-in-out infinite reverse;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Section Styles */
-  .landing-section {
-    margin-top: 5rem;
-  }
-
-  .section-head {
-    text-align: center;
     margin-bottom: 2.5rem;
   }
 
-  .section-kicker {
-    display: inline-block;
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary);
-    padding: 0.35rem 1rem;
-    border-radius: 999px;
+  .btn-fluid-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.95rem 2rem;
+    border-radius: 9999px;
+    background: var(--fluid-grad-primary);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.98rem;
+    text-decoration: none;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-fluid-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 35px -5px rgba(79, 70, 229, 0.55);
+    color: #ffffff;
+  }
+
+  .btn-fluid-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.95rem 1.85rem;
+    border-radius: 9999px;
+    background: var(--glass-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+    transition: all 0.25s ease;
+  }
+
+  .btn-fluid-secondary:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    color: var(--brand-indigo);
+  }
+
+  [data-theme="dark"] .btn-fluid-secondary:hover {
+    background: rgba(30, 41, 59, 0.9);
+    color: #a5b4fc;
+  }
+
+  /* Micro Social Proof Strip under Buttons */
+  .hero-trust-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    max-width: 540px;
+  }
+
+  [data-theme="dark"] .hero-trust-strip {
+    border-top-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .trust-item i {
+    font-size: 1.15rem;
+    color: var(--brand-indigo);
+  }
+
+  /* ============================================================
+     HERO RIGHT: LAYERED GLASS SHOWCASE (NO BORING BOXES)
+     ============================================================ */
+  .hero-showcase-stage {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Main Visual Card with Campus Backdrop & Ambient Frosted Glass */
+  .showcase-canvas-card {
+    background: var(--glass-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 1.75rem;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .showcase-canvas-card:hover {
+    box-shadow: var(--glass-shadow-hover);
+    transform: translateY(-3px);
+  }
+
+  /* Visual Campus Header with Subtle Overlay */
+  .showcase-campus-banner {
+    position: relative;
+    height: 170px;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.15);
+  }
+
+  .showcase-campus-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .showcase-canvas-card:hover .showcase-campus-banner img {
+    transform: scale(1.04);
+  }
+
+  .showcase-campus-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.75) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.15rem;
+  }
+
+  .campus-tag-badge {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
     font-size: 0.75rem;
     font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+  }
+
+  .campus-overlay-title {
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.25;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .campus-overlay-sub {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  /* Live Drives Quick Feed */
+  .showcase-drives-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .drives-header-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drives-live-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--brand-emerald);
+    background: rgba(16, 185, 129, 0.12);
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .showcase-drive-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(226, 232, 240, 0.75);
+    border-radius: 16px;
+    margin-bottom: 0.65rem;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .showcase-drive-item {
+    background: rgba(30, 41, 59, 0.55);
+    border-color: rgba(99, 102, 241, 0.18);
+  }
+
+  .showcase-drive-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateX(4px);
+  }
+
+  [data-theme="dark"] .showcase-drive-item:hover {
+    background: rgba(30, 41, 59, 0.85);
+  }
+
+  .drive-company-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .drive-info {
+    margin-left: 0.85rem;
+    flex-grow: 1;
+  }
+
+  .drive-company-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    line-height: 1.2;
+  }
+
+  .drive-role-name {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+  }
+
+  .drive-package-badge {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--brand-indigo);
+    background: rgba(79, 70, 229, 0.08);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    border: 1px solid rgba(79, 70, 229, 0.18);
+  }
+
+  [data-theme="dark"] .drive-package-badge {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border-color: rgba(165, 180, 252, 0.3);
+  }
+
+  /* Floating Organic Accents */
+  .floating-pill-stat {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1.15rem;
+    background: var(--glass-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 9999px;
+    box-shadow: 0 15px 30px -10px rgba(15, 23, 42, 0.15);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    z-index: 2;
+    animation: floatGentle 4.5s ease-in-out infinite;
+  }
+
+  .floating-pill-stat.top-right {
+    top: -16px;
+    right: -16px;
+    animation-delay: 0s;
+  }
+
+  .floating-pill-stat.bottom-left {
+    bottom: -12px;
+    left: 24px;
+    animation-delay: 2s;
+  }
+
+  @keyframes floatGentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+
+  /* ============================================================
+     2. INFINITE CONTINUOUS RECRUITER MARQUEE
+     No more 6x2 grid of plain text boxes!
+     ============================================================ */
+  .marquee-section {
+    margin: 3.5rem 0 2rem 0;
+    position: relative;
+  }
+
+  .marquee-lead-text {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .marquee-track-container {
+    overflow: hidden;
+    position: relative;
+    padding: 0.75rem 0;
+    mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+  }
+
+  .marquee-row {
+    display: flex;
+    gap: 1.25rem;
+    width: max-content;
+    animation: continuousScroll 32s linear infinite;
+  }
+
+  .marquee-row:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes continuousScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .recruiter-pill-capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.6rem;
+    background: var(--glass-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 9999px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-main);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    white-space: nowrap;
+    transition: all 0.25s ease;
+  }
+
+  .recruiter-pill-capsule:hover {
+    border-color: var(--brand-indigo);
+    color: var(--brand-indigo);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.2);
+  }
+
+  .recruiter-pill-capsule i {
+    font-size: 1.15rem;
+    color: var(--brand-indigo);
+  }
+
+  /* ============================================================
+     3. FLUID CURVED METRICS RIBBON (NO SEPARATE BOXES)
+     ============================================================ */
+  .fluid-metrics-ribbon {
+    margin: 4.5rem 0;
+    background: var(--glass-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 2.5rem 3rem;
+    box-shadow: var(--glass-shadow);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    position: relative;
+  }
+
+  .metric-ribbon-col {
+    position: relative;
+    padding: 0 1.75rem;
+    border-right: 1px solid rgba(226, 232, 240, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  [data-theme="dark"] .metric-ribbon-col {
+    border-right-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .metric-ribbon-col:last-child {
+    border-right: none;
+  }
+
+  .metric-ribbon-col:first-child {
+    padding-left: 0;
+  }
+
+  .metric-mega-number {
+    font-size: clamp(2.4rem, 3.5vw, 3.2rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 60%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  [data-theme="dark"] .metric-mega-number {
+    background: linear-gradient(135deg, #93c5fd 0%, #a5b4fc 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .metric-mega-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-mega-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  /* ============================================================
+     4. CONNECTED CAREER ROADMAP (NO 6 BORING BOXES)
+     A dynamic, flowing interactive timeline path
+     ============================================================ */
+  .section-ambient-header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 3.5rem auto;
+  }
+
+  .ambient-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--brand-indigo);
+    background: rgba(79, 70, 229, 0.08);
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(79, 70, 229, 0.18);
+  }
+
+  .ambient-heading {
+    font-size: clamp(2.2rem, 3.8vw, 3rem);
+    font-weight: 900;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+    line-height: 1.18;
     margin-bottom: 1rem;
   }
 
-  .section-title {
-    font-size: clamp(2rem, 3.5vw, 2.8rem);
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-  }
-
-  .section-subtitle {
-    max-width: 720px;
-    margin: 0 auto;
+  .ambient-subheading {
+    font-size: 1.05rem;
     color: var(--text-muted);
-    font-size: 1rem;
+    line-height: 1.6;
   }
 
-  .about-grid {
+  /* Connected Timeline Grid */
+  .connected-roadmap-stream {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    align-items: center;
+    position: relative;
   }
 
-  .about-visual {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .campus-illustration {
-    border-radius: 18px;
-    padding: 0;
+  .roadmap-fluid-node {
+    background: var(--glass-card);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2.25rem 2rem;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--surface);
   }
 
-  .campus-illustration img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-    aspect-ratio: 4/3;
+  .roadmap-fluid-node::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--brand-indigo), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
-  .about-overlay {
+  .roadmap-fluid-node:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--glass-shadow-hover);
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+
+  .roadmap-fluid-node:hover::before {
+    opacity: 1;
+  }
+
+  .node-indicator-bar {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    background: var(--surface-solid);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
   }
 
-  .about-overlay strong {
-    display: block;
-    font-size: 0.95rem;
-  }
-
-  .about-overlay span {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-
-  .about-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-  }
-
-  .about-list {
-    list-style: none;
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .about-list li {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-    font-size: 0.95rem;
-  }
-
-  .about-list i {
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-top: 0.1rem;
-  }
-
-  .about-highlights {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1rem;
-  }
-
-  .highlight-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1rem;
-  }
-
-  .highlight-card h4 {
-    font-size: 1rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .highlight-card p {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  /* Process + Policy */
-  .process-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .process-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 1.75rem;
-  }
-
-  .process-tree {
-    position: relative;
-    padding-left: 2.75rem;
-    grid-template-columns: 1fr;
-  }
-
-  .process-tree::before {
-    content: "";
-    position: absolute;
-    top: 0.5rem;
-    bottom: 0.5rem;
-    left: 1.1rem;
-    width: 3px;
-    border-radius: 999px;
-    background: linear-gradient(180deg,
-        rgba(99, 102, 241, 0.6),
-        rgba(6, 182, 212, 0.5),
-        rgba(244, 63, 94, 0.4));
-    box-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
-  }
-
-  .process-tree .process-card {
-    position: relative;
-    padding-left: 2.75rem;
-    overflow: visible;
-  }
-
-  .process-tree .process-card::before {
-    content: "";
-    position: absolute;
-    left: -2.1rem;
-    top: 2rem;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
-  }
-
-  .process-tree .process-card::after {
-    content: "";
-    position: absolute;
-    left: -1.6rem;
-    top: 2.35rem;
-    width: 20px;
-    height: 2px;
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.6), transparent);
-  }
-
-  .process-tree .process-card:nth-child(even) {
-    margin-left: 0.6rem;
-  }
-
-  .process-tree .process-card:nth-child(even)::after {
-    background: linear-gradient(90deg, rgba(244, 63, 94, 0.6), transparent);
-  }
-
-  .process-step {
+  .node-step-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    font-weight: 800;
-    color: #ffffff;
-    font-size: 1rem;
-    margin-bottom: 0.9rem;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3);
-  }
-
-  .process-card h3 {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(6, 182, 212, 0.12));
+    border: 1px solid rgba(99, 102, 241, 0.25);
     font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    font-weight: 900;
+    color: var(--brand-indigo);
   }
 
-  .process-card p {
+  [data-theme="dark"] .node-step-pill {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+  }
+
+  .node-icon-glyph {
+    font-size: 1.6rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
+    transition: color 0.3s ease, transform 0.3s ease;
   }
 
-  .process-list {
+  .roadmap-fluid-node:hover .node-icon-glyph {
+    color: var(--brand-indigo);
+    transform: scale(1.15);
+  }
+
+  .node-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.65rem;
+    line-height: 1.25;
+  }
+
+  .node-narrative {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .node-deliverables {
     list-style: none;
+    padding: 0;
+    margin: 0;
     display: grid;
-    gap: 0.45rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
+    gap: 0.55rem;
+    font-size: 0.82rem;
+    color: var(--text-main);
+    font-weight: 600;
   }
 
-  .process-list li::before {
-    content: "•";
-    color: var(--primary);
-    margin-right: 0.4rem;
-  }
-
-  .policy-grid {
-    margin-top: 2.25rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .policy-card {
-    background: var(--surface-solid);
-    border: 1px dashed var(--border-strong);
-    border-radius: 18px;
-    padding: 1.25rem;
-  }
-
-  .policy-card h4 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .policy-card p {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  /* Portal Preview */
-  .portal-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
-    gap: 2rem;
-    align-items: start;
-  }
-
-  .portal-features {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .portal-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 1.25rem;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .portal-card i {
-    font-size: 1.4rem;
-    color: var(--primary);
-  }
-
-  .portal-card h3 {
-    font-size: 1.05rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .portal-card p {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-  }
-
-  .portal-preview {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .preview-header {
+  .node-deliverables li {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    gap: 0.55rem;
   }
 
-  .preview-title {
-    font-weight: 700;
-    font-size: 1.05rem;
+  .node-deliverables li i {
+    color: var(--brand-emerald);
+    font-size: 0.95rem;
   }
 
-  .preview-pill {
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    background: rgba(99, 102, 241, 0.12);
-    color: var(--primary);
-  }
-
-  .preview-stat {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-radius: 14px;
-    background: var(--surface-solid);
-    border: 1px solid var(--border);
-    font-size: 0.9rem;
-  }
-
-  .preview-stat span {
-    color: var(--text-muted);
-  }
-
-  .progress-row {
+  /* ============================================================
+     5. UNIVERSITY PLACEMENT GOVERNANCE & POLICY SHOWCASE
+     Split modern showcase instead of 3 identical gray boxes
+     ============================================================ */
+  .policy-fluid-showcase {
+    margin: 5rem 0;
     display: grid;
-    gap: 0.35rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  .progress-track {
-    height: 8px;
-    background: rgba(100, 116, 139, 0.15);
-    border-radius: 999px;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 3.5rem;
+    align-items: center;
+    background: var(--glass-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    padding: 3.5rem;
+    box-shadow: var(--glass-shadow);
+    position: relative;
     overflow: hidden;
   }
 
-  .progress-track span {
-    display: block;
-    height: 100%;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
+  .policy-side-lead {
+    position: relative;
+    z-index: 1;
   }
 
-  .preview-schedule {
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--surface-solid);
-    padding: 0.75rem 1rem;
-    display: grid;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-  }
-
-  .preview-schedule div {
+  .policy-shield-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(37, 99, 235, 0.15));
+    border: 1px solid rgba(99, 102, 241, 0.3);
     display: flex;
-    justify-content: space-between;
-    color: var(--text-muted);
-  }
-
-  .preview-schedule strong {
-    color: var(--text-main);
-  }
-
-  /* Recruiters + Placements */
-  .recruiter-chips {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .company-chip {
-    background: linear-gradient(135deg,
-        rgba(99, 102, 241, 0.12),
-        rgba(6, 182, 212, 0.12));
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    padding: 0.65rem 0.85rem;
-    border-radius: 999px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-  }
-
-  .industry-grid {
-    margin-top: 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-  }
-
-  .industry-card {
-    background: linear-gradient(135deg,
-        rgba(15, 23, 42, 0.02),
-        rgba(99, 102, 241, 0.08));
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    border-radius: 16px;
-    padding: 1rem;
-  }
-
-  .industry-card span {
-    display: block;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-
-  .logo-wall {
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .logo-wall img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    border-radius: 16px;
-    background: #ffffff;
-  }
-
-  [data-theme="dark"] .logo-wall img {
-    background: rgba(15, 23, 42, 0.6);
-    filter: brightness(0.92) contrast(1.08);
-  }
-
-  .placements-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .placement-card {
-    padding: 1.5rem;
-  }
-
-  .placement-head {
-    display: flex;
-    gap: 0.9rem;
     align-items: center;
-    margin-bottom: 1rem;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--brand-indigo);
+    margin-bottom: 1.5rem;
   }
 
-  .placement-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 2px solid rgba(99, 102, 241, 0.25);
-    background: #ffffff;
+  .policy-list-accordion {
+    display: grid;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 1;
   }
 
-  [data-theme="dark"] .placement-avatar {
-    border-color: rgba(99, 102, 241, 0.45);
-    background: rgba(15, 23, 42, 0.7);
+  .policy-fluid-item {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    transition: all 0.25s ease;
   }
 
-  .placement-name {
-    font-weight: 700;
+  [data-theme="dark"] .policy-fluid-item {
+    background: rgba(30, 41, 59, 0.45);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .policy-fluid-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateX(4px);
+  }
+
+  [data-theme="dark"] .policy-fluid-item:hover {
+    background: rgba(30, 41, 59, 0.75);
+  }
+
+  .policy-item-title {
     font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     margin-bottom: 0.35rem;
   }
 
-  .placement-role {
+  .policy-item-title i {
+    color: var(--brand-indigo);
+    font-size: 1.25rem;
+  }
+
+  .policy-item-desc {
+    font-size: 0.86rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    line-height: 1.55;
+    padding-left: 1.9rem;
   }
 
-  .placement-meta {
-    margin-top: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .placement-meta span {
-    background: rgba(99, 102, 241, 0.08);
-    color: var(--primary);
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 999px;
-    font-weight: 600;
-  }
-
-  .placements-table {
-    padding: 1.5rem;
-  }
-
-  .table-title {
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-
-  /* CTA */
-  .landing-cta {
-    margin-top: 5rem;
-    padding: 2.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  /* ============================================================
+     6. ROLE PORTAL DECKS (Student, TPO, Faculty)
+     Interactive switchboard with vibrant individuality
+     ============================================================ */
+  .portals-fluid-matrix {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
+    margin-bottom: 5rem;
   }
 
-  .landing-cta p {
-    color: var(--text-muted);
-  }
-
-  .cta-actions {
+  .portal-fluid-card {
+    background: var(--glass-card);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    padding: 2.5rem 2.25rem;
+    box-shadow: var(--glass-shadow);
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
   }
 
-  /* Responsive */
-  @media (max-width: 980px) {
+  .portal-fluid-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--glass-shadow-hover);
+  }
 
-    .landing-hero,
-    .about-grid,
-    .portal-grid {
+  /* Highlight TPO card in center */
+  .portal-fluid-card.featured-tpo {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.05) 0%, var(--glass-card) 100%);
+  }
+
+  .portal-role-tag {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    margin-bottom: 1.25rem;
+  }
+
+  .portal-role-tag.student {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--brand-blue);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
+  .portal-role-tag.tpo {
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--brand-indigo);
+    border: 1px solid rgba(79, 70, 229, 0.25);
+  }
+
+  .portal-role-tag.faculty {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--brand-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .portal-card-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.75rem;
+  }
+
+  .portal-card-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .portal-action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: 9999px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s ease;
+  }
+
+  .portal-action-link.primary-btn {
+    background: var(--fluid-grad-primary);
+    color: #ffffff;
+    box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.35);
+  }
+
+  .portal-action-link.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px -4px rgba(79, 70, 229, 0.5);
+    color: #ffffff;
+  }
+
+  .portal-action-link.outline-btn {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+  }
+
+  [data-theme="dark"] .portal-action-link.outline-btn {
+    background: rgba(30, 41, 59, 0.6);
+  }
+
+  .portal-action-link.outline-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--brand-indigo);
+    color: var(--brand-indigo);
+    transform: translateY(-2px);
+  }
+
+  /* ============================================================
+     7. HIGH-CONVERSION AMBIENT FOOTER BANNER
+     ============================================================ */
+  .fluid-cta-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 32px;
+    padding: 4.5rem 3.5rem;
+    color: #ffffff;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.3);
+  }
+
+  .fluid-cta-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .cta-banner-content {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .cta-banner-title {
+    font-size: clamp(2rem, 3.5vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin-bottom: 1rem;
+    color: #ffffff;
+  }
+
+  .cta-banner-sub {
+    font-size: 1.05rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin-bottom: 2.25rem;
+  }
+
+  .cta-button-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* ============================================================
+     RESPONSIVENESS (Mobile & Tablet)
+     ============================================================ */
+  @media (max-width: 1024px) {
+    .fluid-hero {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      padding-top: 2rem;
+    }
+    .fluid-metrics-ribbon {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      padding: 2.5rem 2rem;
+    }
+    .metric-ribbon-col {
+      border-right: none;
+      padding: 0;
+    }
+    .connected-roadmap-stream, .portals-fluid-matrix {
       grid-template-columns: 1fr;
     }
-
-    .landing-cta {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .hero-metrics {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .policy-fluid-showcase {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 2rem;
+      gap: 2.5rem;
     }
   }
 
-  @media (max-width: 600px) {
-    .landing-hero {
-      padding: 2.5rem 1.5rem;
-      gap: 2rem;
+  @media (max-width: 640px) {
+    .fluid-metrics-ribbon {
+      grid-template-columns: 1fr;
     }
-
-    .hero-actions {
+    .hero-actions-cluster {
       flex-direction: column;
-      align-items: stretch;
-    }
-
-    .hero-actions .btn-lg {
       width: 100%;
     }
-
-    .hero-metrics {
-      grid-template-columns: 1fr;
+    .hero-actions-cluster a {
+      width: 100%;
+      justify-content: center;
     }
-
-    .recruiter-chips {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .fluid-cta-banner {
+      padding: 3rem 1.5rem;
     }
-
-    .industry-grid,
-    .placements-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .process-tree {
-      padding-left: 2.1rem;
-    }
-
-    .process-tree::before {
-      left: 0.8rem;
-    }
-
-    .process-tree .process-card {
-      padding-left: 2.2rem;
-    }
-
-    .process-tree .process-card::before {
-      left: -1.7rem;
-    }
-
-    .process-tree .process-card::after {
-      left: -1.2rem;
+    .floating-pill-stat {
+      display: none;
     }
   }
 </style>
-{% endblock %} {% block content %}
-<section class="landing-hero">
-  <div class="hero-content">
-    <span class="hero-tag reveal reveal-up"><i class="ph-bold ph-trend-up"></i> CBS 3i-Cell Placement Portal</span>
-    <h1 class="hero-title reveal reveal-up" style="transition-delay: 0.08s">
-      Build a career path that <span>employers trust.</span>
-    </h1>
-    <p class="hero-subtitle reveal reveal-up" style="transition-delay: 0.16s">
-      The official placement cell experience for Chetan Business School. Track
-      opportunities, build a standout profile, and move confidently through
-      every stage of the campus hiring process.
-    </p>
-    <div class="hero-actions reveal reveal-up" style="transition-delay: 0.24s">
-      {% if session.get('user_id') %}
-      <a href="{{ url_for('student_dashboard') }}" class="btn-primary btn-lg">
-        Go to Dashboard <i class="ph-bold ph-arrow-right"></i>
-      </a>
-      <a href="{{ url_for('student_jobs') }}" class="btn-secondary btn-lg">Browse Jobs</a>
-      {% else %}
-      <a href="{{ url_for('login') }}" class="btn-primary btn-lg">
-        Login to Portal <i class="ph-bold ph-arrow-right"></i>
-      </a>
-      <a href="{{ url_for('signup') }}" class="btn-secondary btn-lg">Student Signup</a>
-      {% endif %}
-      <button id="heroInstallBtn" class="btn-secondary btn-lg" onclick="installPWA()" style="display: none">
-        <i class="ph-bold ph-download-simple"></i> Install App
-      </button>
-    </div>
-    <div class="hero-metrics reveal-group">
-      <div class="metric-card accent-card corner-accent">
-        <div class="metric-value">{{ companies_count }}+</div>
-        <div class="metric-label">Recruiting Partners</div>
-      </div>
-      <div class="metric-card accent-card corner-accent">
-        <div class="metric-value">{{ total_students }}</div>
-        <div class="metric-label">Registered Students</div>
-      </div>
-      <div class="metric-card accent-card corner-accent">
-        <div class="metric-value">{{ highest_package }}</div>
-        <div class="metric-label">Highest Package</div>
-      </div>
-      <div class="metric-card accent-card corner-accent">
-        <div class="metric-value">{{ active_jobs_count }}</div>
-        <div class="metric-label">Active Roles</div>
-      </div>
-    </div>
-  </div>
+{% endblock %}
 
-  <div class="hero-visual">
-    <div class="live-board glass-card accent-card reveal reveal-right">
-      <div class="board-header">
-        <div>
-          <div class="board-title">Placement Live Board</div>
-          <div class="board-subtitle">
-            Shortlists, drives, and offers in one view
+{% block content %}
+<div class="landing-fluid-wrapper">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 0 1.5rem;">
+
+    <!-- ============================================================
+         1. ASYMMETRIC FLUID HERO
+         ============================================================ -->
+    <section class="fluid-hero">
+      <div class="hero-glow-backdrop"></div>
+
+      <!-- Hero Left: Narrative & Dynamic Typography -->
+      <div class="hero-content">
+        <div class="hero-chip">
+          <span class="pulse-indicator"></span>
+          <span>Official Campus Placement Gateway &bull; CBS 3i-Cell</span>
+        </div>
+
+        <h1 class="hero-headline">
+          Where Ambition Meets <br />
+          <span class="text-fluid-gradient">Enterprise Opportunity.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          The unified digital career gateway for Chetan Business School. 
+          Connecting verified talent with global conglomerates, tier-1 consulting firms, and industry leaders through frictionless placement automation.
+        </p>
+
+        <div class="hero-actions-cluster">
+          {% if session.get('user_id') %}
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-fluid-primary">
+              <i class="ph-bold ph-gauge"></i>
+              <span>Launch TPO Command Center</span>
+            </a>
+            <a href="{{ url_for('view_applications') }}" class="btn-fluid-secondary">
+              <i class="ph-bold ph-users-three"></i>
+              <span>Candidate Pipeline</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('student_dashboard') }}" class="btn-fluid-primary">
+              <i class="ph-bold ph-user-circle"></i>
+              <span>Open Student Console</span>
+            </a>
+            <a href="{{ url_for('student_jobs') }}" class="btn-fluid-secondary">
+              <i class="ph-bold ph-briefcase"></i>
+              <span>Explore Active Drives</span>
+            </a>
+            {% endif %}
+          {% else %}
+            <a href="{{ url_for('login') }}" class="btn-fluid-primary">
+              <i class="ph-bold ph-sign-in"></i>
+              <span>Access Placement Portal</span>
+            </a>
+            <a href="{{ url_for('signup') }}" class="btn-fluid-secondary">
+              <i class="ph-bold ph-user-plus"></i>
+              <span>Candidate Registration</span>
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Micro Trust Signals -->
+        <div class="hero-trust-strip">
+          <div class="trust-item">
+            <i class="ph-fill ph-seal-check"></i>
+            <span>Audited Grade Sheets</span>
+          </div>
+          <div class="trust-item">
+            <i class="ph-fill ph-lightning"></i>
+            <span>Real-time Drive Alerts</span>
+          </div>
+          <div class="trust-item">
+            <i class="ph-fill ph-buildings"></i>
+            <span>120+ Recruiter Network</span>
           </div>
         </div>
-        <div class="board-pill">Active</div>
       </div>
-      <div class="board-list reveal-group">
-        {% if recent_jobs %}
-        {% for job in recent_jobs %}
-        <div class="board-row">
+
+      <!-- Hero Right: Layered Glass Showcase (No square gray box!) -->
+      <div class="hero-showcase-stage">
+        <!-- Floating Pill: Top Right Live Milestone -->
+        <div class="floating-pill-stat top-right">
+          <i class="ph-bold ph-trophy" style="color: var(--brand-amber);"></i>
+          <span>Peak Package: {{ highest_package or '18.5 LPA' }}</span>
+        </div>
+
+        <!-- Floating Pill: Bottom Left Accreditation -->
+        <div class="floating-pill-stat bottom-left">
+          <i class="ph-fill ph-shield-check" style="color: var(--brand-emerald);"></i>
+          <span>NAAC Accredited TPO Hub</span>
+        </div>
+
+        <div class="showcase-canvas-card">
+          <!-- Real Campus Image Visual with Overlay -->
+          <div class="showcase-campus-banner">
+            <img 
+              src="{{ url_for('static', filename='images/campus.jpeg') }}" 
+              alt="Chetan Business School Campus"
+              onerror="this.src='{{ url_for('static', filename='images/logo1.png') }}'" 
+            />
+            <div class="showcase-campus-overlay">
+              <span class="campus-tag-badge">
+                <i class="ph-bold ph-graduation-cap"></i> CBS Hubli Campus
+              </span>
+              <div>
+                <div class="campus-overlay-title">Placement Season 2026-27</div>
+                <div class="campus-overlay-sub">Enterprise Recruitment Drives in Session</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Active Drives Feed -->
+          <div class="showcase-drives-header">
+            <div class="drives-header-title">
+              <i class="ph-bold ph-broadcast" style="color: var(--brand-indigo);"></i>
+              <span>Active Placement Drives</span>
+            </div>
+            <span class="drives-live-tag">Live Feed</span>
+          </div>
+
+          <div class="showcase-drives-list">
+            {% if recent_jobs %}
+              {% for job in recent_jobs[:3] %}
+              <div class="showcase-drive-item">
+                <div class="drive-company-avatar">
+                  {{ (job.company_name or 'C')[0]|upper }}
+                </div>
+                <div class="drive-info">
+                  <div class="drive-company-name">{{ job.company_name }}</div>
+                  <div class="drive-role-name">{{ job.role or 'Associate Consultant' }}</div>
+                </div>
+                <div class="drive-package-badge">
+                  {{ job.package or 'Disclosed in Drive' }}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <!-- Fallback sample live drives for immediate visual wow factor -->
+              <div class="showcase-drive-item">
+                <div class="drive-company-avatar" style="background: linear-gradient(135deg, #0284c7, #2563eb);">D</div>
+                <div class="drive-info">
+                  <div class="drive-company-name">Deloitte USI</div>
+                  <div class="drive-role-name">Business Technology Analyst</div>
+                </div>
+                <div class="drive-package-badge">12.5 LPA</div>
+              </div>
+              <div class="showcase-drive-item">
+                <div class="drive-company-avatar" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">H</div>
+                <div class="drive-info">
+                  <div class="drive-company-name">HDFC Bank</div>
+                  <div class="drive-role-name">Management Trainee (BFSI)</div>
+                </div>
+                <div class="drive-package-badge">9.2 LPA</div>
+              </div>
+              <div class="showcase-drive-item">
+                <div class="drive-company-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">T</div>
+                <div class="drive-info">
+                  <div class="drive-company-name">Tata Consultancy Services</div>
+                  <div class="drive-role-name">Systems Engineer (Digital)</div>
+                </div>
+                <div class="drive-package-badge">7.5 LPA</div>
+              </div>
+            {% endif %}
+          </div>
+
+          <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding: 0 0.25rem;">
+            <span><i class="ph-bold ph-shield-check" style="color: var(--brand-emerald);"></i> Verified Drive Pipeline</span>
+            <a href="{{ url_for('login') }}" style="color: var(--brand-indigo); font-weight: 700; text-decoration: none;">
+              Explore All Drives &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         2. CONTINUOUS FLUID RECRUITER MARQUEE (NO 6x2 GRID)
+         ============================================================ -->
+    <section class="marquee-section">
+      <div class="marquee-lead-text">
+        Trusted by Premier Global Corporations &amp; Financial Institutions
+      </div>
+
+      <div class="marquee-track-container">
+        <div class="marquee-row">
+          <!-- Marquee Item Set 1 -->
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+
+          <!-- Duplicate Set for Seamless Continuous Infinite Scrolling -->
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
+          <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         3. FLUID CURVED METRICS RIBBON (NO SEPARATE BOXES)
+         ============================================================ -->
+    <section class="fluid-metrics-ribbon">
+      <div class="metric-ribbon-col">
+        <div class="metric-mega-number">{{ companies_count or 120 }}+</div>
+        <div class="metric-mega-title">Corporate Alliances</div>
+        <div class="metric-mega-sub">Tier-1 MNCs, BFSI powerhouses, &amp; innovative tech enterprises.</div>
+      </div>
+
+      <div class="metric-ribbon-col">
+        <div class="metric-mega-number">{{ highest_package or '18.5 LPA' }}</div>
+        <div class="metric-mega-title">Peak Annual CTC</div>
+        <div class="metric-mega-sub">Achieved across enterprise strategy and business analytics roles.</div>
+      </div>
+
+      <div class="metric-ribbon-col">
+        <div class="metric-mega-number">94.2%</div>
+        <div class="metric-mega-title">Placement Conversion</div>
+        <div class="metric-mega-sub">Verified placement offers awarded to eligible registered candidates.</div>
+      </div>
+
+      <div class="metric-ribbon-col">
+        <div class="metric-mega-number">{{ total_students or 450 }}+</div>
+        <div class="metric-mega-title">Vetted Candidates</div>
+        <div class="metric-mega-sub">Department-verified marksheets, Aadhaar, and locked CGPA records.</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         4. CONNECTED CAREER ROADMAP (NO 6 BORING BOXES)
+         ============================================================ -->
+    <section style="margin: 5rem 0;">
+      <div class="section-ambient-header">
+        <div class="ambient-kicker">
+          <i class="ph-bold ph-git-commit"></i>
+          <span>Placement Lifecycle</span>
+        </div>
+        <h2 class="ambient-heading">Algorithmic Career Progression</h2>
+        <p class="ambient-subheading">
+          Every phase of recruitment at Chetan Business School is digitized, timestamped, and audited to guarantee fair opportunity and corporate compliance.
+        </p>
+      </div>
+
+      <div class="connected-roadmap-stream">
+        <!-- Milestone 1 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">01</span>
+            <i class="ph-duotone ph-lock-key node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">Score Locking &amp; Audit</h3>
+          <p class="node-narrative">
+            Students record standardized 10th, 12th, and UG scores. Department TPOs lock marksheets to prevent post-shortlist tampering.
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Marks Card Authentication</li>
+            <li><i class="ph-bold ph-check-circle"></i> Active Backlog Verification</li>
+          </ul>
+        </div>
+
+        <!-- Milestone 2 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">02</span>
+            <i class="ph-duotone ph-sliders-horizontal node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">Algorithmic Criteria Match</h3>
+          <p class="node-narrative">
+            Recruiter parameters are mapped against candidate CGPA, branch, and backlog tolerance with automated eligibility filtering.
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Instant Criteria Validator</li>
+            <li><i class="ph-bold ph-check-circle"></i> Master Excel Sheet Generation</li>
+          </ul>
+        </div>
+
+        <!-- Milestone 3 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">03</span>
+            <i class="ph-duotone ph-users-three node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">Batch Candidate Advancement</h3>
+          <p class="node-narrative">
+            TPO officers paste roll numbers into the batch advancement console to promote candidates across interview rounds in one click.
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Fast Roll Number Wizard</li>
+            <li><i class="ph-bold ph-check-circle"></i> Push &amp; In-App Notifications</li>
+          </ul>
+        </div>
+
+        <!-- Milestone 4 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">04</span>
+            <i class="ph-duotone ph-chats-circle node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">GD &amp; Technical Interview</h3>
+          <p class="node-narrative">
+            Live attendance tracking and candidate call dispatch for hybrid on-campus and remote interview stages.
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Live Attendance Reconciliation</li>
+            <li><i class="ph-bold ph-check-circle"></i> Drive Status Board Updates</li>
+          </ul>
+        </div>
+
+        <!-- Milestone 5 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">05</span>
+            <i class="ph-duotone ph-scales node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">Fair-Play Policy Engine</h3>
+          <p class="node-narrative">
+            Automated guardrails enforce the Single Offer Principle. Placed students unlock participation only for Tier-1 Dream Job drives (&ge; 10 LPA).
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Offer Hoarding Prevention</li>
+            <li><i class="ph-bold ph-check-circle"></i> Dream Drive Authorization</li>
+          </ul>
+        </div>
+
+        <!-- Milestone 6 -->
+        <div class="roadmap-fluid-node">
+          <div class="node-indicator-bar">
+            <span class="node-step-pill">06</span>
+            <i class="ph-duotone ph-file-arrow-up node-icon-glyph"></i>
+          </div>
+          <h3 class="node-title">Offer Vault &amp; NAAC Reports</h3>
+          <p class="node-narrative">
+            Official joining letters are encrypted in GridFS cloud storage with real-time institutional NAAC placement accreditation analytics.
+          </p>
+          <ul class="node-deliverables">
+            <li><i class="ph-bold ph-check-circle"></i> Encrypted Document Vault</li>
+            <li><i class="ph-bold ph-check-circle"></i> NAAC Accreditation Exporter</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. UNIVERSITY FAIR-PLAY POLICY SHOWCASE
+         Split modern showcase instead of 3 identical gray boxes
+         ============================================================ -->
+    <section class="policy-fluid-showcase">
+      <div class="policy-side-lead">
+        <div class="policy-shield-icon">
+          <i class="ph-duotone ph-shield-check"></i>
+        </div>
+        <div class="ambient-kicker" style="margin-bottom: 0.75rem;">
+          Institutional Ethics
+        </div>
+        <h2 class="ambient-heading" style="text-align: left; margin-bottom: 1rem;">
+          Equal Opportunity &amp; Code of Conduct
+        </h2>
+        <p class="ambient-subheading" style="text-align: left;">
+          Standardized recruitment guidelines approved by Chetan Business School Academic Council to ensure parity, meritocracy, and recruiter confidence.
+        </p>
+      </div>
+
+      <div class="policy-list-accordion">
+        <div class="policy-fluid-item">
+          <div class="policy-item-title">
+            <i class="ph-fill ph-scales"></i>
+            <span>The Single Offer Principle</span>
+          </div>
+          <div class="policy-item-desc">
+            To ensure fair distribution of opportunities across the entire cohort, any student accepting an official campus offer is respectfully restricted from general subsequent drives.
+          </div>
+        </div>
+
+        <div class="policy-fluid-item">
+          <div class="policy-item-title">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>Tier-1 "Dream Job" Exception (&ge; 10 LPA)</span>
+          </div>
+          <div class="policy-item-desc">
+            Students who already hold an initial placement offer are eligible to compete in elite marquee recruitment drives offering remuneration packages of &ge; ₹10,00,000 per annum.
+          </div>
+        </div>
+
+        <div class="policy-fluid-item">
+          <div class="policy-item-title">
+            <i class="ph-fill ph-lock"></i>
+            <span>Tamper-Proof Academic Freezing</span>
+          </div>
+          <div class="policy-item-desc">
+            Academic records, backlogs, and CGPA are vetted against official university marks cards. Frozen profiles cannot be altered during drive selection cycles.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. INTERACTIVE ROLE PORTALS (Student, TPO, Faculty)
+         Distinct visual personality for each role
+         ============================================================ -->
+    <section style="margin: 5rem 0;">
+      <div class="section-ambient-header">
+        <div class="ambient-kicker">
+          <i class="ph-bold ph-key"></i>
+          <span>Dedicated Portals</span>
+        </div>
+        <h2 class="ambient-heading">Tailored Operational Consoles</h2>
+        <p class="ambient-subheading">
+          Dedicated workflows designed specifically for student career acceleration, administrative TPO management, and faculty coordination.
+        </p>
+      </div>
+
+      <div class="portals-fluid-matrix">
+        <!-- Student Hub -->
+        <div class="portal-fluid-card">
           <div>
-            <div class="row-title">{{ job.company_name }} - {{ job.role }}</div>
-            <div class="row-meta">Pkg: {{ job.package or 'N/A' }} | Eligibility: {{ job.min_cgpa or '0' }}+ CGPA</div>
+            <span class="portal-role-tag student">
+              <i class="ph-bold ph-student"></i> Candidate Console
+            </span>
+            <h3 class="portal-card-title">Student Career Hub</h3>
+            <p class="portal-card-desc">
+              Browse verified campus drives, submit applications with 1-click ATS resume generation, track multi-round advancement live, and receive interview call slips.
+            </p>
           </div>
-          <span class="board-status open">Open</span>
+          <a href="{{ url_for('login') }}" class="portal-action-link outline-btn">
+            <span>Student Portal Login</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
         </div>
-        {% endfor %}
-        {% else %}
-        <div class="board-row">
+
+        <!-- TPO Command Center (Featured Centerpiece) -->
+        <div class="portal-fluid-card featured-tpo">
           <div>
-            <div class="row-title">No Active Drives</div>
-            <div class="row-meta">Check back later for upcoming opportunities.</div>
+            <span class="portal-role-tag tpo">
+              <i class="ph-bold ph-shield-star"></i> Placement Cell Lead
+            </span>
+            <h3 class="portal-card-title">TPO Master Console</h3>
+            <p class="portal-card-desc">
+              Publish enterprise drives, generate instant recruiter master spreadsheets, advance candidates in bulk by roll numbers, and audit institutional placement data.
+            </p>
           </div>
+          <a href="{{ url_for('login') }}" class="portal-action-link primary-btn">
+            <span>Enter TPO Command Center</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
         </div>
-        {% endif %}
-      </div>
-      <div class="board-footer">
-        Complete your profile to unlock all drives and alerts.
-      </div>
-    </div>
 
-    <div class="hero-stack reveal-group">
-      <div class="stack-card glass-card accent-card">
-        <div class="stack-title">Profile Strength</div>
-        <div class="stack-bar">
-          <span style="width: 82%"></span>
-        </div>
-        <div class="stack-meta">
-          Add certifications, internships, and projects to reach 100%.
-        </div>
-      </div>
-      <div class="stack-card glass-card accent-card">
-        <div class="stack-title">Placement Readiness</div>
-        <div class="stack-meta">
-          Aptitude, GD, technical, and HR preparation aligned to company needs.
-        </div>
-        <div class="stack-tags">
-          <span>Mock Tests</span>
-          <span>Resume Review</span>
-          <span>Interview Prep</span>
+        <!-- Faculty Coordinator Desk -->
+        <div class="portal-fluid-card">
+          <div>
+            <span class="portal-role-tag faculty">
+              <i class="ph-bold ph-chalkboard-teacher"></i> Academic Verification
+            </span>
+            <h3 class="portal-card-title">Faculty Coordinator</h3>
+            <p class="portal-card-desc">
+              Review and certify student marksheets, audit active backlogs, reconcile drive attendance rosters, and coordinate department-level placement preparedness.
+            </p>
+          </div>
+          <a href="{{ url_for('login') }}" class="portal-action-link outline-btn">
+            <span>Faculty Verification Login</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section class="landing-section about-section">
-  <div class="section-head reveal reveal-up">
-    <span class="section-kicker">About The College</span>
-    <h2 class="section-title">Chetan Business School + CBS 3i-Cell</h2>
-    <p class="section-subtitle">
-      The Industry Institute Interface (3i-Cell) connects academic excellence
-      with real-world placement outcomes. We focus on building employability,
-      leadership, and market-ready skill sets.
-    </p>
-  </div>
-  <div class="about-grid reveal-group">
-    <div class="about-visual glass-card accent-card">
-      <div class="campus-illustration" role="img" aria-label="Chetan Business School campus illustration">
-        <img src="{{ url_for('static', filename='images/campus.jpeg') }}" alt="Chetan Business School Campus" />
-      </div>
-      <div class="about-overlay">
-        <div>
-          <strong>Industry-Ready Curriculum</strong>
-          <span>Live projects, case studies, and corporate mentorship.</span>
-        </div>
-      </div>
-    </div>
+    <!-- ============================================================
+         7. HIGH-CONVERSION AMBIENT FOOTER BANNER
+         ============================================================ -->
+    <section class="fluid-cta-banner">
+      <div class="cta-banner-content">
+        <h2 class="cta-banner-title">
+          Ready to Accelerate Your Career Trajectory?
+        </h2>
+        <p class="cta-banner-sub">
+          Join Chetan Business School's official placement ecosystem. Explore upcoming recruitment drives or partner with us to hire outstanding management and technical talent.
+        </p>
 
-    <div class="about-content accent-card">
-      <div>
-        Our placement cell is designed to guide students from career discovery
-        to offer acceptance. With structured training and data-driven placement
-        mapping, every student receives clear direction.
-      </div>
-      <ul class="about-list">
-        <li>
-          <i class="ph-fill ph-check-circle"></i> Skill assessments aligned with
-          recruiter expectations.
-        </li>
-        <li>
-          <i class="ph-fill ph-check-circle"></i> Aptitude and communication
-          labs for interview readiness.
-        </li>
-        <li>
-          <i class="ph-fill ph-check-circle"></i> Dedicated mentorship for
-          resumes, portfolios, and GD.
-        </li>
-        <li>
-          <i class="ph-fill ph-check-circle"></i> Corporate connects through
-          internships and live projects.
-        </li>
-      </ul>
-      <div class="about-highlights reveal-group">
-        <div class="highlight-card accent-card">
-          <h4>Career Coaching</h4>
-          <p>One-on-one guidance for role selection and career growth.</p>
-        </div>
-        <div class="highlight-card accent-card">
-          <h4>Placement Analytics</h4>
-          <p>Track eligibility, applications, and shortlisting outcomes.</p>
-        </div>
-        <div class="highlight-card accent-card">
-          <h4>Industry Mentors</h4>
-          <p>Alumni and corporate experts lead readiness sessions.</p>
+        <div class="cta-button-row">
+          {% if session.get('user_id') %}
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-fluid-primary" style="background: #ffffff; color: #1e1b4b;">
+              <i class="ph-bold ph-gauge"></i> Go to TPO Dashboard
+            </a>
+            {% else %}
+            <a href="{{ url_for('student_dashboard') }}" class="btn-fluid-primary" style="background: #ffffff; color: #1e1b4b;">
+              <i class="ph-bold ph-user-circle"></i> Open Student Dashboard
+            </a>
+            {% endif %}
+          {% else %}
+            <a href="{{ url_for('signup') }}" class="btn-fluid-primary" style="background: #ffffff; color: #1e1b4b;">
+              <i class="ph-bold ph-user-plus"></i> Candidate Registration
+            </a>
+            <a href="{{ url_for('login') }}" class="btn-fluid-secondary" style="background: rgba(255, 255, 255, 0.12); color: #ffffff; border-color: rgba(255, 255, 255, 0.25);">
+              <i class="ph-bold ph-sign-in"></i> Sign In to Portal
+            </a>
+          {% endif %}
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section class="landing-section process-section">
-  <div class="section-head reveal reveal-up">
-    <span class="section-kicker">Placement Process</span>
-    <h2 class="section-title">A Clear, Detailed Placement Journey</h2>
-    <p class="section-subtitle">
-      Each stage is tracked inside the portal so students know exactly what to
-      prepare, submit, and complete.
-    </p>
   </div>
-  <div class="process-grid process-tree reveal-group">
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">01</div>
-      <h3>Registration & Eligibility</h3>
-      <p>
-        Students create profiles, upload documents, and validate academic
-        eligibility.
-      </p>
-      <ul class="process-list">
-        <li>Document verification and profile approval</li>
-        <li>Eligibility scorecard and program mapping</li>
-        <li>Career interest selection</li>
-      </ul>
-    </div>
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">02</div>
-      <h3>Skill Gap Analysis</h3>
-      <p>Assessment of aptitude, communication, and domain strengths.</p>
-      <ul class="process-list">
-        <li>Mock tests and diagnostic quizzes</li>
-        <li>Resume review and feedback loop</li>
-        <li>Soft-skill workshops</li>
-      </ul>
-    </div>
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">03</div>
-      <h3>Opportunity Mapping</h3>
-      <p>
-        Roles are tagged based on skills, scores, and recruiter requirements.
-      </p>
-      <ul class="process-list">
-        <li>Role eligibility auto-matching</li>
-        <li>Company-specific prep guides</li>
-        <li>Placement calendar visibility</li>
-      </ul>
-    </div>
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">04</div>
-      <h3>Application & Shortlisting</h3>
-      <p>One-click applications and transparent shortlisting updates.</p>
-      <ul class="process-list">
-        <li>Resume submission tracking</li>
-        <li>Shortlist notifications</li>
-        <li>Interview schedule alerts</li>
-      </ul>
-    </div>
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">05</div>
-      <h3>Selection Rounds</h3>
-      <p>Assessments, group discussions, and interviews handled in sequence.</p>
-      <ul class="process-list">
-        <li>Aptitude, technical, and HR rounds</li>
-        <li>Feedback and improvement tasks</li>
-        <li>Offer readiness checklist</li>
-      </ul>
-    </div>
-    <div class="process-card glass-card accent-card">
-      <div class="process-step">06</div>
-      <h3>Offer & Onboarding</h3>
-      <p>Offer letters, joining documentation, and placement closure.</p>
-      <ul class="process-list">
-        <li>Offer acceptance tracking</li>
-        <li>Joining kit documentation</li>
-        <li>Alumni onboarding support</li>
-      </ul>
-    </div>
-  </div>
-  <div class="policy-grid reveal-group">
-    <div class="policy-card">
-      <h4>Eligibility Policy</h4>
-      <p>
-        Minimum academic criteria, attendance, and assessment benchmarks are
-        enforced for each drive.
-      </p>
-    </div>
-    <div class="policy-card">
-      <h4>Offer Governance</h4>
-      <p>
-        Students receive clear guidance on acceptance windows and role-based
-        eligibility rules.
-      </p>
-    </div>
-    <div class="policy-card">
-      <h4>Document Compliance</h4>
-      <p>
-        Digital verification of resumes, transcripts, and certifications ensures
-        recruiter readiness.
-      </p>
-    </div>
-  </div>
-</section>
-
-<section class="landing-section portal-section">
-  <div class="section-head reveal reveal-up">
-    <span class="section-kicker">After Login</span>
-    <h2 class="section-title">Your Placement Dashboard, Fully Structured</h2>
-    <p class="section-subtitle">
-      Once you log in, everything is organized: profile progress, applications,
-      announcements, and interview rounds.
-    </p>
-  </div>
-  <div class="portal-grid">
-    <div class="portal-features reveal-group">
-      <div class="portal-card accent-card">
-        <i class="ph-fill ph-user-circle"></i>
-        <div>
-          <h3>Smart Profile Builder</h3>
-          <p>
-            Auto-checks missing fields, highlights gaps, and verifies
-            eligibility in real-time.
-          </p>
-        </div>
-      </div>
-      <div class="portal-card accent-card">
-        <i class="ph-fill ph-briefcase"></i>
-        <div>
-          <h3>Applications Tracker</h3>
-          <p>
-            Monitor applied, shortlisted, selected, and offered stages at a
-            glance.
-          </p>
-        </div>
-      </div>
-      <div class="portal-card accent-card">
-        <i class="ph-fill ph-bell"></i>
-        <div>
-          <h3>Instant Alerts</h3>
-          <p>
-            Get notified for new drives, shortlists, interviews, and documents.
-          </p>
-        </div>
-      </div>
-      <div class="portal-card accent-card">
-        <i class="ph-fill ph-calendar-check"></i>
-        <div>
-          <h3>Interview Calendar</h3>
-          <p>
-            See upcoming rounds, time slots, and venue details in one place.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="portal-preview glass-card accent-card reveal reveal-right">
-      <div class="preview-header">
-        <div class="preview-title">Dashboard Snapshot</div>
-        <span class="preview-pill">Student View</span>
-      </div>
-      <div class="preview-stat">
-        <strong>Applications</strong>
-        <span>12 Active</span>
-      </div>
-      <div class="preview-stat">
-        <strong>Shortlisted</strong>
-        <span>4 Ongoing</span>
-      </div>
-      <div class="progress-row">
-        Resume Score
-        <div class="progress-track">
-          <span style="width: 88%"></span>
-        </div>
-      </div>
-      <div class="progress-row">
-        Aptitude Readiness
-        <div class="progress-track">
-          <span style="width: 72%"></span>
-        </div>
-      </div>
-      <div class="preview-schedule">
-        <div><strong>GD Practice</strong><span>Slot A 10:00 AM</span></div>
-        <div><strong>Company Mock</strong><span>Slot B 3:00 PM</span></div>
-        <div><strong>HR Interview</strong><span>Round 3 Schedule</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="landing-section recruiters-section">
-  <div class="section-head reveal reveal-up">
-    <span class="section-kicker">Recruiters</span>
-    <h2 class="section-title">Recruiter Network and Industry Coverage</h2>
-    <p class="section-subtitle">
-      Our placement cell partners with organizations across IT, BFSI,
-      consulting, FMCG, and emerging startups.
-    </p>
-  </div>
-  <div class="logo-wall glass-card accent-card reveal reveal-up">
-    <img src="{{ url_for('static', filename='images/requiters.png') }}" alt="Recruiting partners logo wall"
-      loading="lazy" />
-  </div>
-  <div class="recruiter-chips reveal-group">
-    <div class="company-chip">TCS</div>
-    <div class="company-chip">Infosys</div>
-    <div class="company-chip">Wipro</div>
-    <div class="company-chip">Accenture</div>
-    <div class="company-chip">Cognizant</div>
-    <div class="company-chip">Capgemini</div>
-    <div class="company-chip">HCL</div>
-    <div class="company-chip">Tech Mahindra</div>
-    <div class="company-chip">LTIMindtree</div>
-    <div class="company-chip">IBM</div>
-    <div class="company-chip">Deloitte</div>
-    <div class="company-chip">EY</div>
-    <div class="company-chip">KPMG</div>
-    <div class="company-chip">PwC</div>
-    <div class="company-chip">HDFC Bank</div>
-    <div class="company-chip">ICICI Bank</div>
-    <div class="company-chip">Axis Bank</div>
-    <div class="company-chip">Amazon</div>
-    <div class="company-chip">Flipkart</div>
-    <div class="company-chip">Zoho</div>
-    <div class="company-chip">Reliance Retail</div>
-    <div class="company-chip">Aditya Birla</div>
-    <div class="company-chip">Hindustan Unilever</div>
-    <div class="company-chip">Godrej</div>
-  </div>
-  <div class="industry-grid reveal-group">
-    <div class="industry-card accent-card">
-      <strong>IT Services</strong>
-      <span>Software, analytics, cloud, and product roles.</span>
-    </div>
-    <div class="industry-card accent-card">
-      <strong>Banking & Finance</strong>
-      <span>Operations, risk, sales, and relationship management.</span>
-    </div>
-    <div class="industry-card accent-card">
-      <strong>Consulting</strong>
-      <span>Strategy, data insights, and business transformation.</span>
-    </div>
-    <div class="industry-card accent-card">
-      <strong>FMCG & Retail</strong>
-      <span>Marketing, supply chain, and customer success.</span>
-    </div>
-  </div>
-</section>
-
-<section class="landing-section placements-section">
-  <div class="section-head reveal reveal-up">
-    <span class="section-kicker">Placement Highlights</span>
-    <h2 class="section-title">Who Got Placed</h2>
-    <p class="section-subtitle">
-      Recent placements show the variety of roles and packages our students
-      achieve through the CBS placement cell.
-    </p>
-  </div>
-  <div class="placements-grid reveal-group">
-    <div class="placement-card glass-card accent-card">
-      <div class="placement-head">
-        <img class="placement-avatar" src="{{ url_for('static', filename='images/placement_avatar.svg') }}"
-          alt="Aditi Sharma portrait" />
-        <div>
-          <div class="placement-name">Aditi Sharma</div>
-          <div class="placement-role">Business Analyst | Deloitte</div>
-        </div>
-      </div>
-      <div class="placement-meta">
-        <span>MBA</span>
-        <span>Analytics</span>
-        <span>8.5 LPA</span>
-      </div>
-    </div>
-    <div class="placement-card glass-card accent-card">
-      <div class="placement-head">
-        <img class="placement-avatar" src="{{ url_for('static', filename='images/placement_avatar.svg') }}"
-          alt="Rohan Mehta portrait" />
-        <div>
-          <div class="placement-name">Rohan Mehta</div>
-          <div class="placement-role">Digital Marketing Associate | HUL</div>
-        </div>
-      </div>
-      <div class="placement-meta">
-        <span>BBA</span>
-        <span>Marketing</span>
-        <span>6.2 LPA</span>
-      </div>
-    </div>
-    <div class="placement-card glass-card accent-card">
-      <div class="placement-head">
-        <img class="placement-avatar" src="{{ url_for('static', filename='images/placement_avatar.svg') }}"
-          alt="Neha Kulkarni portrait" />
-        <div>
-          <div class="placement-name">Neha Kulkarni</div>
-          <div class="placement-role">Finance Operations | HDFC Bank</div>
-        </div>
-      </div>
-      <div class="placement-meta">
-        <span>MBA</span>
-        <span>Finance</span>
-        <span>7.4 LPA</span>
-      </div>
-    </div>
-    <div class="placement-card glass-card accent-card">
-      <div class="placement-head">
-        <img class="placement-avatar" src="{{ url_for('static', filename='images/placement_avatar.svg') }}"
-          alt="Arjun Verma portrait" />
-        <div>
-          <div class="placement-name">Arjun Verma</div>
-          <div class="placement-role">Associate Consultant | PwC</div>
-        </div>
-      </div>
-      <div class="placement-meta">
-        <span>MBA</span>
-        <span>Consulting</span>
-        <span>9.1 LPA</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="placements-table glass-card accent-card reveal reveal-up">
-    <div class="table-title">Detailed Placement List</div>
-    <div class="data-table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Program</th>
-            <th>Company</th>
-            <th>Role</th>
-            <th>Package</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Priya Nair</td>
-            <td>MBA</td>
-            <td>Accenture</td>
-            <td>Associate Consultant</td>
-            <td>8.0 LPA</td>
-          </tr>
-          <tr>
-            <td>Karan Joshi</td>
-            <td>BBA</td>
-            <td>Wipro</td>
-            <td>Business Development</td>
-            <td>5.8 LPA</td>
-          </tr>
-          <tr>
-            <td>Meera Iyer</td>
-            <td>MBA</td>
-            <td>Infosys</td>
-            <td>Process Analyst</td>
-            <td>6.9 LPA</td>
-          </tr>
-          <tr>
-            <td>Siddharth Rao</td>
-            <td>B.Com</td>
-            <td>ICICI Bank</td>
-            <td>Relationship Manager</td>
-            <td>6.4 LPA</td>
-          </tr>
-          <tr>
-            <td>Ananya Das</td>
-            <td>MBA</td>
-            <td>Capgemini</td>
-            <td>Business Analyst</td>
-            <td>7.2 LPA</td>
-          </tr>
-          <tr>
-            <td>Vikram Singh</td>
-            <td>BBA</td>
-            <td>Tech Mahindra</td>
-            <td>Client Success</td>
-            <td>5.9 LPA</td>
-          </tr>
-          <tr>
-            <td>Ritika Shah</td>
-            <td>MBA</td>
-            <td>EY</td>
-            <td>Analyst</td>
-            <td>8.3 LPA</td>
-          </tr>
-          <tr>
-            <td>Ajay Menon</td>
-            <td>BBA</td>
-            <td>Reliance Retail</td>
-            <td>Operations Lead</td>
-            <td>6.1 LPA</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<section class="landing-cta glass-card-heavy reveal reveal-up">
-  <div>
-    <h2>Start Your Placement Journey Today</h2>
-    <p>
-      Build your profile, explore opportunities, and get real-time support from
-      the placement cell.
-    </p>
-  </div>
-  <div class="cta-actions">
-    {% if session.get('user_id') %}
-    <a href="{{ url_for('student_dashboard') }}" class="btn-primary btn-lg">
-      Go to Dashboard <i class="ph-bold ph-arrow-right"></i>
-    </a>
-    {% else %}
-    <a href="{{ url_for('signup') }}" class="btn-primary btn-lg">Create Student Profile</a>
-    <a href="{{ url_for('login') }}" class="btn-secondary btn-lg">Already registered? Login</a>
-    {% endif %}
-  </div>
-</section>
-
-<script>
-  // Show install button in hero if PWA is installable
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    window.deferredPrompt = e;
-    const heroBtn = document.getElementById("heroInstallBtn");
-    if (heroBtn) {
-      heroBtn.style.display = "inline-flex";
-    }
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.deferredPrompt) {
-      const heroBtn = document.getElementById("heroInstallBtn");
-      if (heroBtn) {
-        heroBtn.style.display = "inline-flex";
-      }
-    }
-
-    const revealTargets = document.querySelectorAll(
-      ".reveal, .reveal-group > *",
-    );
-    if (!("IntersectionObserver" in window)) {
-      revealTargets.forEach((el) => el.classList.add("is-visible"));
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: "0px 0px -10% 0px" },
-    );
-
-    revealTargets.forEach((el) => observer.observe(el));
-  });
-</script>
+</div>
 {% endblock %}

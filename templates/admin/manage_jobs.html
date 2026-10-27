@@ -1,490 +1,709 @@
-{% extends 'base.html' %} {% block title %}Manage Jobs - Chetan Business
-School{% endblock %} {% block content %}
-<div class="section-card glass-card">
-  <div
-    style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    "
-  >
-    <div>
-      <h2
-        style="
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          color: var(--primary);
-        "
-      >
-        <i class="ph-bold ph-briefcase"></i> Job Postings
-      </h2>
-      <div
-        style="
-          color: var(--text-muted);
-          font-size: 0.95rem;
-          margin-top: 0.25rem;
-        "
-      >
-        Manage recruitment drives, track applications, and publish
-        opportunities.
+{% extends 'base.html' %}
+{% block title %}Manage Campus Recruitment Drives | CBS 3i-cell{% endblock %}
+{% block page_title %}Recruitment Drives{% endblock %}
+
+{% block head %}
+<style>
+  /* ============================================================
+     CBS 3i-CELL TPO RECRUITMENT DRIVES (Modern Fluid Layout)
+     ============================================================ */
+
+  :root {
+    --job-indigo: #4f46e5;
+    --job-blue: #2563eb;
+    --job-emerald: #10b981;
+    --job-amber: #f59e0b;
+    --job-rose: #ef4444;
+  }
+
+  .drives-mgmt-container {
+    padding-bottom: 4rem;
+  }
+
+  /* 1. Ambient Banner */
+  .drives-mgmt-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.25);
+  }
+
+  .drives-mgmt-banner::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .drives-banner-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner-left h1 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.35rem 0;
+  }
+
+  .banner-left p {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .banner-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-banner-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.55);
+  }
+
+  .btn-banner-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .btn-banner-glass:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    color: #ffffff;
+  }
+
+  /* 2. Filter Status Tabs (Segmented Control) */
+  .filter-tabs-ribbon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.35rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="dark"] .filter-tabs-ribbon {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .tab-filter-btn {
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1.35rem;
+    border-radius: 9999px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tab-filter-btn.active {
+    background: var(--job-indigo);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+  }
+
+  /* 3. Modern Drives Grid */
+  .modern-drives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .drive-hub-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] .drive-hub-card {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .drive-hub-card:hover {
+    border-color: rgba(99, 102, 241, 0.45);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 35px -8px rgba(15, 23, 42, 0.12);
+  }
+
+  .card-top-identity {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .company-identity-flex {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+  }
+
+  .company-logo-disc {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+  }
+
+  .drive-company-heading {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 0.2rem 0;
+    line-height: 1.2;
+  }
+
+  .drive-role-subheading {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Status Pills */
+  .drive-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .drive-status-badge.published {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .drive-status-badge.expired {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  .drive-status-badge.draft {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  /* Specs Chips Row */
+  .drive-specs-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .drive-spec-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .drive-spec-pill.highlight {
+    background: rgba(79, 70, 229, 0.06);
+    border-color: rgba(79, 70, 229, 0.2);
+    color: var(--job-indigo);
+  }
+
+  /* Dates Meta Box */
+  .drive-dates-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Unified Action Toolbar */
+  .drive-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .btn-drive-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-drive-action:hover {
+    border-color: var(--job-indigo);
+    background: var(--surface);
+    color: var(--job-indigo);
+    transform: translateY(-1px);
+  }
+
+  .btn-drive-action.primary {
+    background: var(--job-indigo);
+    color: #ffffff;
+    border-color: var(--job-indigo);
+  }
+
+  .btn-drive-action.primary:hover {
+    background: #4338ca;
+    color: #ffffff;
+  }
+
+  .btn-drive-action.publish {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+  }
+
+  .btn-drive-action.danger {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+    color: #e11d48;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.95rem;
+  }
+
+  .btn-drive-action.danger:hover {
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  }
+
+  /* Modal Enhancements */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    z-index: 2000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    backdrop-filter: blur(8px);
+    overflow-y: auto;
+  }
+
+  .modal-modern-card {
+    width: 100%;
+    max-width: 860px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] .modal-modern-card {
+    background: #0f172a;
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+
+  @media (max-width: 768px) {
+    .modern-drives-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="drives-mgmt-container">
+
+  <!-- ============================================================
+       1. TPO DRIVES BANNER
+       ============================================================ -->
+  <section class="drives-mgmt-banner">
+    <div class="drives-banner-inner">
+      <div class="banner-left">
+        <h1>Campus Recruitment Drives</h1>
+        <p>Manage visiting corporate recruiter profiles, criteria parameters, student shortlists, and master spreadsheet exports.</p>
+      </div>
+
+      <div class="banner-actions">
+        <button class="btn-banner-primary" onclick="openJobModal()">
+          <i class="ph-bold ph-plus-circle"></i>
+          <span>Post New Campus Drive</span>
+        </button>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-banner-glass">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Dashboard</span>
+        </a>
       </div>
     </div>
-    <div
-      style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap"
-    >
-      <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">
-        <i class="ph-bold ph-arrow-left"></i> Back
-      </a>
-      <button class="btn-primary" onclick="openJobModal()">
-        <i class="ph-bold ph-plus"></i> Post New Job
+  </section>
+
+  <!-- ============================================================
+       2. FILTER TABS (Segmented Control with Live Counts)
+       ============================================================ -->
+  {% set count_published = jobs|selectattr('status', 'equalto', 'published')|list|length %}
+  {% set count_draft = jobs|selectattr('status', 'equalto', 'draft')|list|length %}
+  {% set count_expired = jobs|selectattr('status', 'equalto', 'expired')|list|length %}
+
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div class="filter-tabs-ribbon" style="margin-bottom: 0;">
+      <button class="tab-filter-btn active" onclick="filterJobs('all')">
+        All Drives ({{ jobs|length }})
+      </button>
+      <button class="tab-filter-btn" onclick="filterJobs('published')">
+        Published ({{ count_published }})
+      </button>
+      <button class="tab-filter-btn" onclick="filterJobs('draft')">
+        Drafts ({{ count_draft }})
+      </button>
+      <button class="tab-filter-btn" onclick="filterJobs('expired')">
+        Expired ({{ count_expired }})
       </button>
     </div>
+
+    {% if count_expired > 0 %}
+    <form action="{{ url_for('republish_expired_jobs') }}" method="POST" style="margin: 0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; font-weight: 700; border-radius: 9999px;">
+        <i class="ph-bold ph-arrow-clockwise" style="color: var(--job-indigo);"></i> Republish Expired Drives ({{ count_expired }})
+      </button>
+    </form>
+    {% endif %}
   </div>
 
-  <!-- Filter/Status Tabs -->
-  <div
-    class="status-tabs-container"
-    style="margin-bottom: 2rem; border-bottom: 1px solid var(--border)"
-  >
-    <button class="status-tab active" onclick="filterJobs('all')">
-      All Jobs ({{ jobs|length }})
-    </button>
-    <button class="status-tab" onclick="filterJobs('published')">
-      Published
-    </button>
-    <button class="status-tab" onclick="filterJobs('draft')">Drafts</button>
-    <button class="status-tab" onclick="filterJobs('expired')">Expired</button>
+  <!-- Empty State fallback when filter has 0 cards -->
+  <div id="noDrivesAlert" class="card" style="display: none; padding: 3.5rem 1.5rem; text-align: center; border-radius: 20px; border: 1.5px dashed var(--border); background: var(--surface); margin-bottom: 2rem;">
+    <div style="width: 68px; height: 68px; border-radius: 50%; background: rgba(79, 70, 229, 0.1); color: var(--job-indigo); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+      <i class="ph-duotone ph-briefcase"></i>
+    </div>
+    <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;" id="noDrivesTitle">No recruitment drives found</h3>
+    <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 500px; margin: 0 auto 1.5rem;" id="noDrivesDesc">
+      There are currently no recruitment drives matching this filter.
+    </p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+      <button onclick="openJobModal()" class="btn-banner-primary" style="padding: 0.65rem 1.25rem;">
+        <i class="ph-bold ph-plus-circle"></i> Post New Drive
+      </button>
+      {% if count_expired > 0 %}
+      <form action="{{ url_for('republish_expired_jobs') }}" method="POST" style="margin: 0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.65rem 1.25rem; font-weight: 700;">
+          <i class="ph-bold ph-arrow-clockwise" style="color: var(--job-indigo);"></i> Republish All Expired Drives
+        </button>
+      </form>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Jobs Grid -->
-  <div class="jobs-grid">
+  <!-- ============================================================
+       3. MODERN DRIVES GRID
+       ============================================================ -->
+  <div class="modern-drives-grid">
     {% for job in jobs %}
+    {% set colors = [
+      'linear-gradient(135deg, #4f46e5, #3b82f6)',
+      'linear-gradient(135deg, #059669, #10b981)',
+      'linear-gradient(135deg, #d97706, #f59e0b)',
+      'linear-gradient(135deg, #7c3aed, #a855f7)',
+      'linear-gradient(135deg, #0284c7, #2563eb)'
+    ] %}
+    {% set c_idx = loop.index0 % 5 %}
+
     <div
-      class="job-card glass-card job-card-item"
+      class="drive-hub-card job-card-item"
       data-status="{{ job.status or 'draft' }}"
       data-job="{{ job.safe_data | tojson | safe }}"
-      style="display: flex; flex-direction: column; height: 100%"
     >
-      <div style="flex: 1">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-          <div>
-            <h3 style="margin-bottom: 0.25rem; font-size: 1.25rem">
-              {{ job.company_name }}
-            </h3>
-            <div style="color: var(--text-muted); font-weight: 500">
-              {{ job.role }}
+      <div>
+        <div class="card-top-identity">
+          <div class="company-identity-flex">
+            <div class="company-logo-disc" style="background: {{ colors[c_idx] }};">
+              {{ (job.company_name or 'C')[0]|upper }}
+            </div>
+            <div>
+              <h3 class="drive-company-heading">{{ job.company_name }}</h3>
+              <div class="drive-role-subheading">{{ job.role }}</div>
             </div>
           </div>
+
+          <!-- Status Badge -->
           {% if job.status == 'published' %}
-          <span
-            class="badge"
-            style="background: rgba(16, 185, 129, 0.1); color: #10b981"
-            >Published</span
-          >
+          <span class="drive-status-badge published">
+            <i class="ph-bold ph-check-circle"></i> Published
+          </span>
           {% elif job.status == 'expired' %}
-          <span
-            class="badge"
-            style="background: rgba(239, 68, 68, 0.1); color: #ef4444"
-            >Expired</span
-          >
+          <span class="drive-status-badge expired">
+            <i class="ph-bold ph-clock"></i> Expired
+          </span>
           {% else %}
-          <span
-            class="badge"
-            style="background: rgba(245, 158, 11, 0.1); color: #f59e0b"
-            >Draft</span
-          >
+          <span class="drive-status-badge draft">
+            <i class="ph-bold ph-pencil-simple"></i> Draft
+          </span>
           {% endif %}
         </div>
 
-        <div class="d-flex gap-2 flex-wrap mb-3">
-          <span class="badge badge-outline"
-            ><i class="ph-bold ph-map-pin"></i> {{ job.location or 'Remote'
-            }}</span
-          >
-          <span class="badge badge-outline"
-            ><i class="ph-bold ph-currency-inr"></i> {{ job.package or 'Not
-            disclosed' }}</span
-          >
-          <span class="badge badge-outline"
-            ><i class="ph-bold ph-graduation-cap"></i> {{ job.min_cgpa or 0 }}
-            CGPA</span
-          >
+        <!-- Specs Chips -->
+        <div class="drive-specs-chips">
+          <span class="drive-spec-pill highlight">
+            <i class="ph-bold ph-currency-dollar"></i> {{ job.package or 'Disclosed in Drive' }}
+          </span>
+          <span class="drive-spec-pill">
+            <i class="ph-bold ph-graduation-cap"></i> Min {{ job.min_cgpa or 0 }} CGPA
+          </span>
+          <span class="drive-spec-pill">
+            <i class="ph-bold ph-map-pin"></i> {{ job.location or 'Campus Drive' }}
+          </span>
           {% if job.attachment_id %}
-          <span class="badge badge-outline" title="Has Attachment"
-            ><i class="ph-bold ph-paperclip"></i> File</span
-          >
-          {% endif %} {% if job.external_url %}
-          <span class="badge badge-outline" title="External Link"
-            ><i class="ph-bold ph-link"></i> URL</span
-          >
+          <a href="/files/{{ job.attachment_id }}" target="_blank" class="drive-spec-pill" title="View Brochure" style="text-decoration: none;">
+            <i class="ph-bold ph-paperclip"></i> Brochure
+          </a>
+          {% endif %}
+          {% if job.external_url %}
+          <a href="{{ job.external_url }}" target="_blank" rel="noopener noreferrer" class="drive-spec-pill highlight" title="Open Career Portal Link" style="text-decoration: none;">
+            <i class="ph-bold ph-arrow-square-out"></i> Portal Link
+          </a>
           {% endif %}
         </div>
 
-        <div
-          style="
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-            border-top: 1px solid var(--border);
-            padding-top: 0.75rem;
-          "
-        >
-          <div class="d-flex justify-content-between mb-1">
-            <span>Created:</span>
-            <span>{{ job.created_at.strftime('%d %b %Y') }}</span>
-          </div>
+        <!-- Schedule Meta -->
+        <div class="drive-dates-meta">
+          <span>Created: <strong>{{ job.created_at.strftime('%d %b %Y') if job.created_at else 'Recently' }}</strong></span>
           {% if job.expires_at %}
-          <div class="d-flex justify-content-between">
-            <span>Expires:</span>
-            <span style="color: var(--accent)"
-              >{{ job.expires_at.strftime('%d %b %Y') }}</span
-            >
-          </div>
+          <span>Expires: <strong style="color: #ef4444;">{{ job.expires_at.strftime('%d %b %Y') }}</strong></span>
           {% endif %}
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="d-flex gap-2 flex-wrap mt-auto pt-3 border-top">
-        <button
-          class="btn-sm btn-edit flex-grow-1"
-          onclick="openJobModal({{ loop.index0 }})"
-        >
+      <!-- Action Toolbar -->
+      <div class="drive-actions-row">
+        <button class="btn-drive-action" onclick="openJobModal({{ loop.index0 }})" title="Edit Drive">
           <i class="ph-bold ph-pencil"></i> Edit
         </button>
 
-        <a
-          href="{{ url_for('export_eligible_students', job_id=job._id) }}"
-          class="btn-sm btn-view flex-grow-1"
-          title="Export Eligible Students"
-        >
-          <i class="ph-bold ph-download-simple"></i> Export
+        <a href="{{ url_for('export_eligible_students', job_id=job._id) }}" class="btn-drive-action primary" title="Download Recruiter Master Excel">
+          <i class="ph-bold ph-download-simple"></i> HR Sheet
         </a>
 
         {% if job.status != 'published' %}
-        <button
-          class="btn-sm btn-add flex-grow-1"
-          onclick="publishJobAction('{{ job._id }}')"
-        >
-          Publish
+        <button class="btn-drive-action publish" onclick="publishJobAction('{{ job._id }}')" title="Publish Drive">
+          <i class="ph-bold ph-megaphone"></i> Publish
         </button>
         {% endif %}
 
-        <form
-          action="{{ url_for('delete_job', job_id=job._id) }}"
-          method="POST"
-          onsubmit="return confirm('Delete this job?');"
-          style="margin: 0"
-        >
+        <form action="{{ url_for('delete_job', job_id=job._id) }}" method="POST" onsubmit="return confirm('Permanently remove this recruitment drive?');" style="margin: 0;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button
-            type="submit"
-            class="btn-sm btn-delete"
-          >
-            <i class="ph-bold ph-trash"></i>
+          <button type="submit" class="btn-drive-action danger" title="Delete Drive">
+            <i class="ph-bold ph-trash"></i> Delete
           </button>
         </form>
       </div>
+
     </div>
     {% else %}
-    <div
-      style="
-        grid-column: 1/-1;
-        text-align: center;
-        padding: 4rem;
-        color: var(--text-muted);
-      "
-    >
-      <i
-        class="ph-duotone ph-briefcase"
-        style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem"
-      ></i>
-      <p>No job postings found.</p>
-      <button class="btn-primary" onclick="openJobModal()">
-        Post the first job
+    <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 24px;">
+      <i class="ph-duotone ph-briefcase" style="font-size: 3.5rem; color: var(--job-indigo); margin-bottom: 1rem; display: block;"></i>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">No Recruitment Drives Found</h3>
+      <p style="color: var(--text-muted); max-width: 420px; margin: 0 auto 1.5rem auto;">Post the first campus drive to begin collecting student applications.</p>
+      <button class="btn-banner-primary" onclick="openJobModal()">
+        <i class="ph-bold ph-plus-circle"></i> Post Campus Drive
       </button>
     </div>
     {% endfor %}
   </div>
+
 </div>
 
-<!-- Premium Job Modal -->
+<!-- Modern Job Modal -->
 <div id="jobModal" class="modal-overlay">
-  <div
-    class="glass-card-heavy modal-content"
-    style="max-width: 900px; width: 95%"
-  >
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 id="jobModalTitle" style="color: var(--primary)">New Job Posting</h2>
-      <button onclick="closeJobModal()" class="btn-icon">
+  <div class="modal-modern-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+      <h2 id="jobModalTitle" style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin: 0;">New Recruitment Drive</h2>
+      <button onclick="closeJobModal()" style="background: none; border: none; font-size: 1.35rem; color: var(--text-muted); cursor: pointer;">
         <i class="ph-bold ph-x"></i>
       </button>
     </div>
 
-    <form
-      id="jobForm"
-      method="POST"
-      enctype="multipart/form-data"
-      onsubmit="handleJobFormSubmit(event)"
-      style="text-align: left"
-    >
+    <form id="jobForm" method="POST" enctype="multipart/form-data" onsubmit="handleJobFormSubmit(event)">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <style>
-        /* Local Form Override */
-        .form-group label {
-          text-align: left;
-          display: block;
-          margin-bottom: 0.5rem;
-          color: var(--text-main);
-          font-weight: 600;
-        }
-        .form-control {
-          background: var(--surface-input) !important;
-          border: 1px solid var(--border) !important;
-          color: var(--text-main) !important;
-          padding: 0.75rem;
-          border-radius: 8px;
-        }
-        .form-control:focus {
-          border-color: var(--primary) !important;
-          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-          outline: none;
-        }
-      </style>
       <input type="hidden" name="job_id" id="job_id" />
       <input type="hidden" name="action" id="action" value="draft" />
 
-      <div class="row">
-        <!-- Left Column: Core Details -->
-        <div class="col-md-6 mb-3">
-          <div class="form-group mb-3">
-            <label class="form-label">Company Name *</label>
-            <input
-              type="text"
-              name="company"
-              id="company"
-              class="form-control"
-              required
-              placeholder="e.g. Google"
-            />
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Left Column -->
+        <div>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Company Name *</label>
+            <input type="text" name="company" id="company" required placeholder="e.g. Amazon" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
           </div>
-          <div class="form-group mb-3">
-            <label class="form-label">Job Role *</label>
-            <input
-              type="text"
-              name="role"
-              id="role"
-              class="form-control"
-              required
-              placeholder="e.g. SDE-1"
-            />
+
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Role Title *</label>
+            <input type="text" name="role" id="role" required placeholder="e.g. Cloud Support Associate" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
           </div>
-          <div class="row">
-            <div class="col-6 form-group mb-3">
-              <label class="form-label">Location</label>
-              <input
-                type="text"
-                name="location"
-                id="location"
-                class="form-control"
-                placeholder="City"
-              />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Location</label>
+              <input type="text" name="location" id="location" placeholder="City" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
-            <div class="col-6 form-group mb-3">
-              <label class="form-label">Type</label>
-              <select
-                name="employment_type"
-                id="employment_type"
-                class="form-control"
-              >
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Type</label>
+              <select name="employment_type" id="employment_type" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);">
                 <option value="Full-time">Full-time</option>
                 <option value="Internship">Internship</option>
                 <option value="Contract">Contract</option>
               </select>
             </div>
           </div>
-          <div class="form-group mb-3">
-            <label class="form-label">Salary Package</label>
-            <input
-              type="text"
-              name="package"
-              id="package"
-              class="form-control"
-              placeholder="e.g. 12 LPA"
-            />
-          </div>
-          <div class="form-group mb-3">
-            <label class="form-label">Min CGPA</label>
-            <input
-              type="number"
-              step="0.1"
-              name="min_cgpa"
-              id="min_cgpa"
-              class="form-control"
-              placeholder="0.0"
-            />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Package</label>
+              <input type="text" name="package" id="package" placeholder="e.g. 12 LPA" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Min CGPA</label>
+              <input type="number" step="0.1" name="min_cgpa" id="min_cgpa" placeholder="0.0" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+            </div>
           </div>
         </div>
 
-        <!-- Right Column: Description & Extras -->
-        <div class="col-md-6 mb-3">
-          <div class="form-group mb-3">
-            <label class="form-label">Description *</label>
-            <textarea
-              name="description"
-              id="description"
-              rows="6"
-              class="form-control"
-              required
-              placeholder="Job details..."
-            ></textarea>
+        <!-- Right Column -->
+        <div>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Description *</label>
+            <textarea name="description" id="description" rows="5" required placeholder="Drive job specifications and criteria..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit;"></textarea>
           </div>
 
-          <div class="row">
-            <div class="col-6 form-group mb-3">
-              <label class="form-label">Drive Date</label>
-              <input
-                type="date"
-                name="drive_date"
-                id="drive_date"
-                class="form-control"
-              />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Drive Date</label>
+              <input type="date" name="drive_date" id="drive_date" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
-            <div class="col-6 form-group mb-3">
-              <label class="form-label">Expiry Date</label>
-              <input
-                type="date"
-                name="expires_at"
-                id="expires_at"
-                class="form-control"
-              />
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Expiry Date</label>
+              <input type="date" name="expires_at" id="expires_at" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
           </div>
 
-          <div class="form-group mb-3">
-            <label class="form-label">Attachment (PDF/Image)</label>
-            <div class="file-upload-wrapper">
-              <input
-                type="file"
-                name="attachment"
-                id="attachment"
-                class="form-control"
-                accept=".pdf,.png,.jpg,.jpeg"
-              />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Attachment (PDF/Brochure)</label>
+              <input type="file" name="attachment" id="attachment" class="form-control" accept=".pdf,.png,.jpg,.jpeg" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
+              <div id="existing-file-info" style="display: none; font-size: 0.78rem; margin-top: 0.4rem; color: var(--job-indigo);">
+                <i class="ph-bold ph-paperclip"></i> Existing attachment linked
+              </div>
             </div>
-            <!-- Show existing file info if editing -->
-            <div
-              id="existing-file-info"
-              style="
-                display: none;
-                font-size: 0.8rem;
-                margin-top: 0.5rem;
-                color: var(--primary);
-              "
-            >
-              <i class="ph-bold ph-file"></i> File attached
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+                <i class="ph-bold ph-link"></i> Application Link / Career URL
+              </label>
+              <input type="url" name="url" id="url" placeholder="https://careers.company.com/..." class="form-control" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
-          </div>
-
-          <div class="form-group mb-3">
-            <label class="form-label">External Link (Optional)</label>
-            <input
-              type="url"
-              name="url"
-              id="external_url"
-              class="form-control"
-              placeholder="https://..."
-            />
           </div>
         </div>
       </div>
 
-      <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-        <button type="button" class="btn-secondary" onclick="closeJobModal()">
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="btn-secondary"
-          onclick="setAction('draft')"
-        >
-          Save Draft
-        </button>
-        <button
-          type="submit"
-          class="btn-primary"
-          onclick="setAction('publish')"
-        >
-          Publish Now
-        </button>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeJobModal()">Cancel</button>
+        <button type="submit" class="btn btn-secondary" onclick="setAction('draft')">Save Draft</button>
+        <button type="submit" class="btn btn-primary" onclick="setAction('publish')">Publish Drive</button>
       </div>
     </form>
   </div>
 </div>
 
-<style>
-  .jobs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .status-tabs-container {
-    display: flex;
-    gap: 1.5rem;
-    overflow-x: auto;
-    padding-bottom: 1px; /* Avoid scrollbar overlay */
-  }
-
-  .status-tab {
-    background: none;
-    border: none;
-    padding: 0.5rem 0;
-    color: var(--text-muted);
-    font-weight: 500;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-  }
-
-  .status-tab.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-  }
-
-  .badge-outline {
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 2000;
-    align-items: flex-start; /* Fix for scrolling */
-    justify-content: center;
-    padding: 2rem 1rem;
-    backdrop-filter: blur(4px);
-    overflow-y: auto; /* Enable scrolling */
-  }
-
-  @media (max-width: 768px) {
-    .jobs-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-
 <script>
-  // Pass jobs data safely
   const jobsData = [
     {% for job in jobs %}
       {{ job.safe_data | tojson | safe }},
@@ -492,7 +711,7 @@ School{% endblock %} {% block content %}
   ];
 
   function setAction(status) {
-      document.getElementById('action').value = status;
+    document.getElementById('action').value = status;
   }
 
   function openJobModal(index = -1) {
@@ -503,7 +722,7 @@ School{% endblock %} {% block content %}
 
     if (index >= 0 && jobsData[index]) {
       const job = jobsData[index];
-      title.textContent = 'Edit Job: ' + job.company_name;
+      title.textContent = 'Edit Drive: ' + job.company_name;
 
       document.getElementById('job_id').value = job._id;
       document.getElementById('company').value = job.company_name;
@@ -513,67 +732,91 @@ School{% endblock %} {% block content %}
       document.getElementById('package').value = job.package || '';
       document.getElementById('min_cgpa').value = job.min_cgpa || '';
       document.getElementById('description').value = job.description;
-      document.getElementById('external_url').value = job.external_url || '';
+      document.getElementById('url').value = job.external_url || job.url || '';
 
       document.getElementById('drive_date').value = job.drive_date ? job.drive_date.split('T')[0] : '';
       document.getElementById('expires_at').value = job.expires_at ? job.expires_at.split('T')[0] : '';
 
       form.action = `/admin/jobs/edit/${job._id}`;
 
-      if(job.attachment_id) {
-          existingFileInfo.style.display = 'block';
+      if (job.attachment_id) {
+        existingFileInfo.style.display = 'block';
       } else {
-          existingFileInfo.style.display = 'none';
+        existingFileInfo.style.display = 'none';
       }
-
     } else {
-      title.textContent = 'New Job Posting';
+      title.textContent = 'New Recruitment Drive';
       form.reset();
       document.getElementById('job_id').value = '';
+      document.getElementById('url').value = '';
       form.action = "{{ url_for('add_job') }}";
       existingFileInfo.style.display = 'none';
     }
 
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Lock Body Scroll
+    document.body.style.overflow = 'hidden';
   }
 
   function closeJobModal() {
     document.getElementById('jobModal').style.display = 'none';
-    document.body.style.overflow = ''; // Unlock Body Scroll
+    document.body.style.overflow = '';
   }
 
   function filterJobs(status) {
-      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
+    document.querySelectorAll('.tab-filter-btn').forEach(t => t.classList.remove('active'));
+    if (event && event.currentTarget) {
+      event.currentTarget.classList.add('active');
+    }
 
-      document.querySelectorAll('.job-card-item').forEach(card => {
-          if (status === 'all' || card.dataset.status === status) {
-              card.style.display = 'flex';
-          } else {
-              card.style.display = 'none';
-          }
-      });
+    let visibleCount = 0;
+    document.querySelectorAll('.job-card-item').forEach(card => {
+      if (status === 'all' || card.dataset.status === status) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const alertBox = document.getElementById('noDrivesAlert');
+    if (alertBox) {
+      if (visibleCount === 0) {
+        alertBox.style.display = 'block';
+        const titleEl = document.getElementById('noDrivesTitle');
+        const descEl = document.getElementById('noDrivesDesc');
+        if (status === 'published') {
+          titleEl.textContent = 'No Published Drives Active';
+          descEl.textContent = 'All drives may have passed their application deadline or are currently saved as drafts. You can 1-click republish expired drives with a 30-day extension or create a new drive.';
+        } else if (status === 'draft') {
+          titleEl.textContent = 'No Draft Drives';
+          descEl.textContent = 'All corporate drives are currently published or expired. Create a new draft drive whenever needed.';
+        } else if (status === 'expired') {
+          titleEl.textContent = 'No Expired Drives';
+          descEl.textContent = 'All drives are currently active and accepting student applications!';
+        }
+      } else {
+        alertBox.style.display = 'none';
+      }
+    }
   }
 
   function publishJobAction(id) {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `/admin/jobs/${id}/publish`;
-      
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrf_token';
-      csrfInput.value = "{{ csrf_token() }}";
-      form.appendChild(csrfInput);
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/jobs/${id}/publish`;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = "{{ csrf_token() }}";
+    form.appendChild(csrfInput);
 
-      document.body.appendChild(form);
-      form.submit();
+    document.body.appendChild(form);
+    form.submit();
   }
 
-  // Close modal on outside click
   document.getElementById('jobModal').addEventListener('click', (e) => {
-      if(e.target === e.currentTarget) closeJobModal();
+    if (e.target === e.currentTarget) closeJobModal();
   });
 </script>
 {% endblock %}
