@@ -51,6 +51,11 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/app-layout.css') }}?v={{ range(1,9999)|random }}"
     />
+    <!-- Master Responsive Suite (Mobile, Tablet, Desktop) -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/responsive-suite.css') }}?v={{ range(1,9999)|random }}"
+    />
 
     <!-- Apply theme immediately to prevent flash -->
     <script>
@@ -280,6 +285,12 @@
 
         <!-- Page title (injected by JS) -->
         <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
+
+        <!-- Mobile Header Brand -->
+        <a href="/" class="topbar-mobile-brand mobile-only" style="text-decoration: none; align-items: center; gap: 0.5rem;">
+          <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo" style="height: 26px; border-radius: 4px;" onerror="this.style.display='none'">
+          <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">CBS <span style="background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">3i-cell</span></span>
+        </a>
 
         <div class="topbar-right">
           <!-- Notifications -->
@@ -532,13 +543,14 @@
       window.addEventListener('beforeinstallprompt', e => {
         e.preventDefault();
         window.deferredPrompt = e;
-        if (installPrompt) {
+        if (installPrompt && !localStorage.getItem('pwa_prompt_dismissed')) {
           installPrompt.style.display = 'flex';
           setTimeout(() => installPrompt.classList.add('visible'), 100);
         }
       });
 
       function closeInstallPrompt() {
+        localStorage.setItem('pwa_prompt_dismissed', '1');
         if (installPrompt) {
           installPrompt.classList.remove('visible');
           setTimeout(() => { installPrompt.style.display = 'none'; }, 300);

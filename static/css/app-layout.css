@@ -1685,35 +1685,49 @@ a { text-decoration: none; color: inherit; }
 
 /* ── PWA INSTALL PROMPT ─────────────────────────────────────── */
 .install-prompt {
-  position: fixed;
-  bottom: calc(var(--mobile-nav-h) + 12px);
-  left: 12px;
-  right: 12px;
-  max-width: 380px;
-  margin: 0 auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-xl);
-  padding: 1rem 1.25rem;
+  position: fixed !important;
+  bottom: calc(var(--mobile-nav-h) + 14px) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) translateY(20px) !important;
+  width: calc(100% - 28px) !important;
+  max-width: 390px !important;
+  margin: 0 !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: 0 12px 36px -4px rgba(15, 23, 42, 0.25) !important;
+  padding: 0.85rem 1.15rem !important;
   display: none;
   align-items: center;
   gap: 0.75rem;
-  z-index: 500;
-  animation: slideUpIn 0.3s var(--ease-spring);
+  z-index: 9999 !important;
+  transition: transform 0.3s var(--ease-spring), opacity 0.3s ease !important;
+  opacity: 0;
 }
 
 @media (min-width: 769px) {
   .install-prompt {
-    left: auto;
-    right: 24px;
-    bottom: 24px;
-    max-width: 360px;
-    margin: 0;
+    left: auto !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    transform: translateY(20px) !important;
+    width: auto !important;
+    max-width: 360px !important;
   }
 }
 
-.install-prompt.visible { display: flex; }
+.install-prompt.visible {
+  display: flex !important;
+  transform: translateX(-50%) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+@media (min-width: 769px) {
+  .install-prompt.visible {
+    transform: translateY(0) !important;
+  }
+}
 
 @keyframes slideUpIn {
   from { opacity: 0; transform: translateY(20px); }
