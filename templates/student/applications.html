@@ -601,19 +601,29 @@
       </div>
       {% endif %}
 
-      <!-- Attendance Confirmation Call Slip (For Interview / GD) -->
-      {% if status_val in ['Interview', 'GD'] %}
+      <!-- Attendance Confirmation Call Slip (For Active Advancement Rounds) -->
+      {% if status_val in ['Shortlisted', 'Aptitude', 'GD', 'Technical_R1', 'Technical_R2', 'Interview', 'HR_Interview'] %}
+      {% set app_round_map = {
+        'Shortlisted': 'Shortlisted Assessment Round',
+        'Aptitude': 'Round 1: Online Assessment / Aptitude',
+        'GD': 'Round 2: Group Discussion (GD) Round',
+        'Technical_R1': 'Round 2: Technical Interview Round 1 (Coding & Core)',
+        'Technical_R2': 'Round 3: Advanced Technical Interview Round 2',
+        'Interview': 'Technical & Managerial Interview Round',
+        'HR_Interview': 'Final Round: Corporate HR & Leadership Round'
+      } %}
+      {% set detailed_round = app_round_map.get(status_val, status_val ~ ' Round') %}
       <div class="interview-attendance-slip">
         <div class="slip-left">
           <div class="slip-icon">
             <i class="ph-fill ph-bell-ringing"></i>
           </div>
           <div>
-            <strong style="color: #92400e; font-size: 0.92rem; display: block;">
-              {{ status_val }} Attendance Confirmation Required
+            <strong style="color: #92400e; font-size: 0.95rem; display: block;">
+              {{ detailed_round }} Attendance Confirmation
             </strong>
             <span style="font-size: 0.8rem; color: #78350f;">
-              Please indicate your attendance for the upcoming recruitment round.
+              For Role: <strong>{{ job_role }}</strong> &middot; Please confirm your candidate presence for corporate panel scheduling.
             </span>
           </div>
         </div>
@@ -621,7 +631,7 @@
         {% if app.student_response %}
         <div style="font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem; color: {% if app.student_response == 'Attending' %}#059669{% else %}#dc2626{% endif %};">
           <i class="ph-bold {% if app.student_response == 'Attending' %}ph-check-circle{% else %}ph-x-circle{% endif %}"></i>
-          <span>Response Logged: {{ app.student_response }}</span>
+          <span>RSVP Logged: {{ app.student_response }}</span>
         </div>
         {% else %}
         <div style="display: flex; gap: 0.6rem;">
@@ -629,7 +639,7 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="response" value="Attending" />
             <button type="submit" class="btn-slip-attend">
-              <i class="ph-bold ph-check"></i> I Will Attend
+              <i class="ph-bold ph-check"></i> Confirm Attendance
             </button>
           </form>
           <form action="{{ url_for('respond_application', app_id=app._id) }}" method="POST">

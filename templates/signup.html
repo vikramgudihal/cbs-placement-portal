@@ -402,18 +402,182 @@
 
   /* Responsiveness */
   @media (max-width: 960px) {
+    .auth-ambient-canvas {
+      padding: 2rem 1.25rem;
+    }
     .auth-split-card {
       grid-template-columns: 1fr;
       max-width: 520px;
+      min-height: auto;
+      border-radius: 24px;
     }
     .auth-showcase-panel {
-      padding: 2.5rem 2rem;
+      padding: 2.25rem 2rem;
     }
     .auth-form-panel {
-      padding: 2.5rem 2rem;
+      padding: 2.25rem 2rem;
     }
     .signup-benefits-list {
       display: none;
+    }
+  }
+
+  /* Mobile App-Style Polish (<= 640px) */
+  @media (max-width: 640px) {
+    .auth-ambient-canvas {
+      padding: 0.75rem 0.5rem;
+      min-height: calc(100vh - var(--topbar-h, 60px) - 30px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .auth-split-card {
+      max-width: 100%;
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8);
+      margin: 0 auto;
+    }
+    .auth-showcase-panel {
+      padding: 1.35rem 1.15rem 1.1rem 1.15rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .showcase-chip {
+      font-size: 0.7rem;
+      padding: 0.22rem 0.65rem;
+      margin-bottom: 0.5rem;
+      gap: 0.35rem;
+    }
+    .showcase-heading {
+      font-size: 1.35rem;
+      line-height: 1.25;
+      margin-bottom: 0.35rem;
+      font-weight: 800;
+    }
+    .showcase-heading br {
+      display: none;
+    }
+    .showcase-desc {
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin-bottom: 0.65rem;
+      color: #cbd5e1;
+    }
+    .showcase-bottom-trust {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      margin-top: 0.2rem;
+    }
+    .bottom-trust-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.22rem 0.6rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e0e7ff;
+      white-space: nowrap;
+    }
+    .bottom-trust-item i {
+      font-size: 0.85rem;
+    }
+    .auth-form-panel {
+      padding: 1.35rem 1.15rem 1.5rem 1.15rem;
+    }
+    .form-panel-header {
+      margin-bottom: 1.15rem;
+    }
+    .form-panel-title {
+      font-size: 1.45rem;
+      margin-bottom: 0.2rem;
+    }
+    .form-panel-sub {
+      font-size: 0.82rem;
+    }
+    .role-segmented-box {
+      padding: 0.25rem;
+      gap: 0.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.15rem;
+    }
+    .role-segment-btn {
+      padding: 0.52rem 0.35rem;
+      font-size: 0.8rem;
+      border-radius: 9px;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+    .role-segment-btn span {
+      white-space: nowrap;
+    }
+    .role-segment-btn i {
+      font-size: 0.95rem;
+    }
+    .modern-input-group {
+      margin-bottom: 1rem;
+    }
+    .modern-input-label {
+      font-size: 0.78rem;
+      margin-bottom: 0.3rem;
+    }
+    .modern-input-shell i.prefix-icon {
+      left: 0.85rem;
+      font-size: 1.05rem;
+    }
+    .modern-input-field {
+      padding: 0.72rem 0.85rem 0.72rem 2.45rem;
+      font-size: 0.88rem;
+      border-radius: 11px;
+    }
+    .modern-input-field::placeholder {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+    .pwd-toggle-btn {
+      right: 0.75rem;
+      font-size: 1.05rem;
+    }
+    .btn-auth-submit {
+      padding: 0.8rem 1.25rem;
+      font-size: 0.92rem;
+      border-radius: 11px;
+    }
+    .form-bottom-switch {
+      margin-top: 1.15rem;
+      font-size: 0.82rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .auth-ambient-canvas {
+      padding: 0.5rem 0.25rem;
+    }
+    .auth-form-panel {
+      padding: 1.15rem 0.85rem 1.25rem 0.85rem;
+    }
+    .auth-showcase-panel {
+      padding: 1.1rem 0.85rem 0.85rem 0.85rem;
+    }
+    .role-segment-btn {
+      font-size: 0.74rem;
+      padding: 0.48rem 0.2rem;
+      gap: 0.2rem;
+    }
+    .role-segment-btn i {
+      font-size: 0.88rem;
+    }
+    .modern-input-field {
+      padding: 0.68rem 0.75rem 0.68rem 2.35rem;
+      font-size: 0.85rem;
+    }
+    .modern-input-field::placeholder {
+      font-size: 0.76rem;
     }
   }
 </style>
@@ -559,9 +723,20 @@
             </div>
           </div>
 
-          <!-- Password -->
+          <!-- Password with Strong Auto-Suggest & Live Strength Meter -->
           <div class="modern-input-group">
-            <label for="password" class="modern-input-label">Password</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.35rem;">
+              <label for="password" class="modern-input-label" style="margin-bottom: 0;">Password</label>
+              <button
+                type="button"
+                id="btn-suggest-pwd"
+                onclick="autoSuggestPassword()"
+                style="background: rgba(79, 70, 229, 0.08); border: 1px solid rgba(79, 70, 229, 0.25); color: var(--primary, #4f46e5); border-radius: 9999px; padding: 0.22rem 0.75rem; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;"
+                title="Generate high-entropy password based on credentials"
+              >
+                <i class="ph-bold ph-sparkle"></i> Auto-Suggest Password
+              </button>
+            </div>
             <div class="modern-input-shell">
               <i class="ph ph-lock-key prefix-icon"></i>
               <input
@@ -569,10 +744,11 @@
                 id="password"
                 name="password"
                 required
-                placeholder="Create a secure password"
+                placeholder="Create strong password"
                 class="modern-input-field"
                 autocomplete="new-password"
-                style="padding-right: 2.75rem;"
+                style="padding-right: 2.5rem;"
+                oninput="checkPasswordStrength(this.value)"
               />
               <button
                 type="button"
@@ -582,6 +758,26 @@
               >
                 <i class="ph ph-eye" id="eye-icon-su"></i>
               </button>
+            </div>
+
+            <!-- Dynamic Password Strength Bar & Checklist -->
+            <div id="pwd-strength-container" style="margin-top: 0.65rem; display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Security Level:</span>
+                <span id="pwd-strength-label" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Weak</span>
+              </div>
+              <div style="height: 6px; width: 100%; background: var(--border); border-radius: 9999px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="pwd-strength-bar" style="height: 100%; width: 20%; background: #ef4444; transition: width 0.3s ease, background 0.3s ease;"></div>
+              </div>
+              <div id="pwd-strength-alert" style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.35rem;">
+                <i class="ph-bold ph-warning-circle"></i> Password is too weak to submit. Please strengthen or use Auto-Suggest.
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; font-size: 0.72rem; color: var(--text-muted);">
+                <div id="req-len" style="display: flex; align-items: center; gap: 0.3rem;"><i class="ph-bold ph-circle" style="font-size: 0.75rem;"></i> 8+ characters</div>
+                <div id="req-case" style="display: flex; align-items: center; gap: 0.3rem;"><i class="ph-bold ph-circle" style="font-size: 0.75rem;"></i> Upper &amp; lower case</div>
+                <div id="req-num" style="display: flex; align-items: center; gap: 0.3rem;"><i class="ph-bold ph-circle" style="font-size: 0.75rem;"></i> Number (0-9)</div>
+                <div id="req-sym" style="display: flex; align-items: center; gap: 0.3rem;"><i class="ph-bold ph-circle" style="font-size: 0.75rem;"></i> Symbol (!@#$)</div>
+              </div>
             </div>
           </div>
 
@@ -673,6 +869,127 @@
       field.type = 'password';
       icon.className = 'ph ph-eye';
     }
+  }
+
+  // Real-Time Password Strength Engine & Auto-Suggest
+  const pwdInput = document.getElementById('password');
+  const submitBtn = document.querySelector('.btn-auth-submit');
+  const strengthContainer = document.getElementById('pwd-strength-container');
+  const strengthBar = document.getElementById('pwd-strength-bar');
+  const strengthLabel = document.getElementById('pwd-strength-label');
+  const strengthAlert = document.getElementById('pwd-strength-alert');
+  const reqLen = document.getElementById('req-len');
+  const reqCase = document.getElementById('req-case');
+  const reqNum = document.getElementById('req-num');
+  const reqSym = document.getElementById('req-sym');
+
+  function checkPasswordStrength(val) {
+    if (!val) {
+      strengthContainer.style.display = 'none';
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      return;
+    }
+    strengthContainer.style.display = 'block';
+
+    const hasLen = val.length >= 8;
+    const hasLower = /[a-z]/.test(val);
+    const hasUpper = /[A-Z]/.test(val);
+    const hasCase = hasLower && hasUpper;
+    const hasNum = /[0-9]/.test(val);
+    const hasSym = /[^A-Za-z0-9]/.test(val);
+
+    updateReq(reqLen, hasLen, '8+ characters');
+    updateReq(reqCase, hasCase, 'Upper & lower case');
+    updateReq(reqNum, hasNum, 'Number (0-9)');
+    updateReq(reqSym, hasSym, 'Symbol (!@#$)');
+
+    let score = 0;
+    if (val.length >= 8) score += 25;
+    if (val.length >= 12) score += 10;
+    if (hasCase) score += 25;
+    if (hasNum) score += 20;
+    if (hasSym) score += 20;
+    score = Math.min(100, score);
+
+    // Determine Weak, Moderate, Strong
+    if (score < 50 || !hasLen || (!hasNum && !hasSym)) {
+      // WEAK: Strictly disable submit button to prevent weak passwords
+      strengthBar.style.width = Math.max(20, score) + '%';
+      strengthBar.style.background = '#ef4444';
+      strengthLabel.textContent = 'Weak';
+      strengthLabel.style.color = '#ef4444';
+      strengthAlert.style.display = 'flex';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.5';
+      submitBtn.style.cursor = 'not-allowed';
+    } else if (score < 75) {
+      // MODERATE: Proceed allowed
+      strengthBar.style.width = score + '%';
+      strengthBar.style.background = '#f59e0b';
+      strengthLabel.textContent = 'Moderate';
+      strengthLabel.style.color = '#f59e0b';
+      strengthAlert.style.display = 'none';
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+    } else {
+      // STRONG: Highly Secure
+      strengthBar.style.width = '100%';
+      strengthBar.style.background = '#10b981';
+      strengthLabel.textContent = 'Strong';
+      strengthLabel.style.color = '#10b981';
+      strengthAlert.style.display = 'none';
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+    }
+  }
+
+  function updateReq(el, ok, text) {
+    if (ok) {
+      el.innerHTML = '<i class="ph-bold ph-check-circle" style="color: #10b981; font-size: 0.8rem;"></i> ' + text;
+      el.style.color = '#10b981';
+      el.style.fontWeight = '600';
+    } else {
+      el.innerHTML = '<i class="ph-bold ph-circle" style="color: var(--text-muted); font-size: 0.8rem;"></i> ' + text;
+      el.style.color = 'var(--text-muted)';
+      el.style.fontWeight = 'normal';
+    }
+  }
+
+  function autoSuggestPassword() {
+    const nameVal = (document.getElementById('name').value || '').trim();
+    const emailVal = (document.getElementById('email').value || '').trim();
+    
+    let base = 'CBS';
+    if (nameVal) {
+      const parts = nameVal.split(/\s+/);
+      const first = parts[0].replace(/[^A-Za-z]/g, '');
+      if (first.length >= 3) {
+        base = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
+    } else if (emailVal) {
+      const emPart = emailVal.split('@')[0].split('.')[0].replace(/[^A-Za-z]/g, '');
+      if (emPart.length >= 3) {
+        base = emPart.charAt(0).toUpperCase() + emPart.slice(1).toLowerCase();
+      }
+    }
+
+    const symbols = ['#', '$', '!', '@', '&', '*'];
+    const sym1 = symbols[Math.floor(Math.random() * symbols.length)];
+    const sym2 = symbols[Math.floor(Math.random() * symbols.length)];
+    const digits = Math.floor(1000 + Math.random() * 9000);
+    const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+
+    const generated = `CBS${sym1}${base}${letter}${sym2}${digits}`;
+    pwdInput.value = generated;
+    pwdInput.type = 'text';
+    const icon = document.getElementById('eye-icon-su');
+    if (icon) icon.className = 'ph ph-eye-slash';
+    
+    checkPasswordStrength(generated);
   }
 
   updateFormFields();

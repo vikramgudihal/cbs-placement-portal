@@ -1,13 +1,42 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<style>
+  @media (max-width: 768px) {
+    .header-action-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.75rem !important;
+    }
+    .header-btn-group {
+      width: 100% !important;
+      display: flex !important;
+      gap: 0.5rem !important;
+    }
+    .header-btn-group a {
+      flex: 1 !important;
+      justify-content: center !important;
+      text-align: center !important;
+      padding: 0.55rem 0.65rem !important;
+      font-size: 0.82rem !important;
+      white-space: nowrap !important;
+    }
+    .data-table-container {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 header-action-row">
     <div>
-        <h2 style="color: var(--primary);">Form Responses</h2>
-        <p class="text-muted">{{ form.title }}</p>
+        <h2 style="color: var(--primary); margin-bottom: 0.25rem;">Form Responses</h2>
+        <p class="text-muted" style="margin: 0;">{{ form.title }}</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 header-btn-group">
         <a href="{{ url_for('dynamic_forms.manage_forms') }}" class="btn-secondary">
             <i class="ph-bold ph-arrow-left"></i> Back
         </a>

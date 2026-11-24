@@ -503,12 +503,20 @@
           <i class="ph-bold ph-check-circle"></i> Applied
         </span>
         {% elif is_eligible %}
-          <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" class="btn-apply-corp">
+          {% set reqs = job.custom_requirements or {} %}
+          {% set has_custom_reqs = reqs.require_github or reqs.require_linkedin or reqs.require_relocate or reqs.require_preferred_city or reqs.custom_question %}
+          {% if has_custom_reqs %}
+            <button type="button" class="btn-apply-corp" onclick="openApplyModal('{{ job._id }}', '{{ job.company_name|escape }}', '{{ job.role|escape }}', {{ reqs|tojson|forceescape }})">
               Apply Now <i class="ph-bold ph-arrow-right"></i>
             </button>
-          </form>
+          {% else %}
+            <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn-apply-corp">
+                Apply Now <i class="ph-bold ph-arrow-right"></i>
+              </button>
+            </form>
+          {% endif %}
         {% else %}
         <span style="font-size: 0.775rem; color: var(--text-subtle); display: inline-flex; align-items: center; gap: 0.25rem;">
           <i class="ph-bold ph-lock"></i> Criteria Not Met
@@ -610,6 +618,156 @@ function toggleDetails(jobId) {
     const isVisible = drawer.style.display === 'block';
     drawer.style.display = isVisible ? 'none' : 'block';
   }
+}
+
+<!-- Custom Requirements Application Modal -->
+<div id="applyCustomModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1.5rem;">
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35); position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+      <div>
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em;">Drive Application</span>
+        <h2 id="modalDriveTitle" style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin: 0.2rem 0 0 0;">Company Application</h2>
+      </div>
+      <button type="button" onclick="closeApplyModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0.25rem;">
+        <i class="ph-bold ph-x"></i>
+      </button>
+    </div>
+
+    <form id="applyCustomForm" method="POST" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div style="background: rgba(79, 70, 229, 0.06); border: 1px solid rgba(79, 70, 229, 0.18); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
+        <i class="ph-bold ph-shield-check" style="color: var(--primary);"></i>
+        This recruiter has requested additional profile data. Enter your information below &mdash; it will be <strong>saved automatically to your candidate profile</strong> for future campus drives.
+      </div>
+
+      <!-- GitHub Field -->
+      <div id="field_github" style="display: none; margin-bottom: 1rem;">
+        <label for="apply_github" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+          <i class="ph-bold ph-github-logo"></i> GitHub Profile URL <span style="color: #ef4444;">*</span>
+        </label>
+        <input type="url" name="github_url" id="apply_github" value="{{ student.github_url or '' }}" placeholder="https://github.com/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+      </div>
+
+      <!-- LinkedIn Field -->
+      <div id="field_linkedin" style="display: none; margin-bottom: 1rem;">
+        <label for="apply_linkedin" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+          <i class="ph-bold ph-linkedin-logo"></i> LinkedIn Profile URL <span style="color: #ef4444;">*</span>
+        </label>
+        <input type="url" name="linkedin_url" id="apply_linkedin" value="{{ student.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+      </div>
+
+      <!-- Relocation Field -->
+      <div id="field_relocate" style="display: none; margin-bottom: 1rem;">
+        <label for="apply_relocate" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+          <i class="ph-bold ph-airplane-tilt"></i> Willing to Relocate? <span style="color: #ef4444;">*</span>
+        </label>
+        <select name="willing_to_relocate" id="apply_relocate" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;">
+          <option value="Yes" {% if (student.willing_to_relocate or 'Yes') == 'Yes' %}selected{% endif %}>Yes, willing to relocate across India</option>
+          <option value="Bangalore Only" {% if student.willing_to_relocate == 'Bangalore Only' %}selected{% endif %}>Bangalore / Hubli-Dharwad Region Only</option>
+          <option value="Hybrid / Remote Only" {% if student.willing_to_relocate == 'Hybrid / Remote Only' %}selected{% endif %}>Hybrid / Remote Only</option>
+          <option value="No" {% if student.willing_to_relocate == 'No' %}selected{% endif %}>No, strictly local</option>
+        </select>
+      </div>
+
+      <!-- Preferred City Field -->
+      <div id="field_city" style="display: none; margin-bottom: 1rem;">
+        <label for="apply_city" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+          <i class="ph-bold ph-map-pin"></i> Preferred Work Location / City <span style="color: #ef4444;">*</span>
+        </label>
+        <input type="text" name="preferred_location" id="apply_city" value="{{ student.preferred_location or '' }}" placeholder="e.g. Bangalore, Hyderabad, Pune, Hubli" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+      </div>
+
+      <!-- Custom Question Field -->
+      <div id="field_question" style="display: none; margin-bottom: 1.25rem;">
+        <label id="lbl_custom_question" for="apply_custom_answer" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+          <i class="ph-bold ph-chat-centered-text"></i> Recruiter Screening Question <span style="color: #ef4444;">*</span>
+        </label>
+        <textarea name="custom_answer" id="apply_custom_answer" rows="3" placeholder="Provide your concise response..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.88rem;"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+        <button type="button" onclick="closeApplyModal()" style="padding: 0.75rem 1.4rem; border-radius: 9999px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+          Cancel
+        </button>
+        <button type="submit" class="btn-apply-corp" style="padding: 0.75rem 1.75rem; font-size: 0.92rem;">
+          <span>Confirm &amp; Submit Application</span>
+          <i class="ph-bold ph-check"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openApplyModal(jobId, company, role, reqs) {
+  const modal = document.getElementById('applyCustomModal');
+  const form = document.getElementById('applyCustomForm');
+  const title = document.getElementById('modalDriveTitle');
+
+  title.textContent = `${role} at ${company}`;
+  form.action = `/student/jobs/${jobId}/apply`;
+
+  const fieldGithub = document.getElementById('field_github');
+  const inputGithub = document.getElementById('apply_github');
+  if (reqs && reqs.require_github) {
+    fieldGithub.style.display = 'block';
+    inputGithub.required = true;
+  } else {
+    fieldGithub.style.display = 'none';
+    inputGithub.required = false;
+  }
+
+  const fieldLinkedin = document.getElementById('field_linkedin');
+  const inputLinkedin = document.getElementById('apply_linkedin');
+  if (reqs && reqs.require_linkedin) {
+    fieldLinkedin.style.display = 'block';
+    inputLinkedin.required = true;
+  } else {
+    fieldLinkedin.style.display = 'none';
+    inputLinkedin.required = false;
+  }
+
+  const fieldRelocate = document.getElementById('field_relocate');
+  const inputRelocate = document.getElementById('apply_relocate');
+  if (reqs && reqs.require_relocate) {
+    fieldRelocate.style.display = 'block';
+    inputRelocate.required = true;
+  } else {
+    fieldRelocate.style.display = 'none';
+    inputRelocate.required = false;
+  }
+
+  const fieldCity = document.getElementById('field_city');
+  const inputCity = document.getElementById('apply_city');
+  if (reqs && reqs.require_preferred_city) {
+    fieldCity.style.display = 'block';
+    inputCity.required = true;
+  } else {
+    fieldCity.style.display = 'none';
+    inputCity.required = false;
+  }
+
+  const fieldQuestion = document.getElementById('field_question');
+  const lblQuestion = document.getElementById('lbl_custom_question');
+  const inputQuestion = document.getElementById('apply_custom_answer');
+  if (reqs && reqs.custom_question) {
+    fieldQuestion.style.display = 'block';
+    lblQuestion.innerHTML = `<i class="ph-bold ph-chat-centered-text"></i> ${reqs.custom_question} <span style="color: #ef4444;">*</span>`;
+    inputQuestion.required = true;
+  } else {
+    fieldQuestion.style.display = 'none';
+    inputQuestion.required = false;
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeApplyModal() {
+  const modal = document.getElementById('applyCustomModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function confirmApply(company, role) {

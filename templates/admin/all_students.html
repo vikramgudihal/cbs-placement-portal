@@ -27,6 +27,52 @@
            onkeyup="filterStudents()" style="max-width: 400px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-input);">
   </div>
 
+  <style>
+    @media (max-width: 768px) {
+      .glass-card-heavy {
+        padding: 0.75rem !important;
+      }
+      #studentsTable thead {
+        display: none !important;
+      }
+      #studentsTable, #studentsTable tbody {
+        display: block !important;
+        width: 100% !important;
+      }
+      #studentsTable tr.student-row {
+        display: block !important;
+        margin-bottom: 0.85rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        background: var(--surface) !important;
+        padding: 0.85rem 1rem !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03) !important;
+      }
+      #studentsTable tr.student-row td {
+        display: block !important;
+        padding: 0.3rem 0 !important;
+        border: none !important;
+        text-align: left !important;
+      }
+      #studentsTable tr.student-row td:last-child {
+        border-top: 1px solid var(--border) !important;
+        padding-top: 0.65rem !important;
+        margin-top: 0.4rem !important;
+      }
+      #studentsTable tr.student-row td:last-child > div {
+        display: flex !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+      }
+      #studentsTable tr.student-row td:last-child a,
+      #studentsTable tr.student-row td:last-child button {
+        flex: 1 !important;
+        min-height: 40px !important;
+        justify-content: center !important;
+      }
+    }
+  </style>
+
   <div class="glass-card-heavy" style="padding: 1.5rem; overflow-x: auto;">
     <table style="width: 100%; border-collapse: collapse;" id="studentsTable">
       <thead>

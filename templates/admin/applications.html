@@ -139,13 +139,16 @@
       <select name="batch_status" id="batchStatusSelect" onchange="toggleBatchRejectionStage()" class="form-control" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; background: #1e293b; color: white; border-color: #334155;">
         <option value="Shortlisted">Advance to Shortlisted</option>
         <option value="Aptitude">Advance to Aptitude / Assessment</option>
-        <option value="GD">Advance to GD</option>
+        <option value="Technical_Assessment">Advance to Technical Assessment</option>
+        <option value="GD">Advance to GD (Group Discussion)</option>
         <option value="Technical_R1">Advance to Tech Round 1</option>
         <option value="Technical_R2">Advance to Tech Round 2</option>
         <option value="HR_Interview">Advance to HR Interview</option>
-        <option value="Interview">Advance to Interview</option>
-        <option value="Selected">Mark as Selected (Placed)</option>
+        <option value="Managerial_Round">Advance to Managerial Round</option>
+        <option value="Interview">Advance to Final Interview</option>
+        <option value="Selected">Mark as Selected (Final Offer)</option>
         <option value="Rejected">Mark as Rejected (Drive Exit)</option>
+        <option value="Withdrawn">Mark as Withdrawn</option>
       </select>
       <select name="batch_rejection_stage" id="batchRejectionStageSelect" class="form-control" style="display: none; padding: 0.4rem 0.75rem; font-size: 0.85rem; background: #7f1d1d; color: white; border-color: #ef4444;">
         <option value="Resume Screening">Stage: Resume Screening</option>
@@ -537,8 +540,8 @@
       color: #dc2626;
     }
 
-    /* Responsive Mobile & Tablet Card Layout (<= 768px) */
-    @media (max-width: 768px) {
+    /* Responsive Mobile & Tablet Card Layout (<= 860px) */
+    @media (max-width: 860px) {
       .applications-streamlined-table thead {
         display: none !important;
       }
@@ -551,35 +554,114 @@
         box-sizing: border-box !important;
       }
       .applications-streamlined-table tr.app-row {
-        margin-bottom: 1rem !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
-        background: var(--surface) !important;
-        padding: 1rem !important;
-        box-shadow: var(--shadow-sm) !important;
+        margin-bottom: 1.25rem !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 18px !important;
+        background: #ffffff !important;
+        padding: 1.15rem 1rem !important;
+        box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.07) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+      }
+      [data-theme="dark"] .applications-streamlined-table tr.app-row {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.4) !important;
       }
       .applications-streamlined-table td {
-        padding: 0.45rem 0 !important;
-        border-bottom: 1px dashed rgba(226, 232, 240, 0.8) !important;
-      }
-      .applications-streamlined-table td:last-child {
+        padding: 0 !important;
         border-bottom: none !important;
-        padding-top: 0.75rem !important;
       }
+      
+      /* Card Header Bar (Checkbox + Application Label) */
       .applications-streamlined-table td.col-checkbox {
         display: flex !important;
         align-items: center !important;
-        justify-content: flex-start !important;
-        padding-bottom: 0.5rem !important;
+        justify-content: space-between !important;
+        padding-bottom: 0.65rem !important;
+        margin-bottom: 0.75rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
       }
+      [data-theme="dark"] .applications-streamlined-table td.col-checkbox {
+        border-bottom-color: #334155 !important;
+      }
+      .applications-streamlined-table td.col-checkbox::after {
+        content: "CANDIDATE DOSSIER";
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        background: #f8fafc;
+        padding: 0.2rem 0.55rem;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+      }
+      [data-theme="dark"] .applications-streamlined-table td.col-checkbox::after {
+        color: #94a3b8;
+        background: #0f172a;
+        border-color: #334155;
+      }
+      .applications-streamlined-table td.col-checkbox input[type="checkbox"] {
+        width: 19px !important;
+        height: 19px !important;
+        accent-color: var(--primary) !important;
+        cursor: pointer !important;
+      }
+
+      /* Candidate details section */
+      .applications-streamlined-table td.col-candidate {
+        padding-bottom: 0.75rem !important;
+      }
+      .applications-streamlined-table td.col-candidate span[style*="font-weight: 700"] {
+        font-size: 1.05rem !important;
+        color: var(--text-main) !important;
+      }
+
+      /* Recruiter Drive & Academics: Embedded Tinted Card */
+      .applications-streamlined-table td.col-drive-academics {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 0.85rem 0.95rem !important;
+        margin-bottom: 0.75rem !important;
+      }
+      [data-theme="dark"] .applications-streamlined-table td.col-drive-academics {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-color: #334155 !important;
+      }
+
+      /* Stage Progression & RSVP */
+      .applications-streamlined-table td.col-stage-rsvp {
+        padding-bottom: 0.75rem !important;
+      }
+
+      /* Action Section: Full Width Controls */
       .applications-streamlined-table td.col-actions {
+        padding-top: 0.75rem !important;
+        border-top: 1px solid #f1f5f9 !important;
         text-align: left !important;
       }
+      [data-theme="dark"] .applications-streamlined-table td.col-actions {
+        border-top-color: #334155 !important;
+      }
       .applications-streamlined-table td.col-actions > div {
-        align-items: flex-start !important;
+        align-items: stretch !important;
+        width: 100% !important;
       }
       .app-stage-select {
         width: 100% !important;
+        min-height: 44px !important;
+        font-size: 0.88rem !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 0.85rem !important;
+        border: 1.5px solid #cbd5e1 !important;
+        background-color: var(--surface) !important;
+        color: var(--text-main) !important;
+      }
+      .btn-corporate-exit {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 40px !important;
       }
     }
   </style>
@@ -642,20 +724,26 @@
                       <i class="ph-bold ph-warning"></i>
                       <span>{{ (app.other_applications or [])|length }} Drives</span>
                     </button>
-                    <div class="multi-app-hover-card">
+                    <div class="multi-app-hover-card" style="width: 320px; max-width: 90vw;">
                       <div class="hover-hdr">
-                        <strong><i class="ph-bold ph-warning"></i> Applied to {{ (app.other_applications or [])|length }} Drives</strong>
-                        <span class="hover-hint">Click badge for full details</span>
+                        <strong><i class="ph-bold ph-warning"></i> Multi-Drive Policy Alert</strong>
+                        <div style="font-size: 0.74rem; color: #92400e; line-height: 1.35; margin: 0.25rem 0; background: rgba(245, 158, 11, 0.1); padding: 0.35rem 0.5rem; border-radius: 6px;">
+                          <strong>Why this warning shows:</strong> Candidate applied to <strong>{{ (app.other_applications or [])|length }} active drives</strong> simultaneously. Under CBS placement policy, multi-drive candidates require tracking to prevent timetable conflicts and double-offers.
+                        </div>
+                        <span class="hover-hint">Click / Tap badge for full drive dossier &rarr;</span>
                       </div>
                       <div class="hover-list">
-                        {% for d in (app.other_applications or [])[:3] %}
+                        {% for d in (app.other_applications or [])[:4] %}
                         <div class="hover-item">
-                          <span class="hover-comp">{{ d.company }}</span>
+                          <div>
+                            <span class="hover-comp">{{ d.company }}</span>
+                            <div style="font-size: 0.68rem; color: var(--text-muted);">{{ d.role or 'Candidate Role' }}</div>
+                          </div>
                           <span class="hover-status {{ (d.status or 'applied')|lower }}">{{ d.status }}</span>
                         </div>
                         {% endfor %}
-                        {% if (app.other_applications or [])|length > 3 %}
-                        <div style="font-size: 0.7rem; color: var(--text-muted); padding-top: 0.2rem;">+ {{ (app.other_applications|length) - 3 }} more drives</div>
+                        {% if (app.other_applications or [])|length > 4 %}
+                        <div style="font-size: 0.7rem; color: var(--text-muted); padding-top: 0.2rem; text-align: center;">+ {{ (app.other_applications|length) - 4 }} more recruitment drives</div>
                         {% endif %}
                       </div>
                     </div>
@@ -671,7 +759,7 @@
                 <div style="font-size: 0.76rem; color: var(--text-muted); font-family: monospace;">
                   {{ sid }} &middot; {{ app.user_info.email if app.user_info and app.user_info.email else app.student_email }}
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 0.1rem;">
+                <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 0.1rem; flex-wrap: wrap;">
                   {% if app.student_info and app.student_info.resume_file_id %}
                   <a href="{{ url_for('file_serving.serve_file', file_id=app.student_info.resume_file_id) }}" target="_blank" class="app-resume-chip" title="View Candidate Resume PDF">
                     <i class="ph-bold ph-file-pdf"></i> Resume.pdf
@@ -682,6 +770,29 @@
                   </a>
                   {% else %}
                   <span class="app-resume-chip-none"><i class="ph-bold ph-file-dashed"></i> No Resume</span>
+                  {% endif %}
+
+                  {% if app.custom_responses %}
+                    {% if app.custom_responses.github_url %}
+                    <a href="{{ app.custom_responses.github_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.68rem; font-weight: 700; background: rgba(15, 23, 42, 0.08); color: var(--text-main); padding: 0.15rem 0.45rem; border-radius: 4px; text-decoration: none;" title="GitHub Profile">
+                      <i class="ph-bold ph-github-logo"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if app.custom_responses.linkedin_url %}
+                    <a href="{{ app.custom_responses.linkedin_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.68rem; font-weight: 700; background: rgba(37, 99, 235, 0.1); color: #2563eb; padding: 0.15rem 0.45rem; border-radius: 4px; text-decoration: none;" title="LinkedIn Profile">
+                      <i class="ph-bold ph-linkedin-logo"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if app.custom_responses.preferred_location %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.68rem; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: #059669; padding: 0.15rem 0.45rem; border-radius: 4px;" title="Preferred Location">
+                      <i class="ph-bold ph-map-pin"></i> {{ app.custom_responses.preferred_location }}
+                    </span>
+                    {% endif %}
+                    {% if app.custom_responses.custom_answer %}
+                    <span style="font-size: 0.68rem; font-weight: 700; color: #4f46e5; background: rgba(79, 70, 229, 0.08); padding: 0.15rem 0.45rem; border-radius: 4px; cursor: help;" title="{{ app.custom_responses.custom_question or 'Screening Question' }}: {{ app.custom_responses.custom_answer }}">
+                      <i class="ph-bold ph-chat-centered-text"></i> Screening Ans
+                    </span>
+                    {% endif %}
                   {% endif %}
                 </div>
               </div>
@@ -773,20 +884,22 @@
                 >
                   <optgroup label="📋 Initial Screening">
                     <option value="Applied" {% if status == "Applied" %}selected{% endif %}>Applied</option>
-                    <option value="Shortlisted" {% if status == "Shortlisted" %}selected{% endif %}>Shortlisted</option>
+                    <option value="Shortlisted" {% if status == "Shortlisted" %}selected{% endif %}>Shortlisted (Resume Screening)</option>
                   </optgroup>
-                  <optgroup label="🎯 Evaluation Rounds">
-                    <option value="Aptitude" {% if status == "Aptitude" %}selected{% endif %}>Aptitude / Test</option>
+                  <optgroup label="🎯 Evaluation &amp; Assessments">
+                    <option value="Aptitude" {% if status == "Aptitude" %}selected{% endif %}>Online Assessment / Aptitude</option>
+                    <option value="Technical_Assessment" {% if status == "Technical_Assessment" %}selected{% endif %}>Technical Coding Assessment</option>
                     <option value="GD" {% if status == "GD" %}selected{% endif %}>Group Discussion (GD)</option>
-                    <option value="Technical_R1" {% if status == "Technical_R1" %}selected{% endif %}>Tech Round 1</option>
-                    <option value="Technical_R2" {% if status == "Technical_R2" %}selected{% endif %}>Tech Round 2</option>
-                    <option value="HR_Interview" {% if status == "HR_Interview" %}selected{% endif %}>HR Interview</option>
-                    <option value="Interview" {% if status == "Interview" %}selected{% endif %}>Interview (General)</option>
+                    <option value="Technical_R1" {% if status == "Technical_R1" %}selected{% endif %}>Technical Interview Round 1</option>
+                    <option value="Technical_R2" {% if status == "Technical_R2" %}selected{% endif %}>Technical Interview Round 2</option>
+                    <option value="HR_Interview" {% if status == "HR_Interview" %}selected{% endif %}>HR &amp; Behavioral Round</option>
+                    <option value="Managerial_Round" {% if status == "Managerial_Round" %}selected{% endif %}>Managerial / Leadership Round</option>
+                    <option value="Interview" {% if status == "Interview" %}selected{% endif %}>Interview (General / Final)</option>
                   </optgroup>
                   <optgroup label="🏁 Final Outcome">
-                    <option value="Selected" {% if status == "Selected" %}selected{% endif %}>Selected (Offer)</option>
-                    <option value="Rejected" {% if status == "Rejected" %}selected{% endif %}>Rejected</option>
-                    <option value="Withdrawn" {% if status == "Withdrawn" or status == "AUTO_WITHDRAWN" %}selected{% endif %}>Withdrawn</option>
+                    <option value="Selected" {% if status == "Selected" %}selected{% endif %}>Selected / Offer Awarded</option>
+                    <option value="Rejected" {% if status == "Rejected" %}selected{% endif %}>Rejected / Eliminated</option>
+                    <option value="Withdrawn" {% if status == "Withdrawn" or status == "AUTO_WITHDRAWN" %}selected{% endif %}>Withdrawn / Auto-Exited</option>
                   </optgroup>
                 </select>
 
@@ -834,15 +947,18 @@
       <div class="form-group" style="margin-bottom:1rem;">
         <label class="form-label" style="font-weight:700;">Target Stage / Round</label>
         <select name="target_status" id="bulkTargetStatus" class="form-control" style="font-size:0.9rem;" onchange="toggleBulkRejectionStage()" required>
-          <option value="Shortlisted">Advance to Shortlisted</option>
-          <option value="Aptitude">Advance to Aptitude / Assessment</option>
+          <option value="Shortlisted">Advance to Shortlisted (Resume Screening)</option>
+          <option value="Aptitude">Advance to Online Assessment / Aptitude</option>
+          <option value="Technical_Assessment">Advance to Technical Coding Assessment</option>
           <option value="GD">Advance to Group Discussion (GD)</option>
           <option value="Technical_R1">Advance to Tech Round 1</option>
           <option value="Technical_R2">Advance to Tech Round 2</option>
           <option value="HR_Interview">Advance to HR Interview</option>
-          <option value="Interview">Advance to Interview (General)</option>
+          <option value="Managerial_Round">Advance to Managerial Round</option>
+          <option value="Interview">Advance to Final Interview</option>
           <option value="Selected">Mark as Selected (Final Offer)</option>
           <option value="Rejected">Mark as Rejected (Drive Exit)</option>
+          <option value="Withdrawn">Mark as Withdrawn</option>
         </select>
       </div>
 

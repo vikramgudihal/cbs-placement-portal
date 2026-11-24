@@ -650,33 +650,64 @@
         </div>
 
         <div class="ats-score-meter-box">
-          <div class="ats-score-number">94%</div>
-          <div class="ats-status-badge">
-            <i class="ph-bold ph-sparkle"></i> ATS Recruiter Optimized
+          <div class="ats-score-number" style="color: {{ ats.color if ats is defined else '#10b981' }};">
+            {{ ats.score if ats is defined else 0 }}%
           </div>
-          <ul class="ats-check-list">
-            <li><i class="ph-bold ph-check-circle"></i> Marks Card Locked &amp; Audited</li>
-            <li><i class="ph-bold ph-check-circle"></i> Standard Placement Layout</li>
-            <li><i class="ph-bold ph-check-circle"></i> Contact Info Formatted</li>
+          <div class="ats-status-badge" style="color: {{ ats.color if ats is defined else '#10b981' }};">
+            <i class="ph-bold {% if ats is defined and ats.score >= 80 %}ph-sparkle{% elif ats is defined and ats.score >= 50 %}ph-shield-check{% else %}ph-warning-circle{% endif %}"></i>
+            {{ ats.label if ats is defined else 'Live ATS Score' }}
+          </div>
+          <ul class="ats-check-list" style="margin: 1.25rem 0 0.75rem 0; text-align: left;">
+            {% if ats is defined and ats.checks %}
+              {% for chk in ats.checks %}
+              <li style="display: flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0; color: {% if chk.passed %}var(--text-main){% else %}var(--text-muted){% endif %}; font-size: 0.8rem;">
+                {% if chk.passed %}
+                <i class="ph-bold ph-check-circle" style="color: #10b981; font-size: 1.05rem; flex-shrink: 0;"></i>
+                <span style="font-weight: 600;">{{ chk.title }}</span>
+                {% else %}
+                <i class="ph-bold ph-x-circle" style="color: #ef4444; font-size: 1.05rem; flex-shrink: 0;"></i>
+                <span>{{ chk.title }}</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            {% else %}
+              <li><i class="ph-bold ph-info"></i> Complete profile to generate live ATS score.</li>
+            {% endif %}
           </ul>
         </div>
 
         {% if student.resume_file_id %}
-        <a href="{{ url_for('file_serving.serve_file', file_id=student.resume_file_id) }}" target="_blank" class="btn-resume-view">
-          <i class="ph-bold ph-eye"></i>
-          <span>View Verified Resume</span>
-        </a>
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <a href="{{ url_for('file_serving.serve_file', file_id=student.resume_file_id) }}" target="_blank" class="btn-resume-view">
+            <i class="ph-bold ph-eye"></i>
+            <span>View Verified Resume</span>
+          </a>
+          <button type="button" onclick="document.getElementById('profileResumeInput').click()" style="background: none; border: none; font-size: 0.8rem; font-weight: 700; color: var(--prof-indigo); cursor: pointer; text-decoration: underline; padding: 0.3rem 0;">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i> Replace with new PDF (Max 5MB)
+          </button>
+        </div>
         {% elif student.resume_path %}
-        <a href="{{ url_for('static', filename='uploads/' + student.resume_path) }}" target="_blank" class="btn-resume-view">
-          <i class="ph-bold ph-eye"></i>
-          <span>View Verified Resume</span>
-        </a>
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <a href="{{ url_for('static', filename='uploads/' + student.resume_path) }}" target="_blank" class="btn-resume-view">
+            <i class="ph-bold ph-eye"></i>
+            <span>View Verified Resume</span>
+          </a>
+          <button type="button" onclick="document.getElementById('profileResumeInput').click()" style="background: none; border: none; font-size: 0.8rem; font-weight: 700; color: var(--prof-indigo); cursor: pointer; text-decoration: underline; padding: 0.3rem 0;">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i> Replace with new PDF (Max 5MB)
+          </button>
+        </div>
         {% else %}
-        <a href="{{ url_for('complete_profile') }}" class="btn-resume-view" style="background: var(--prof-amber);">
+        <button type="button" onclick="document.getElementById('profileResumeInput').click()" class="btn-resume-view" style="background: var(--prof-amber); border: none; cursor: pointer;">
           <i class="ph-bold ph-upload-simple"></i>
-          <span>Upload Resume</span>
-        </a>
+          <span>Upload Resume (PDF Only, Max 5MB)</span>
+        </button>
         {% endif %}
+
+        <!-- Hidden Secure Form for 1-Click Resume Upload -->
+        <form id="profileResumeForm" action="{{ url_for('update_resume') }}" method="POST" enctype="multipart/form-data" style="display: none;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="file" id="profileResumeInput" name="resume" accept=".pdf,application/pdf" onchange="if(this.files.length) { document.getElementById('profileResumeForm').submit(); }"/>
+        </form>
       </section>
 
       <!-- Verified Contact Credentials -->

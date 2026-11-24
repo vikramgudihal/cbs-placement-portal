@@ -133,6 +133,177 @@ def ensure_production_indexes():
 
 ensure_production_indexes()
 
+# --- HELPER: SECURE RESUME VALIDATION & STORAGE ---
+MAX_RESUME_SIZE = 5 * 1024 * 1024 # 5 MB Strict Limit
+
+def validate_and_store_resume(file_obj, user_id):
+    """
+    Production-Hardened Resume File Validation & GridFS Storage:
+    1. Verifies non-empty upload and filename.
+    2. Strict extension check: ONLY authentic PDF (.pdf).
+    3. Strict size limit: Max 5MB (rejects oversized attack payloads).
+    4. Magic bytes inspection: checks that file stream starts with '%PDF-'.
+    5. Filename sanitization via secure_filename.
+    6. Prunes old resume files from GridFS for this user and stores new file safely.
+    Returns (success: bool, file_id_or_error_msg: str)
+    """
+    if not file_obj or not file_obj.filename:
+        return False, "No file selected. Please select a valid PDF resume to upload."
+    
+    filename = secure_filename(file_obj.filename)
+    if not filename.lower().endswith('.pdf'):
+        return False, "Security Violation: Only authentic PDF (.pdf) documents are accepted for placement resumes."
+    
+    file_bytes = file_obj.read()
+    if len(file_bytes) == 0:
+        return False, "The uploaded file is empty. Please upload a valid PDF document."
+    
+    if len(file_bytes) > MAX_RESUME_SIZE:
+        mb_size = round(len(file_bytes) / (1024 * 1024), 2)
+        return False, f"File size too large ({mb_size}MB). The maximum allowed resume file size is 5MB."
+    
+    # Check PDF magic bytes (%PDF-)
+    if not file_bytes.startswith(b'%PDF-'):
+        return False, "File integrity violation: The file does not have a genuine PDF signature (%PDF-). Disguised binaries or malicious scripts are blocked."
+    
+    try:
+        fs = get_fs()
+        uid = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+        # Delete old resume files from GridFS for this candidate
+        try:
+            old_files = fs.find({'metadata.user_id': uid, 'metadata.type': 'resume'})
+            for old_f in old_files:
+                fs.delete(old_f._id)
+        except Exception as cleanup_err:
+            app.logger.warning(f"Old resume cleanup note: {cleanup_err}")
+            
+        file_id = fs.put(
+            file_bytes,
+            filename=filename,
+            content_type='application/pdf',
+            metadata={
+                'user_id': uid,
+                'type': 'resume',
+                'size_bytes': len(file_bytes),
+                'uploaded_at': datetime.datetime.now()
+            }
+        )
+        return True, file_id
+    except Exception as e:
+        app.logger.error(f"GridFS error saving resume: {str(e)}")
+        return False, f"System error saving resume: {str(e)}"
+
+# --- HELPER: REAL-TIME DYNAMIC STUDENT ATS METRICS ---
+def calculate_student_ats_score(student):
+    """
+    Computes a realistic, live ATS readiness score (0-100%) and validation checklist
+    derived dynamically from actual data entered in the candidate profile.
+    """
+    if not student:
+        return {
+            'score': 0,
+            'label': 'Incomplete Profile',
+            'color': '#ef4444',
+            'badge_class': 'incomplete',
+            'checks': [
+                {'title': 'Academic Records Incomplete', 'passed': False},
+                {'title': 'Contact & Identification Missing', 'passed': False},
+                {'title': 'Technical Competencies Missing', 'passed': False},
+                {'title': 'Verified Placement Resume Missing', 'passed': False},
+                {'title': 'Projects & Portfolio Missing', 'passed': False}
+            ],
+            'is_complete': False
+        }
+
+    checks = []
+    score = 0
+    
+    # 1. Academic records (10th, 12th, and Degree CGPA)
+    acad = student.get('academic', {}) or {}
+    tenth = acad.get('tenth', {}) or {}
+    twelfth = acad.get('twelfth', {}) or {}
+    ug = acad.get('ug', {}) or {}
+    pg = acad.get('pg', {}) or {}
+    
+    has_tenth = bool(tenth.get('score'))
+    has_twelfth = bool(twelfth.get('score'))
+    has_degree = bool(ug.get('score') or pg.get('score') or student.get('cgpa'))
+    
+    if has_tenth and has_twelfth and has_degree:
+        checks.append({'title': 'Marks Cards Audited (10th, 12th & Degree CGPA)', 'passed': True})
+        score += 30
+    elif has_degree:
+        checks.append({'title': 'Degree CGPA Recorded (School records incomplete)', 'passed': False})
+        score += 15
+    else:
+        checks.append({'title': 'Academic Records Incomplete (Requires 10th, 12th & CGPA)', 'passed': False})
+
+    # 2. Contact details & University Roll Number
+    has_contact = bool(student.get('phone') and (student.get('personal_email') or student.get('email')))
+    has_id = bool(student.get('student_id'))
+    if has_contact and has_id:
+        checks.append({'title': 'Contact & University Roll No Verified', 'passed': True})
+        score += 20
+    elif has_contact or has_id:
+        checks.append({'title': 'Contact Information Partially Filled', 'passed': False})
+        score += 10
+    else:
+        checks.append({'title': 'Contact Information Missing', 'passed': False})
+
+    # 3. Technical Skills
+    skills = student.get('skills', []) or []
+    if len(skills) >= 3:
+        checks.append({'title': f'Technical Competencies ({len(skills)} skills listed)', 'passed': True})
+        score += 20
+    elif len(skills) > 0:
+        checks.append({'title': f'Technical Skills ({len(skills)} added; recommend at least 3)', 'passed': False})
+        score += 10
+    else:
+        checks.append({'title': 'Technical Competencies Not Added', 'passed': False})
+
+    # 4. Verified Resume PDF
+    has_resume = bool(student.get('resume_file_id') or student.get('resume_path'))
+    if has_resume:
+        checks.append({'title': 'Verified Placement PDF Uploaded', 'passed': True})
+        score += 20
+    else:
+        checks.append({'title': 'Placement PDF Resume Not Uploaded', 'passed': False})
+
+    # 5. Projects & Work Experience
+    projects = student.get('projects') or ''
+    if len(str(projects).strip()) >= 20:
+        checks.append({'title': 'Industry Projects & Portfolio Detailed', 'passed': True})
+        score += 10
+    elif len(str(projects).strip()) > 0:
+        checks.append({'title': 'Project Details Brief (Add comprehensive descriptions)', 'passed': False})
+        score += 5
+    else:
+        checks.append({'title': 'Projects & Work Experience Missing', 'passed': False})
+
+    score = min(100, score)
+    
+    if score >= 80:
+        label = "ATS Recruiter Optimized"
+        color = "#10b981"
+        badge_class = "optimized"
+    elif score >= 50:
+        label = "Moderate ATS Readiness"
+        color = "#f59e0b"
+        badge_class = "moderate"
+    else:
+        label = "Incomplete / Needs Setup"
+        color = "#ef4444"
+        badge_class = "incomplete"
+
+    return {
+        'score': score,
+        'label': label,
+        'color': color,
+        'badge_class': badge_class,
+        'checks': checks,
+        'is_complete': score >= 80
+    }
+
 # --- PRODUCTION HEALTH CHECK ENDPOINT ---
 @app.route('/health')
 @app.route('/api/health')
@@ -241,12 +412,13 @@ def login():
     return render_template('login.html')
 
 @app.route('/login', methods=['POST'])
-@limiter.limit("20 per minute")
+@limiter.limit("15 per minute")
 def login_post():
     raw_identifier = (request.form.get('email') or '').strip()
     email = raw_identifier.lower()
     password = (request.form.get('password') or '').strip()
     role = request.form.get('role')
+    now = datetime.datetime.now()
     
     import re
     # 1. Search by exact or case-insensitive email
@@ -270,28 +442,43 @@ def login_post():
         flash("Invalid email or password", "error")
         return redirect(url_for('login'))
     
+    # BRUTE FORCE & DOS PROTECTION: Check if account is locked out
+    lockout_until = user.get('lockout_until')
+    if lockout_until and lockout_until > now:
+        rem_secs = int((lockout_until - now).total_seconds())
+        rem_mins = max(1, (rem_secs + 59) // 60)
+        flash(f"Security Alert: Account temporarily locked due to 5 consecutive failed attempts. Please wait {rem_mins} minute(s) before trying again.", "error")
+        return redirect(url_for('login'))
+
     # Verify password; auto-adapt role if credentials match
     if verify_password(user['password'], password):
+        # Reset failed attempts and lockout on successful password verification
+        users_collection.update_one(
+            {'_id': user['_id']},
+            {
+                '$set': {'last_login': now},
+                '$unset': {'failed_login_attempts': '', 'lockout_until': '', 'last_failed_login': ''}
+            }
+        )
+
         role = user['role']
-        # Check if student is approved OR needs to complete profile
-        if user['role'] == 'student':
-            # Case 1: Profile Incomplete -> Must Complete
-            if not user.get('profile_completed'):
-                session['user_id'] = str(user['_id'])
-                session['role'] = user['role']
-                return redirect(url_for('complete_profile'))
-            
-            # Case 2: Profile Completed but Not Approved -> Wait for Super Admin Approval
-            if not user.get('is_approved', False):
-                student_doc = students_collection.find_one({'user_id': user['_id']})
-                student_name = (student_doc.get('name') if student_doc else None) or user.get('name', 'Student')
-                return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role='Student', pending_name=student_name)
         
-        # Check if admin/faculty is approved by super admin
-        if user['role'] == 'admin' and not user.get('is_approved', False):
-            admin_title = 'Faculty Coordinator' if user.get('admin_level') == 'faculty' else 'Administrator'
-            admin_name = user.get('full_name') or user.get('name', 'Admin')
-            return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role=admin_title, pending_name=admin_name)
+        # CRITICAL REGISTRATION APPROVAL GATE (Students and Staff must be approved before access)
+        if not user.get('is_approved', False):
+            if user['role'] == 'student':
+                student_doc = students_collection.find_one({'user_id': user['_id']})
+                student_name = (student_doc.get('name') if student_doc else None) or user.get('name', 'Student Candidate')
+                return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role='Student Candidate', pending_name=student_name)
+            else:
+                admin_title = 'Faculty Coordinator' if user.get('admin_level') == 'faculty' else 'Administrator'
+                admin_name = user.get('full_name') or user.get('name', 'Admin')
+                return render_template('login.html', pending_approval=True, pending_email=user['email'], pending_role=admin_title, pending_name=admin_name)
+
+        # If student is approved but hasn't completed academic profile
+        if user['role'] == 'student' and not user.get('profile_completed'):
+            session['user_id'] = str(user['_id'])
+            session['role'] = user['role']
+            return redirect(url_for('complete_profile'))
         
         session['user_id'] = str(user['_id'])
         session['role'] = user['role']
@@ -330,7 +517,22 @@ def login_post():
             )
             return redirect(url_for('student_dashboard'))
     else:
-        flash("Invalid email or password", "error")
+        # FAILED LOGIN: Track attempts and lock out for 5 minutes after 5 failures
+        failed_attempts = user.get('failed_login_attempts', 0) + 1
+        if failed_attempts >= 5:
+            lockout_time = now + datetime.timedelta(minutes=5)
+            users_collection.update_one(
+                {'_id': user['_id']},
+                {'$set': {'failed_login_attempts': failed_attempts, 'lockout_until': lockout_time, 'last_failed_login': now}}
+            )
+            flash("Security Alert: 5 consecutive failed login attempts detected. Your account has been temporarily locked for 5 minutes to prevent brute-force attacks.", "error")
+        else:
+            users_collection.update_one(
+                {'_id': user['_id']},
+                {'$set': {'failed_login_attempts': failed_attempts, 'last_failed_login': now}}
+            )
+            remaining = 5 - failed_attempts
+            flash(f"Invalid email or password. ({remaining} attempt(s) remaining before a 5-minute security lockout)", "error")
         return redirect(url_for('login'))
 
 @app.route('/student/complete-profile', methods=['GET', 'POST'])
@@ -417,21 +619,16 @@ def complete_profile():
             skills = request.form.get('skills', '')
             projects = request.form.get('projects', '')
             
-            # File Upload (GridFS)
+            # File Upload (GridFS with Strict 5MB PDF Security Validation)
             resume_file = request.files.get('resume')
             resume_id = None
             
             if resume_file and resume_file.filename != '':
-                filename = secure_filename(resume_file.filename)
-                content_type = resume_file.content_type
-                # Store in GridFS
-                fs = get_fs()
-                resume_id = fs.put(
-                    resume_file.read(), 
-                    filename=filename, 
-                    content_type=content_type,
-                    metadata={'user_id': ObjectId(session['user_id']), 'type': 'resume'}
-                )
+                ok, res_result = validate_and_store_resume(resume_file, session['user_id'])
+                if not ok:
+                    flash(res_result, "error")
+                    return redirect(url_for('complete_profile'))
+                resume_id = res_result
 
             # Build update dict
             update_data = {
@@ -523,6 +720,17 @@ def signup_post():
         email = request.form.get('email')
         password = request.form.get('password')
         
+        # PASSWORD SECURITY ENFORCEMENT (Defense against weak passwords)
+        if not password or len(password) < 8:
+            flash("Security Requirement: Password must be at least 8 characters long.", "error")
+            return redirect(url_for('signup'))
+        
+        has_letter = any(c.isalpha() for c in password)
+        has_digit = any(c.isdigit() for c in password)
+        if not (has_letter and has_digit):
+            flash("Security Requirement: Password is too weak. Please combine letters and numbers (e.g. use Auto-Suggest Strong Password).", "error")
+            return redirect(url_for('signup'))
+
         if users_collection.find_one({'email': email}):
             flash("Email already registered", "error")
             return redirect(url_for('signup'))
@@ -581,7 +789,7 @@ def signup_post():
                     'requester_id': user_id
                 })
             
-            flash("Account created! Please sign in and complete your academic profile.", "success")
+            flash("Account registration submitted! Your profile is pending Administrative Approval by the Placement Cell. You will be able to log in once verified.", "info")
         
         # Admin/Faculty Registration
         else:  # admin or faculty
@@ -615,7 +823,7 @@ def signup_post():
                     'type': 'admin_registration'
                 })
             
-            flash("Admin/Faculty registration successful! Pending super admin approval. Please wait for approval before logging in.", "success")
+            flash("Staff registration submitted! Pending Super Admin verification. You will be able to log in once verified.", "info")
         
         return redirect(url_for('login'))
 
@@ -829,13 +1037,30 @@ def view_student_resume(user_id):
         flash(f"Error accessing resume: {str(e)}", "error")
         return redirect(url_for('view_student_details', user_id=user_id))
 
-# --- Helper: Auto-expire jobs past their deadline ---
+# --- Helper: Auto-expire jobs past their deadline & auto-archive 2 days after ---
 def auto_expire_jobs():
-    """Automatically mark published jobs as expired if past their expires_at date."""
+    """
+    Automated Job Lifecycle Management:
+    1. If past deadline by 2+ days (expires_at < now - 2 days): mark status = 'archived'
+       (Auto-removes post from active candidate/student job boards).
+    2. If past deadline (expires_at < now): mark status = 'expired'.
+    """
     now = datetime.datetime.now()
+    two_days_ago = now - datetime.timedelta(days=2)
+    
+    # 1. Archive jobs past deadline by 2+ days
+    jobs_collection.update_many(
+        {
+            'status': {'$in': ['published', 'expired']},
+            'expires_at': {'$lt': two_days_ago, '$ne': None}
+        },
+        {'$set': {'status': 'archived'}}
+    )
+
+    # 2. Mark newly expired jobs
     result = jobs_collection.update_many(
         {
-            'status': {'$ne': 'expired'},
+            'status': 'published',
             'expires_at': {'$lt': now, '$ne': None}
         },
         {'$set': {'status': 'expired'}}
@@ -1065,6 +1290,15 @@ def add_job():
         
         url = request.form.get('url', '').strip()
 
+        # Drive-Specific Custom Candidate Application Requirements
+        custom_requirements = {
+            'require_github': bool(request.form.get('require_github')),
+            'require_linkedin': bool(request.form.get('require_linkedin')),
+            'require_relocate': bool(request.form.get('require_relocate')),
+            'require_preferred_city': bool(request.form.get('require_preferred_city')),
+            'custom_question': (request.form.get('custom_question') or '').strip()
+        }
+
         job_doc = {
             'company_name': company,
             'role': role_name,
@@ -1077,6 +1311,7 @@ def add_job():
             'expires_at': expires_at,
             'attachment_id': attachment_id,
             'external_url': url,
+            'custom_requirements': custom_requirements,
             'created_by': session.get('email'),
             'created_by_id': ObjectId(session['user_id']),
             'author_role': admin_level,
@@ -1913,6 +2148,15 @@ def edit_job(job_id):
         
         url = request.form.get('url', '').strip()
 
+        # Drive-Specific Custom Candidate Application Requirements
+        custom_requirements = {
+            'require_github': bool(request.form.get('require_github')),
+            'require_linkedin': bool(request.form.get('require_linkedin')),
+            'require_relocate': bool(request.form.get('require_relocate')),
+            'require_preferred_city': bool(request.form.get('require_preferred_city')),
+            'custom_question': (request.form.get('custom_question') or '').strip()
+        }
+
         update_doc = {
             'company_name': company or job_obj.get('company_name'),
             'role': role_name or job_obj.get('role'),
@@ -1925,6 +2169,7 @@ def edit_job(job_id):
             'expires_at': expires_at,
             'attachment_id': attachment_id,
             'external_url': url,
+            'custom_requirements': custom_requirements,
             'status': 'published' if publish_action else job_obj.get('status', 'draft'),
             'is_published': bool(publish_action) or job_obj.get('is_published', False),
             'updated_at': datetime.datetime.now(),
@@ -2257,6 +2502,64 @@ def apply_job(job_id):
         })
 
         candidate_college = student.get('college') or student.get('institution') or 'Chetan Business School'
+
+        # Process Drive-Specific Custom Requirements & Auto-Sync with Student Profile
+        custom_reqs = job.get('custom_requirements', {}) or {}
+        custom_responses = {}
+        profile_sync_data = {}
+
+        github_url = (request.form.get('github_url') or '').strip()
+        linkedin_url = (request.form.get('linkedin_url') or '').strip()
+        willing_to_relocate = (request.form.get('willing_to_relocate') or '').strip()
+        preferred_location = (request.form.get('preferred_location') or '').strip()
+        custom_answer = (request.form.get('custom_answer') or '').strip()
+
+        if custom_reqs.get('require_github'):
+            effective_github = github_url or student.get('github_url', '')
+            if not effective_github:
+                flash("Application Requirement: GitHub Profile URL is required for this recruitment drive.", "error")
+                return redirect(url_for('student_jobs'))
+            custom_responses['github_url'] = effective_github
+            if github_url:
+                profile_sync_data['github_url'] = github_url
+
+        if custom_reqs.get('require_linkedin'):
+            effective_linkedin = linkedin_url or student.get('linkedin_url', '')
+            if not effective_linkedin:
+                flash("Application Requirement: LinkedIn Profile URL is required for this recruitment drive.", "error")
+                return redirect(url_for('student_jobs'))
+            custom_responses['linkedin_url'] = effective_linkedin
+            if linkedin_url:
+                profile_sync_data['linkedin_url'] = linkedin_url
+
+        if custom_reqs.get('require_relocate'):
+            effective_relocate = willing_to_relocate or student.get('willing_to_relocate', '')
+            if not effective_relocate:
+                flash("Application Requirement: Please specify your willingness to relocate.", "error")
+                return redirect(url_for('student_jobs'))
+            custom_responses['willing_to_relocate'] = effective_relocate
+            profile_sync_data['willing_to_relocate'] = effective_relocate
+
+        if custom_reqs.get('require_preferred_city'):
+            effective_city = preferred_location or student.get('preferred_location', '')
+            if not effective_city:
+                flash("Application Requirement: Preferred Work Location is required for this drive.", "error")
+                return redirect(url_for('student_jobs'))
+            custom_responses['preferred_location'] = effective_city
+            if preferred_location:
+                profile_sync_data['preferred_location'] = preferred_location
+
+        if custom_reqs.get('custom_question'):
+            if not custom_answer:
+                flash(f"Application Requirement: Please answer the recruiter question: \"{custom_reqs['custom_question']}\"", "error")
+                return redirect(url_for('student_jobs'))
+            custom_responses['custom_question'] = custom_reqs['custom_question']
+            custom_responses['custom_answer'] = custom_answer
+
+        # Automatically update candidate profile if new information was provided
+        if profile_sync_data:
+            profile_sync_data['profile_updated_at'] = datetime.datetime.now()
+            students_collection.update_one({'user_id': user_id}, {'$set': profile_sync_data})
         
         # Prepare Application Document (Snapshot)
         application = {
@@ -2271,6 +2574,7 @@ def apply_job(job_id):
             'cgpa': student.get('cgpa'),
             'branch': student.get('branch'),
             'resume_file_id': student.get('resume_file_id'),
+            'custom_responses': custom_responses,
             'applied_at': datetime.datetime.now(),
             'status': 'Applied',
             'is_multiple_applicant': active_applications_count >= 2 # Flag for Red Highlight
@@ -2363,7 +2667,7 @@ def respond_application(app_id):
     except Exception as e:
         flash(f"Error recording response: {e}", "error")
         
-    return redirect(url_for('student_applications'))
+    return redirect(request.referrer or url_for('student_dashboard'))
 
 @app.route('/admin/export/students')
 @login_required(role='admin')
@@ -3294,11 +3598,12 @@ def student_dashboard():
     my_applications = list(applications_collection.aggregate(pipeline))
     applied_job_ids = [app['job_id'] for app in my_applications]
     
-    # Activities: Applications that are Shortlisted or Selected (Active Stages)
-    activities = [app for app in my_applications if app.get('status') in ['Shortlisted', 'Selected', 'GD', 'Interview']]
+    # Activities: Applications in Active Candidate Advancement Stages (requiring candidate RSVP / round action)
+    active_round_stages = ['Shortlisted', 'Aptitude', 'GD', 'Technical_R1', 'Technical_R2', 'Interview', 'HR_Interview', 'Selected']
+    activities = [app for app in my_applications if app.get('status') in active_round_stages]
     
     # Count applications by status
-    shortlisted_count = sum(1 for app in my_applications if app.get('status') == 'Shortlisted')
+    shortlisted_count = sum(1 for app in my_applications if app.get('status') in ['Shortlisted', 'Aptitude', 'GD', 'Technical_R1', 'Technical_R2', 'Interview', 'HR_Interview'])
     selected_count = sum(1 for app in my_applications if app.get('status') == 'Selected')
 
     # Placed Candidate 2-Day Transition Offer Data
@@ -3330,7 +3635,8 @@ def student_dashboard():
 @login_required(role='student')
 def student_profile():
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
-    return render_template('student/profile.html', student=student)
+    ats = calculate_student_ats_score(student)
+    return render_template('student/profile.html', student=student, ats=ats)
 
 @app.route('/student/jobs')
 @login_required(role='student')
@@ -3338,12 +3644,33 @@ def student_jobs():
     auto_expire_jobs()
     check_and_process_placed_student_exits()
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
-    all_jobs = list(jobs_collection.find().sort('created_at', -1))
+    
+    now = datetime.datetime.now()
+    two_days_ago = now - datetime.timedelta(days=2)
     
     # My Applications to check status
     my_applications = list(applications_collection.find({'student_id': ObjectId(session['user_id'])}))
     applied_job_ids = [str(app['job_id']) for app in my_applications]
     applied_job_ids_str = applied_job_ids  # For template comparison
+    applied_oids = [app['job_id'] for app in my_applications if 'job_id' in app]
+
+    # Auto-remove drives past deadline by 2 days, unless candidate has an active application
+    drive_filter = {
+        '$or': [
+            {
+                'status': 'published',
+                '$or': [{'expires_at': None}, {'expires_at': {'$gte': two_days_ago}}]
+            },
+            {
+                'status': 'expired',
+                'expires_at': {'$gte': two_days_ago}
+            },
+            {
+                '_id': {'$in': applied_oids}
+            }
+        ]
+    }
+    all_jobs = list(jobs_collection.find(drive_filter).sort('created_at', -1))
 
     # Calculate predictive match scores
     if student:
@@ -3472,37 +3799,33 @@ def send_external_notification():
 @login_required(role='student')
 def update_resume():
     if 'resume' not in request.files:
-        flash("No file part", "error")
-        return redirect(url_for('student_dashboard'))
+        flash("No file part uploaded", "error")
+        return redirect(url_for('student_profile'))
         
     file = request.files['resume']
-    if file.filename == '':
-        flash("No selected file", "error")
-        return redirect(url_for('student_dashboard'))
+    if not file or file.filename == '':
+        flash("Please select a valid PDF file to upload.", "error")
+        return redirect(url_for('student_profile'))
 
-    if file:
-        student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
-        
-        # Remove old file
-        old_filename = student.get('resume_path')
-        if old_filename:
-            old_path = os.path.join(app.config['UPLOAD_FOLDER'], old_filename)
-            if os.path.exists(old_path):
-                os.remove(old_path)
-                
-        # Save new file
-        new_filename = f"{secure_filename(session['email'])}_{secure_filename(file.filename)}"
-        new_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
-        file.save(new_path)
-        
-        # Update DB
-        students_collection.update_one(
-            {'user_id': ObjectId(session['user_id'])},
-            {'$set': {'resume_path': new_filename}}
-        )
-        
-        flash("Resume updated successfully!", "success")
-        return redirect(url_for('student_dashboard'))
+    user_id = session['user_id']
+    ok, res_result = validate_and_store_resume(file, user_id)
+    if not ok:
+        flash(res_result, "error")
+        return redirect(url_for('student_profile'))
+
+    # Update Student document with verified GridFS resume_file_id
+    students_collection.update_one(
+        {'user_id': ObjectId(user_id)},
+        {
+            '$set': {
+                'resume_file_id': res_result,
+                'profile_updated_at': datetime.datetime.now()
+            }
+        }
+    )
+    
+    flash("Resume verified and uploaded securely (5MB authentic PDF standard).", "success")
+    return redirect(url_for('student_profile'))
 
 # --- PLACED STUDENT LIFECYCLE: VOLUNTARY & ADMIN EXIT ROUTES ---
 

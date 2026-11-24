@@ -806,6 +806,41 @@
               <input type="url" name="url" id="url" placeholder="https://careers.company.com/..." class="form-control" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
           </div>
+
+          <!-- Drive-Specific Candidate Requirements (Pre-requisites for Student Applying) -->
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.15rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.86rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.65rem; display: flex; align-items: center; gap: 0.45rem;">
+              <i class="ph-bold ph-sliders" style="color: var(--job-indigo);"></i>
+              <span>Application Screening Requirements (Required from Students)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.82rem; color: var(--text-main);">
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer;">
+                <input type="checkbox" name="require_github" id="require_github" value="1" style="width: 16px; height: 16px; cursor: pointer;" />
+                <span>Require GitHub Profile URL</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer;">
+                <input type="checkbox" name="require_linkedin" id="require_linkedin" value="1" style="width: 16px; height: 16px; cursor: pointer;" />
+                <span>Require LinkedIn Profile URL</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer;">
+                <input type="checkbox" name="require_relocate" id="require_relocate" value="1" style="width: 16px; height: 16px; cursor: pointer;" />
+                <span>Require Willingness to Relocate</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer;">
+                <input type="checkbox" name="require_preferred_city" id="require_preferred_city" value="1" style="width: 16px; height: 16px; cursor: pointer;" />
+                <span>Require Preferred Work Location</span>
+              </label>
+            </div>
+            <div style="margin-top: 0.85rem;">
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">
+                Custom Screening Question (Optional):
+              </label>
+              <input type="text" name="custom_question" id="custom_question" placeholder="e.g. Briefly describe your MCA final project or primary tech stack" class="form-control" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); font-size: 0.82rem;" />
+            </div>
+            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.45rem;">
+              <i class="ph-bold ph-info" style="color: var(--job-indigo);"></i> If student has this data in their profile, it is auto-filled during application; otherwise they will be prompted to enter it and it will auto-save to their candidate profile.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -852,6 +887,14 @@
       document.getElementById('drive_date').value = job.drive_date ? job.drive_date.split('T')[0] : '';
       document.getElementById('expires_at').value = job.expires_at ? job.expires_at.split('T')[0] : '';
 
+      // Populate Custom Requirements
+      const reqs = job.custom_requirements || {};
+      document.getElementById('require_github').checked = !!reqs.require_github;
+      document.getElementById('require_linkedin').checked = !!reqs.require_linkedin;
+      document.getElementById('require_relocate').checked = !!reqs.require_relocate;
+      document.getElementById('require_preferred_city').checked = !!reqs.require_preferred_city;
+      document.getElementById('custom_question').value = reqs.custom_question || '';
+
       form.action = `/admin/jobs/edit/${job._id}`;
 
       if (job.attachment_id) {
@@ -864,6 +907,11 @@
       form.reset();
       document.getElementById('job_id').value = '';
       document.getElementById('url').value = '';
+      document.getElementById('require_github').checked = false;
+      document.getElementById('require_linkedin').checked = false;
+      document.getElementById('require_relocate').checked = false;
+      document.getElementById('require_preferred_city').checked = false;
+      document.getElementById('custom_question').value = '';
       form.action = "{{ url_for('add_job') }}";
       existingFileInfo.style.display = 'none';
     }

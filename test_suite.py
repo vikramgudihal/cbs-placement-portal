@@ -19,8 +19,8 @@ class TestPlacementPortal(unittest.TestCase):
     def test_02_login_page(self):
         res = self.client.get('/login')
         self.assertEqual(res.status_code, 200, "Login page should return 200")
-        self.assertIn(b'Instant Demo Access', res.data)
-        print("✓ Login page renders correctly with Instant Demo Access")
+        self.assertIn(b'Sign In to Portal', res.data)
+        print("✓ Login page renders correctly with secure authentication form")
 
     def test_03_student_login_and_dashboard(self):
         login_res = self.client.post('/login', data={

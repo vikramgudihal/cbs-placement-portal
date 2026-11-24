@@ -323,26 +323,182 @@ img, video, iframe, canvas {
   #superAdminAlertModal,
   .modal-overlay,
   .modal-backdrop {
-    padding: 0.85rem !important;
+    padding: 0.5rem !important;
   }
 
   #superAdminAlertModal > div,
+  .priority-auth-modal-card {
+    width: 100% !important;
+    max-width: 96vw !important;
+    height: 82vh !important;
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+    margin: 0 auto !important;
+  }
+
+  .priority-auth-modal-header {
+    flex-shrink: 0 !important;
+  }
+
+  .priority-auth-modal-body,
+  .modal-scroll-body,
+  #superAdminAlertModal .modal-scroll-body {
+    flex: 1 1 auto !important;
+    min-height: 220px !important;
+    height: auto !important;
+    max-height: calc(82vh - 160px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  .priority-auth-modal-footer {
+    flex-shrink: 0 !important;
+  }
+
   .modal-content,
   .modal-dialog {
     width: 100% !important;
     max-width: 96vw !important;
-    max-height: 90vh !important;
+    max-height: 88vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
     border-radius: 18px !important;
     margin: 0 auto !important;
   }
 
   .modal-header,
   .modal-footer {
-    padding: 1rem 1.15rem !important;
+    padding: 0.85rem 1rem !important;
   }
 
   .modal-body {
-    padding: 1rem 1.15rem !important;
+    padding: 0.85rem 1rem !important;
+  }
+}
+
+/* ── 6B. GOOGLE FORMS STUDIO ENGINE RESPONSIVENESS ─────────── */
+@media (max-width: 768px) {
+  .google-forms-studio {
+    padding: 0 0.5rem !important;
+    margin: 1rem auto 5rem auto !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .studio-nav-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .nav-left-brand {
+    width: 100% !important;
+  }
+
+  .nav-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .btn-gf-secondary,
+  .btn-gf-primary {
+    width: 100% !important;
+    flex: none !important;
+    justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.84rem !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .template-gallery-panel {
+    padding: 1rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .gallery-header h3 {
+    font-size: 0.92rem !important;
+  }
+
+  .gallery-toggle-btn {
+    font-size: 0.74rem !important;
+    padding: 0.25rem 0.65rem !important;
+  }
+
+  .gallery-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .template-thumb-card {
+    border-radius: 10px !important;
+  }
+
+  .template-preview-canvas {
+    height: 75px !important;
+  }
+
+  .template-name {
+    font-size: 0.76rem !important;
+  }
+
+  .gf-header-card {
+    padding: 1.25rem 1rem !important;
+    border-top-width: 8px !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .gf-title-input {
+    font-size: 1.35rem !important;
+  }
+
+  .gf-desc-input {
+    font-size: 0.88rem !important;
+  }
+
+  .gf-question-card {
+    padding: 1.15rem 0.95rem !important;
+  }
+
+  .q-top-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .q-type-select {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  .q-card-footer {
+    justify-content: space-between !important;
+    gap: 0.65rem !important;
+  }
+
+  .gf-floating-dock {
+    width: 100% !important;
+    max-width: 320px !important;
+    padding: 0.35rem 0.65rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .dock-btn {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.15rem !important;
   }
 }
 

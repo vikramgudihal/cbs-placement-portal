@@ -470,91 +470,275 @@
      5. ACTION REQUIRED RADAR (High-Priority Interview/GD Calls)
      ============================================================ */
   .action-required-radar {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
+    border: 1.5px solid rgba(245, 158, 11, 0.35);
+    border-radius: 20px;
     padding: 1.5rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 2rem;
+    position: relative;
+    box-shadow: 0 10px 25px -10px rgba(245, 158, 11, 0.15);
+  }
+
+  [data-theme="dark"] .action-required-radar {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.75) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.45);
   }
 
   .radar-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.65rem;
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: #b45309;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
   }
 
-  [data-theme="dark"] .radar-header {
+  .radar-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .radar-pulse-beacon {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    animation: radarPulse 2s infinite;
+  }
+
+  @keyframes radarPulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+  }
+
+  .radar-header-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #92400e;
+    letter-spacing: -0.015em;
+  }
+
+  [data-theme="dark"] .radar-header-title {
     color: #fbbf24;
+  }
+
+  .radar-count-chip {
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    background: #f59e0b;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 800;
   }
 
   .radar-item-card {
     background: var(--surface);
     border: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: 14px;
-    padding: 1.15rem;
-    margin-bottom: 0.75rem;
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.06);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .radar-item-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .radar-item-card:hover {
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 10px 28px -6px rgba(245, 158, 11, 0.18);
   }
 
   [data-theme="dark"] .radar-item-card {
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(245, 158, 11, 0.25);
   }
 
   .radar-item-top {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+    flex-wrap: wrap;
+  }
+
+  .radar-company-info {
+    display: flex;
     align-items: center;
-    margin-bottom: 0.85rem;
+    gap: 0.85rem;
+  }
+
+  .radar-company-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #ffffff;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    flex-shrink: 0;
+  }
+
+  .radar-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 1.1rem;
+    align-items: center;
+  }
+
+  .radar-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .radar-meta-pill.role {
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--primary, #4f46e5);
+    border: 1px solid rgba(79, 70, 229, 0.22);
+  }
+
+  [data-theme="dark"] .radar-meta-pill.role {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border-color: rgba(165, 180, 252, 0.3);
+  }
+
+  .radar-meta-pill.round {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+
+  [data-theme="dark"] .radar-meta-pill.round {
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+
+  .radar-meta-pill.package {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .radar-meta-pill.location {
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .radar-note-box {
+    background: var(--bg);
+    border-left: 3.5px solid #f59e0b;
+    padding: 0.75rem 1rem;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
   }
 
   .radar-action-buttons {
     display: flex;
-    gap: 0.65rem;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   .btn-accept-call {
     flex: 1;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    background: #10b981;
+    min-width: 180px;
+    min-height: 46px;
+    padding: 0.82rem 1.6rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff;
     border: none;
-    font-size: 0.82rem;
+    font-size: 0.92rem;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    transition: all 0.2s ease;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .btn-accept-call:hover {
-    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
+    color: #ffffff;
   }
 
   .btn-decline-call {
     flex: 1;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    background: transparent;
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    font-size: 0.82rem;
+    min-width: 160px;
+    min-height: 46px;
+    padding: 0.82rem 1.6rem;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1.5px solid rgba(239, 68, 68, 0.4);
+    color: #dc2626;
+    font-size: 0.92rem;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    transition: all 0.2s ease;
+    gap: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .btn-decline-call:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 68, 68, 0.14);
+    border-color: #dc2626;
+    transform: translateY(-2px);
+  }
+
+  .btn-decline-call:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
+  }
+
+  .radar-status-logged {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.15rem;
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1.5px solid rgba(16, 185, 129, 0.25);
+    flex-wrap: wrap;
   }
 
   /* ============================================================
@@ -762,21 +946,94 @@
   }
 
   @media (max-width: 640px) {
+    .candidate-hub-container {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+      padding-left: 0.35rem !important;
+      padding-right: 0.35rem !important;
+    }
     .candidate-hero-banner {
-      padding: 1.75rem 1.25rem;
+      padding: 1.5rem 1rem !important;
+      border-radius: 18px !important;
+      margin-bottom: 1.25rem !important;
     }
     .candidate-metric-ribbon {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
+      padding: 1rem !important;
+      gap: 1rem !important;
     }
     .hero-action-buttons {
-      width: 100%;
+      width: 100% !important;
     }
     .hero-action-buttons a {
-      width: 100%;
-      justify-content: center;
+      width: 100% !important;
+      justify-content: center !important;
     }
     .quick-pill-actions {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .fluid-dash-card {
+      padding: 1.15rem 0.95rem !important;
+      border-radius: 16px !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      margin-bottom: 1.25rem !important;
+    }
+    .card-fluid-header {
+      flex-wrap: wrap !important;
+      gap: 0.5rem !important;
+    }
+    .card-fluid-title {
+      font-size: 0.98rem !important;
+    }
+    .journey-stepper-track {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 1rem 0.5rem !important;
+      padding-top: 0.25rem !important;
+    }
+    .journey-stepper-track::before {
+      display: none !important;
+    }
+    .journey-step-node {
+      align-items: center !important;
+      text-align: center !important;
+    }
+    .matched-drive-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.75rem !important;
+      padding: 0.85rem !important;
+    }
+    .matched-drive-row .drive-cta-col {
+      width: 100% !important;
+      justify-content: space-between !important;
+    }
+    .matched-drive-row .btn {
+      flex: 1 !important;
+      justify-content: center !important;
+    }
+    .radar-item-card {
+      padding: 1.15rem 1rem !important;
+      border-radius: 14px !important;
+    }
+    .radar-item-top {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.75rem !important;
+    }
+    .radar-action-buttons {
+      flex-direction: column !important;
+      width: 100% !important;
+      gap: 0.65rem !important;
+    }
+    .radar-action-buttons form {
+      width: 100% !important;
+    }
+    .btn-accept-call, .btn-decline-call {
+      width: 100% !important;
+      min-height: 48px !important;
+      justify-content: center !important;
     }
   }
 </style>
@@ -948,7 +1205,7 @@
       {% set action_items = [] %}
       {% if activities %}
         {% for act in activities %}
-          {% if act.status in ['Shortlisted', 'GD', 'Interview'] %}
+          {% if act.status in ['Shortlisted', 'Aptitude', 'GD', 'Technical_R1', 'Technical_R2', 'Interview', 'HR_Interview'] %}
             {% set _ = action_items.append(act) %}
           {% endif %}
         {% endfor %}
@@ -957,47 +1214,136 @@
       {% if action_items %}
       <section class="action-required-radar">
         <div class="radar-header">
-          <i class="ph-fill ph-bell-ringing" style="font-size: 1.3rem;"></i>
-          <span>Action Required: Recruitment Round Confirmations ({{ action_items|length }})</span>
+          <div class="radar-header-left">
+            <span class="radar-pulse-beacon"></span>
+            <i class="ph-fill ph-bell-ringing" style="font-size: 1.35rem; color: #f59e0b;"></i>
+            <span class="radar-header-title">Action Required: Recruitment Round Confirmations</span>
+            <span class="radar-count-chip">{{ action_items|length }}</span>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">
+            Immediate RSVP required for Placement Cell corporate schedules
+          </span>
         </div>
 
+        {% set round_map = {
+          'Shortlisted': {'title': 'Profile Shortlist & Technical Screening Assessment', 'short': 'Shortlisted Evaluation', 'icon': 'ph-sparkle', 'badge_bg': 'rgba(245, 158, 11, 0.15)', 'badge_color': '#b45309', 'badge_border': 'rgba(245, 158, 11, 0.35)'},
+          'Aptitude': {'title': 'Round 1: Online Assessment / Aptitude & Coding Test', 'short': 'Online Assessment Round', 'icon': 'ph-laptop', 'badge_bg': 'rgba(37, 99, 235, 0.12)', 'badge_color': '#1d4ed8', 'badge_border': 'rgba(37, 99, 235, 0.3)'},
+          'GD': {'title': 'Round 2: Group Discussion (GD) Elimination Round', 'short': 'Group Discussion (GD)', 'icon': 'ph-users-three', 'badge_bg': 'rgba(124, 58, 237, 0.12)', 'badge_color': '#7c3aed', 'badge_border': 'rgba(124, 58, 237, 0.3)'},
+          'Technical_R1': {'title': 'Round 2: Technical Interview Round 1 (Data Structures & Core)', 'short': 'Technical Round 1', 'icon': 'ph-code', 'badge_bg': 'rgba(16, 185, 129, 0.12)', 'badge_color': '#059669', 'badge_border': 'rgba(16, 185, 129, 0.3)'},
+          'Technical_R2': {'title': 'Round 3: Advanced Technical Interview Round 2 (System Architecture)', 'short': 'Technical Round 2', 'icon': 'ph-cpu', 'badge_bg': 'rgba(2, 132, 199, 0.12)', 'badge_color': '#0284c7', 'badge_border': 'rgba(2, 132, 199, 0.3)'},
+          'Interview': {'title': 'Comprehensive Technical & Managerial Interview Round', 'short': 'Interview Round', 'icon': 'ph-user-focus', 'badge_bg': 'rgba(79, 70, 229, 0.12)', 'badge_color': '#4f46e5', 'badge_border': 'rgba(79, 70, 229, 0.3)'},
+          'HR_Interview': {'title': 'Final Round: Corporate HR & Behavioral Leadership Interview', 'short': 'Final HR Round', 'icon': 'ph-handshake', 'badge_bg': 'rgba(217, 119, 6, 0.15)', 'badge_color': '#b45309', 'badge_border': 'rgba(217, 119, 6, 0.35)'}
+        } %}
+
         {% for act in action_items %}
+        {% set r_info = round_map.get(act.status, {'title': act.status ~ ' Round', 'short': act.status ~ ' Round', 'icon': 'ph-target', 'badge_bg': 'rgba(245, 158, 11, 0.15)', 'badge_color': '#b45309', 'badge_border': 'rgba(245, 158, 11, 0.3)'}) %}
+        
         <div class="radar-item-card">
+          <!-- Top Row: Company & Round Badge -->
           <div class="radar-item-top">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div class="company-avatar-box" style="width: 38px; height: 38px; font-size: 0.9rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
+            <div class="radar-company-info">
+              <div class="radar-company-avatar">
                 {{ (act.job_info.company_name or 'C')[0]|upper }}
               </div>
               <div>
-                <strong style="color: var(--text-main); font-size: 0.95rem;">{{ act.job_info.company_name }}</strong>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ act.job_info.role }}</div>
+                <h3 style="margin: 0 0 0.2rem 0; font-size: 1.18rem; font-weight: 900; color: var(--text-main); letter-spacing: -0.015em;">
+                  {{ act.job_info.company_name }}
+                </h3>
+                <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;">
+                  <span>Campus Placement Drive</span>
+                  <span>&middot;</span>
+                  <span>Institutional Recruitment</span>
+                </div>
               </div>
             </div>
-            <span class="verification-pill" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3);">
-              {{ act.status }} Round
+
+            <!-- Distinct Round Badge -->
+            <span style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.38rem 0.95rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; background: {{ r_info.badge_bg }}; color: {{ r_info.badge_color }}; border: 1.5px solid {{ r_info.badge_border }};">
+              <i class="ph-bold {{ r_info.icon }}"></i>
+              <span>{{ r_info.short }}</span>
             </span>
           </div>
 
+          <!-- Prominent Role & Round Identity Chips -->
+          <div class="radar-meta-row">
+            <span class="radar-meta-pill role">
+              <i class="ph-bold ph-briefcase"></i>
+              <strong>Role:</strong> {{ act.job_info.role or 'Software Engineer' }}
+            </span>
+            <span class="radar-meta-pill round">
+              <i class="ph-bold {{ r_info.icon }}"></i>
+              <strong>Current Round:</strong> {{ r_info.title }}
+            </span>
+            {% if act.job_info.package %}
+            <span class="radar-meta-pill package">
+              <i class="ph-bold ph-currency-inr"></i>
+              <strong>Package:</strong> {{ act.job_info.package }}
+            </span>
+            {% endif %}
+            {% if act.job_info.location %}
+            <span class="radar-meta-pill location">
+              <i class="ph-bold ph-map-pin"></i>
+              {{ act.job_info.location }}
+            </span>
+            {% endif %}
+            {% if act.job_info.drive_date %}
+            <span class="radar-meta-pill location">
+              <i class="ph-bold ph-calendar"></i>
+              Drive: {{ act.job_info.drive_date.strftime('%d %b %Y') if act.job_info.drive_date.strftime is defined else act.job_info.drive_date|string }}
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Round Instruction & Guidance Note -->
+          <div class="radar-note-box">
+            <strong style="color: var(--text-main); display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.2rem;">
+              <i class="ph-bold ph-info" style="color: #f59e0b;"></i> Candidate Instructions:
+            </strong>
+            <div>
+              Please confirm your presence for <strong>{{ r_info.title }}</strong> for the position of <strong>{{ act.job_info.role }}</strong>. The Chetan Business School placement committee will forward your RSVP status directly to the corporate recruitment panel.
+            </div>
+          </div>
+
+          <!-- Attendance Action Buttons -->
           {% if not act.student_response %}
           <div class="radar-action-buttons">
-            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1;">
+            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1; margin: 0;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <input type="hidden" name="response" value="Attending"/>
               <button type="submit" class="btn-accept-call">
-                <i class="ph-bold ph-check"></i> Confirm Attendance
+                <i class="ph-bold ph-check-circle" style="font-size: 1.15rem;"></i>
+                <span>Confirm Attendance</span>
               </button>
             </form>
-            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1;">
+            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="flex: 1; margin: 0;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <input type="hidden" name="response" value="Not Attending"/>
               <button type="submit" class="btn-decline-call">
-                <i class="ph-bold ph-x"></i> Cannot Attend
+                <i class="ph-bold ph-x-circle" style="font-size: 1.15rem;"></i>
+                <span>Cannot Attend</span>
               </button>
             </form>
           </div>
           {% else %}
-          <div style="font-size: 0.85rem; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="ph-fill ph-check-circle"></i> Attendance Response Logged: {{ act.student_response }}
+          <div class="radar-status-logged">
+            <div style="display: flex; align-items: center; gap: 0.55rem; font-size: 0.88rem; font-weight: 800; color: {% if act.student_response == 'Attending' %}#059669{% else %}#dc2626{% endif %};">
+              <i class="ph-bold {% if act.student_response == 'Attending' %}ph-check-circle{% else %}ph-x-circle{% endif %}" style="font-size: 1.25rem;"></i>
+              <span>RSVP Logged: Candidate {% if act.student_response == 'Attending' %}Will Attend{% else %}Cannot Attend{% endif %}</span>
+              {% if act.response_at %}
+              <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted);">
+                ({{ act.response_at.strftime('%d %b, %H:%M') if act.response_at.strftime is defined else act.response_at|string }})
+              </span>
+              {% endif %}
+            </div>
+            
+            <!-- Quick Toggle Button if Student Wishes to Change -->
+            <form action="{{ url_for('respond_application', app_id=act._id) }}" method="POST" style="margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="response" value="{% if act.student_response == 'Attending' %}Not Attending{% else %}Attending{% endif %}"/>
+              <button type="submit" style="background: var(--surface); border: 1px solid var(--border); padding: 0.4rem 0.95rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s ease;">
+                <i class="ph-bold ph-arrows-clockwise"></i> Change to {% if act.student_response == 'Attending' %}Cannot Attend{% else %}Confirm Attendance{% endif %}
+              </button>
+            </form>
           </div>
           {% endif %}
         </div>

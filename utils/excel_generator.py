@@ -375,6 +375,14 @@ def generate_stage_progression_excel(applications, job_info=None, title_suffix="
 
         rsvp = app.get('student_response') or 'Pending'
 
+        # Candidate Drive-Specific Custom Requirements Data
+        custom_res = app.get('custom_responses', {}) or {}
+        github_val = custom_res.get('github_url') or si.get('github_url', 'N/A')
+        linkedin_val = custom_res.get('linkedin_url') or si.get('linkedin_url', 'N/A')
+        relocate_val = custom_res.get('willing_to_relocate') or si.get('willing_to_relocate', 'N/A')
+        location_val = custom_res.get('preferred_location') or si.get('preferred_location', 'N/A')
+        custom_ans_val = custom_res.get('custom_answer', 'N/A')
+
         parsed_rows.append({
             'idx': idx,
             'student_id': sid,
@@ -399,7 +407,12 @@ def generate_stage_progression_excel(applications, job_info=None, title_suffix="
             'rsvp': rsvp,
             'applied_str': applied_str,
             'updated_str': updated_str,
-            'exit_display': exit_display
+            'exit_display': exit_display,
+            'github': github_val,
+            'linkedin': linkedin_val,
+            'relocate': relocate_val,
+            'preferred_location': location_val,
+            'custom_answer': custom_ans_val
         })
 
     # Scope Title
@@ -418,7 +431,8 @@ def generate_stage_progression_excel(applications, job_info=None, title_suffix="
         'Branch', 'Current CGPA', 'Active Backlogs', '10th %', '12th %',
         'Company Name', 'Role / Profile', 'Package', 'Current Recruitment Stage',
         'Status Outcome', 'Elimination Stage', 'Panel Feedback / Remarks',
-        'Candidate RSVP', 'Applied Date', 'Last Updated', 'Placement Exit Status'
+        'Candidate RSVP', 'Applied Date', 'Last Updated', 'Placement Exit Status',
+        'GitHub URL', 'LinkedIn URL', 'Relocation Preference', 'Preferred Location', 'Screening Answer'
     ]
 
     ws1.merge_range(0, 0, 0, len(headers1) - 1, 'CHETAN BUSINESS SCHOOL — CAMPUS RECRUITMENT & STAGE PROGRESSION REPORT', title_fmt)
@@ -469,11 +483,16 @@ def generate_stage_progression_excel(applications, job_info=None, title_suffix="
         ws1.write(r_idx, 18, r['applied_str'], cell_center)
         ws1.write(r_idx, 19, r['updated_str'], cell_center)
         ws1.write(r_idx, 20, r['exit_display'], cell_center)
+        ws1.write(r_idx, 21, str(r.get('github', 'N/A')), cell_left)
+        ws1.write(r_idx, 22, str(r.get('linkedin', 'N/A')), cell_left)
+        ws1.write(r_idx, 23, str(r.get('relocate', 'N/A')), cell_center)
+        ws1.write(r_idx, 24, str(r.get('preferred_location', 'N/A')), cell_left)
+        ws1.write(r_idx, 25, str(r.get('custom_answer', 'N/A')), cell_left)
 
     if parsed_rows:
         ws1.autofilter(3, 0, len(parsed_rows) + 3, len(headers1) - 1)
 
-    col_widths1 = [7, 16, 24, 28, 15, 14, 12, 14, 10, 10, 22, 22, 14, 30, 15, 24, 32, 14, 14, 14, 26]
+    col_widths1 = [7, 16, 24, 28, 15, 14, 12, 14, 10, 10, 22, 22, 14, 30, 15, 24, 32, 14, 14, 14, 26, 24, 24, 16, 18, 28]
     for c_idx, w in enumerate(col_widths1):
         ws1.set_column(c_idx, c_idx, w)
 
