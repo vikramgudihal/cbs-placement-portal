@@ -133,6 +133,76 @@ def ensure_production_indexes():
 
 ensure_production_indexes()
 
+# Production Database Auto-Synchronizer on Boot
+def sync_production_credentials_on_boot():
+    """
+    Guarantees that the active database (whether Render's MongoDB Atlas cluster
+    or local dev instance) automatically synchronizes with the latest strong enterprise credentials.
+    Runs idempotently on application startup.
+    """
+    try:
+        from utils.auth import hash_password, verify_password
+
+        # 1. Check if database is empty (e.g., brand new Atlas cluster on Render)
+        total_users = users_collection.count_documents({})
+        if total_users == 0:
+            app.logger.info("Empty database detected on boot. Seeding initial CBS placement records...")
+            try:
+                from seed_mca_batch import seed_mca_portal
+                seed_mca_portal()
+                return
+            except Exception as se:
+                app.logger.warning(f"Auto-seed exception: {se}")
+
+        # 2. Update Admin & Faculty credentials with latest enterprise keys
+        admin_credentials = {
+            'arunkumarrajput@gmail.com': ('CbsAdmin#Super2026!Master', 'super_admin', 'Arunkumar Rajput (Director & Super Admin)', 'Arunkumar Rajput'),
+            'chaitra.admin@gmail.com': ('CbsTpo$Ops2026#Secure', 'admin', 'Chaitra (Placement Officer - Admin)', 'Chaitra'),
+            'shweta.lali@gmail.com': ('CbsFaculty#Lali2026!', 'faculty', 'Prof. Shweta Lali (Faculty Coordinator)', 'Shweta Lali'),
+            'bhargav.faculty@gmail.com': ('CbsFaculty#Bhargav2026!', 'faculty', 'Prof. Bhargav (Faculty Coordinator)', 'Bhargav'),
+            'ravikumar.faculty@gmail.com': ('CbsFaculty#Ravi2026!', 'faculty', 'Prof. Ravikumar (Faculty Coordinator)', 'Ravikumar'),
+            'almas.faculty@gmail.com': ('CbsFaculty#Almas2026!', 'faculty', 'Prof. Almas (Faculty Coordinator)', 'Almas')
+        }
+
+        for email, (pwd, adm_lvl, display_name, full_name) in admin_credentials.items():
+            existing = users_collection.find_one({'email': email})
+            if not existing:
+                users_collection.insert_one({
+                    'email': email,
+                    'password': hash_password(pwd),
+                    'role': 'admin',
+                    'admin_level': adm_lvl,
+                    'name': display_name,
+                    'full_name': full_name,
+                    'is_approved': True,
+                    'profile_completed': True,
+                    'created_at': datetime.datetime.now(),
+                    'last_login': datetime.datetime.now()
+                })
+                app.logger.info(f"Created admin account on boot: {email}")
+            else:
+                if not verify_password(existing.get('password', ''), pwd):
+                    users_collection.update_one(
+                        {'email': email},
+                        {'$set': {'password': hash_password(pwd), 'is_approved': True, 'admin_level': adm_lvl}}
+                    )
+                    app.logger.info(f"Upgraded password hash for admin: {email}")
+
+        # 3. Synchronize default student password for students on legacy default
+        st_cursor = users_collection.find({'role': 'student'})
+        for st in st_cursor:
+            if verify_password(st.get('password', ''), 'Student@123'):
+                users_collection.update_one(
+                    {'_id': st['_id']},
+                    {'$set': {'password': hash_password('CbsStudent#MCA2026$')}}
+                )
+
+        app.logger.info("Online database credentials synchronized with latest enterprise keys.")
+    except Exception as e:
+        app.logger.warning(f"Credentials boot sync warning: {e}")
+
+sync_production_credentials_on_boot()
+
 # --- HELPER: SECURE RESUME VALIDATION & STORAGE ---
 MAX_RESUME_SIZE = 5 * 1024 * 1024 # 5 MB Strict Limit
 
