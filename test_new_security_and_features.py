@@ -78,7 +78,7 @@ class TestNewSecurityAndFeatures(unittest.TestCase):
         self.assertIn(b'Security Alert: 5 consecutive failed login attempts detected', res5.data)
 
         # 6th attempt (even with right password) must be blocked during the 5-minute window
-        res6 = self.client.post('/login', data={'email': email, 'password': 'Student@123'}, follow_redirects=True)
+        res6 = self.client.post('/login', data={'email': email, 'password': 'CbsStudent#MCA2026$'}, follow_redirects=True)
         self.assertIn(b'Security Alert: Account temporarily locked', res6.data)
 
         # Clean up lockout

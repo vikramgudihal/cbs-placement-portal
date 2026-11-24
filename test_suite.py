@@ -25,7 +25,7 @@ class TestPlacementPortal(unittest.TestCase):
     def test_03_student_login_and_dashboard(self):
         login_res = self.client.post('/login', data={
             'email': 'vikram.patel.mca@gmail.com',
-            'password': 'Student@123',
+            'password': 'CbsStudent#MCA2026$',
             'role': 'student'
         }, follow_redirects=True)
         self.assertEqual(login_res.status_code, 200)
@@ -68,7 +68,7 @@ class TestPlacementPortal(unittest.TestCase):
 
         login_res = admin_client.post('/login', data={
             'email': 'arunkumarrajput@gmail.com',
-            'password': 'Admin@123',
+            'password': 'CbsAdmin#Super2026!Master',
             'role': 'admin'
         }, follow_redirects=True)
         self.assertEqual(login_res.status_code, 200)

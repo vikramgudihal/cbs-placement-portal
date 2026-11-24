@@ -72,7 +72,7 @@ def seed_mca_portal():
     super_admin = {
         '_id': super_admin_id,
         'email': 'arunkumarrajput@gmail.com',
-        'password': hash_password('Admin@123'),
+        'password': hash_password('CbsAdmin#Super2026!Master'),
         'role': 'admin',
         'admin_level': 'super_admin',
         'name': 'Arunkumar Rajput (Director & Super Admin)',
@@ -87,7 +87,7 @@ def seed_mca_portal():
     admin_chaitra = {
         '_id': admin_chaitra_id,
         'email': 'chaitra.admin@gmail.com',
-        'password': hash_password('Admin@123'),
+        'password': hash_password('CbsTpo$Ops2026#Secure'),
         'role': 'admin',
         'admin_level': 'admin',
         'name': 'Chaitra (Placement Officer - Admin)',
@@ -102,7 +102,7 @@ def seed_mca_portal():
     faculty_shweta = {
         '_id': faculty_shweta_id,
         'email': 'shweta.lali@gmail.com',
-        'password': hash_password('Faculty@123'),
+        'password': hash_password('CbsFaculty#Lali2026!'),
         'role': 'admin',
         'admin_level': 'faculty',
         'name': 'Prof. Shweta Lali (Faculty Coordinator)',
@@ -117,7 +117,7 @@ def seed_mca_portal():
     faculty_bhargav = {
         '_id': faculty_bhargav_id,
         'email': 'bhargav.faculty@gmail.com',
-        'password': hash_password('Faculty@123'),
+        'password': hash_password('CbsFaculty#Bhargav2026!'),
         'role': 'admin',
         'admin_level': 'faculty',
         'name': 'Prof. Bhargav (Faculty Coordinator)',
@@ -132,7 +132,7 @@ def seed_mca_portal():
     faculty_ravikumar = {
         '_id': faculty_ravikumar_id,
         'email': 'ravikumar.faculty@gmail.com',
-        'password': hash_password('Faculty@123'),
+        'password': hash_password('CbsFaculty#Ravi2026!'),
         'role': 'admin',
         'admin_level': 'faculty',
         'name': 'Prof. Ravikumar (Faculty Coordinator)',
@@ -147,7 +147,7 @@ def seed_mca_portal():
     faculty_almas = {
         '_id': faculty_almas_id,
         'email': 'almas.faculty@gmail.com',
-        'password': hash_password('Faculty@123'),
+        'password': hash_password('CbsFaculty#Almas2026!'),
         'role': 'admin',
         'admin_level': 'faculty',
         'name': 'Prof. Almas (Faculty Coordinator)',
@@ -180,7 +180,7 @@ def seed_mca_portal():
 
     student_users = []
     student_records = []
-    default_pw_hash = hash_password('Student@123')
+    default_pw_hash = hash_password('CbsStudent#MCA2026$')
 
     skill_sets = [
         ['Python', 'Flask', 'SQL', 'MongoDB', 'Git'],
@@ -803,13 +803,13 @@ def seed_mca_portal():
     print("\n=======================================================")
     print("SUCCESS: MCA PORTAL DATABASE RE-SEEDED SUCCESSFULLY!")
     print("=======================================================")
-    print("Super Admin : Arunkumar Rajput (arunkumarrajput@gmail.com / Admin@123)")
-    print("Admin       : Chaitra (chaitra.admin@gmail.com / Admin@123)")
-    print("Faculty     : Shweta Lali (shweta.lali@gmail.com / Faculty@123)")
-    print("Faculty     : Bhargav (bhargav.faculty@gmail.com / Faculty@123)")
-    print("Faculty     : Ravikumar (ravikumar.faculty@gmail.com / Faculty@123)")
-    print("Faculty     : Almas (almas.faculty@gmail.com / Faculty@123)")
-    print("Students    : 36 MCA Students (P02DR25S126001 to P02DR25S126036 / Student@123)")
+    print("Super Admin : Arunkumar Rajput (arunkumarrajput@gmail.com / CbsAdmin#Super2026!Master)")
+    print("Admin       : Chaitra (chaitra.admin@gmail.com / CbsTpo$Ops2026#Secure)")
+    print("Faculty     : Shweta Lali (shweta.lali@gmail.com / CbsFaculty#Lali2026!)")
+    print("Faculty     : Bhargav (bhargav.faculty@gmail.com / CbsFaculty#Bhargav2026!)")
+    print("Faculty     : Ravikumar (ravikumar.faculty@gmail.com / CbsFaculty#Ravi2026!)")
+    print("Faculty     : Almas (almas.faculty@gmail.com / CbsFaculty#Almas2026!)")
+    print("Students    : 36 MCA Students (P02DR25S126001 to P02DR25S126036 / CbsStudent#MCA2026$)")
     print("College     : Chetan Business School | Degree: MCA")
     print("=======================================================\n")
 
