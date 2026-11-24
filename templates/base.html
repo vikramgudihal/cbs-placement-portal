@@ -75,6 +75,7 @@
     {% set is_auth_page = request.endpoint in ['login', 'signup', 'login_post', 'signup_post', 'forgot_password', 'reset_password'] %}
     {% set is_logged_in = session.get('user_id') %}
     {% set user_role    = session.get('role') %}
+    {% set is_onboarding = (request.endpoint == 'complete_profile') %}
 
     {% if not (is_logged_in and not is_auth_page) %}
     <!-- ══════════════════════════════════════════════════════ -->
@@ -98,7 +99,7 @@
       </div>
     </nav>
 
-    {% else %}
+    {% elif not is_onboarding %}
     <!-- ══════════════════════════════════════════════════════ -->
     <!-- APP SHELL: Sidebar Overlay                             -->
     <!-- ══════════════════════════════════════════════════════ -->
@@ -268,11 +269,12 @@
     {% endif %}
 
     <!-- ── MAIN AREA ──────────────────────────────────────── -->
-    <div class="{% if is_logged_in and not is_auth_page %}app-main{% else %}auth-wrapper{% endif %}">
+    <div class="{% if is_logged_in and not is_auth_page %}{% if is_onboarding %}app-main onboarding-main{% else %}app-main{% endif %}{% else %}auth-wrapper{% endif %}">
 
       {% if is_logged_in and not is_auth_page %}
       <!-- Top Bar -->
       <header class="app-topbar">
+        {% if not is_onboarding %}
         <!-- Hamburger (Mobile) -->
         <button
           class="topbar-hamburger"
@@ -282,9 +284,17 @@
         >
           <i class="ph-bold ph-list"></i>
         </button>
+        {% endif %}
 
         <!-- Page title (injected by JS) -->
-        <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
+          {% if is_onboarding %}
+          <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px;">
+            🎓 1st-Time Profile Setup
+          </span>
+          {% endif %}
+        </div>
 
         <!-- Mobile Header Brand -->
         <a href="/" class="topbar-mobile-brand mobile-only" style="text-decoration: none; align-items: center; gap: 0.5rem;">
@@ -293,6 +303,7 @@
         </a>
 
         <div class="topbar-right">
+          {% if not is_onboarding %}
           <!-- Notifications -->
           <a
             href="{{ url_for('notifications_page') }}"
@@ -306,12 +317,14 @@
             </span>
             {% endif %}
           </a>
+          {% endif %}
 
           <!-- Logout -->
           <button
             onclick="showLogoutModal(event)"
-            class="btn btn-secondary btn-sm desktop-only"
+            class="btn btn-secondary btn-sm"
             title="Logout"
+            style="font-size: 0.8rem; padding: 0.35rem 0.75rem;"
           >
             <i class="ph-bold ph-sign-out"></i>
             Logout
@@ -325,7 +338,7 @@
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-messages" style="{% if not is_logged_in or is_auth_page %}margin: 1rem auto; max-width: 440px; padding: 0 1rem;{% endif %}">
+        <div class="flash-messages" style="{% if not is_logged_in or is_auth_page or is_onboarding %}margin: 1rem auto; max-width: 520px; padding: 0 1rem;{% endif %}">
           {% for category, message in messages %}
           <div class="flash-msg {{ category }}">
             <i class="ph-bold
@@ -355,7 +368,7 @@
       </footer>
     </div>
 
-    {% if is_logged_in and not is_auth_page %}
+    {% if is_logged_in and not is_auth_page and not is_onboarding %}
     <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
       <div class="mobile-nav-container">

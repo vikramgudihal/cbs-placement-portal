@@ -349,7 +349,39 @@ def internal_server_error(e):
     app.logger.error(f"Internal 500 Exception: {str(e)}", exc_info=True)
     return render_template('errors/500.html'), 500
 
-# --- CONTEXT PROCESSORS ---
+# --- CONTEXT PROCESSORS & MIDDLEWARE ---
+@app.before_request
+def enforce_mandatory_student_onboarding():
+    """
+    Enforces that approved students MUST complete their profile before accessing any
+    other part of the placement portal (Dashboard, Jobs, Applications, Forms).
+    Prevents bypassing the onboarding form.
+    """
+    if 'user_id' in session and session.get('role') == 'student':
+        exempt_endpoints = {
+            'complete_profile',
+            'api_parse_resume',
+            'logout',
+            'static',
+            'file_serving.serve_file'
+        }
+        
+        endpoint = request.endpoint
+        if not endpoint or endpoint in exempt_endpoints or endpoint.startswith('static.'):
+            return None
+
+        # Check if profile_completed
+        if not session.get('profile_completed'):
+            try:
+                user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+                if user and not user.get('profile_completed'):
+                    return redirect(url_for('complete_profile'))
+                elif user and user.get('profile_completed'):
+                    session['profile_completed'] = True
+            except Exception:
+                pass
+    return None
+
 @app.context_processor
 def inject_notifications():
     if 'user_id' not in session:
@@ -701,6 +733,49 @@ def complete_profile():
             return redirect(url_for('complete_profile'))
 
     return render_template('student/complete_profile.html', student=student)
+
+@app.route('/api/student/parse-resume', methods=['POST'])
+@login_required(role='student')
+@limiter.limit("15 per minute")
+def api_parse_resume():
+    """
+    Secure Smart Resume/CV Parser Endpoint:
+    Accepts candidate PDF, extracts text, and returns structured data
+    for 1-click form auto-filling.
+    """
+    try:
+        from utils.resume_parser import parse_resume
+        import io
+
+        file = request.files.get('resume')
+        if not file or file.filename == '':
+            return {"success": False, "error": "No resume file selected."}, 400
+
+        # Validate file extension
+        filename = (file.filename or '').lower()
+        if not filename.endswith('.pdf'):
+            return {"success": False, "error": "Only PDF resumes are supported for auto-fill."}, 400
+
+        # Read content for validation & parsing
+        content = file.read()
+        file.seek(0)
+
+        # 5MB size limit
+        if len(content) > 5 * 1024 * 1024:
+            return {"success": False, "error": "File size exceeds 5MB security limit."}, 400
+
+        # Magic byte validation
+        if not content.startswith(b'%PDF-'):
+            return {"success": False, "error": "Corrupted or non-standard PDF file header detected."}, 400
+
+        parsed = parse_resume(io.BytesIO(content))
+        if not parsed.get("success"):
+            return parsed, 400
+
+        return parsed
+    except Exception as e:
+        app.logger.error(f"Resume parsing error: {e}")
+        return {"success": False, "error": f"Failed to parse resume: {str(e)}"}, 500
 
 @app.route('/signup')
 def signup():
@@ -2560,7 +2635,27 @@ def apply_job(job_id):
         if profile_sync_data:
             profile_sync_data['profile_updated_at'] = datetime.datetime.now()
             students_collection.update_one({'user_id': user_id}, {'$set': profile_sync_data})
+
+        # Tailored/Custom Resume Option (for specific company & role)
+        resume_choice = request.form.get('resume_choice', 'default')
+        custom_resume_file = request.files.get('custom_resume')
+        app_resume_file_id = student.get('resume_file_id')
+        is_custom_resume = False
+        custom_resume_name = None
+
+        if resume_choice == 'custom' and custom_resume_file and custom_resume_file.filename != '':
+            ok, res_result = validate_and_store_resume(custom_resume_file, user_id)
+            if not ok:
+                flash(f"Custom Resume Upload Failed: {res_result}", "error")
+                return redirect(url_for('student_jobs'))
+            app_resume_file_id = res_result
+            is_custom_resume = True
+            custom_resume_name = secure_filename(custom_resume_file.filename)
         
+        if not app_resume_file_id:
+            flash("Application Requirement: A verified resume is required to apply. Please upload your resume in the application window or update your profile.", "error")
+            return redirect(url_for('student_jobs'))
+
         # Prepare Application Document (Snapshot)
         application = {
             'student_id': user_id,
@@ -2573,7 +2668,9 @@ def apply_job(job_id):
             'candidate_college': candidate_college,
             'cgpa': student.get('cgpa'),
             'branch': student.get('branch'),
-            'resume_file_id': student.get('resume_file_id'),
+            'resume_file_id': app_resume_file_id,
+            'is_custom_resume': is_custom_resume,
+            'custom_resume_filename': custom_resume_name,
             'custom_responses': custom_responses,
             'applied_at': datetime.datetime.now(),
             'status': 'Applied',

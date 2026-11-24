@@ -504,19 +504,9 @@
         </span>
         {% elif is_eligible %}
           {% set reqs = job.custom_requirements or {} %}
-          {% set has_custom_reqs = reqs.require_github or reqs.require_linkedin or reqs.require_relocate or reqs.require_preferred_city or reqs.custom_question %}
-          {% if has_custom_reqs %}
-            <button type="button" class="btn-apply-corp" onclick="openApplyModal('{{ job._id }}', '{{ job.company_name|escape }}', '{{ job.role|escape }}', {{ reqs|tojson|forceescape }})">
-              Apply Now <i class="ph-bold ph-arrow-right"></i>
-            </button>
-          {% else %}
-            <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn-apply-corp">
-                Apply Now <i class="ph-bold ph-arrow-right"></i>
-              </button>
-            </form>
-          {% endif %}
+          <button type="button" class="btn-apply-corp" onclick="openApplyModal('{{ job._id }}', '{{ job.company_name|escape }}', '{{ job.role|escape }}', {{ reqs|tojson|forceescape }})">
+            Apply Now <i class="ph-bold ph-arrow-right"></i>
+          </button>
         {% else %}
         <span style="font-size: 0.775rem; color: var(--text-subtle); display: inline-flex; align-items: center; gap: 0.25rem;">
           <i class="ph-bold ph-lock"></i> Criteria Not Met
@@ -633,12 +623,51 @@ function toggleDetails(jobId) {
       </button>
     </div>
 
-    <form id="applyCustomForm" method="POST" action="">
+    <form id="applyCustomForm" method="POST" action="" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
       <div style="background: rgba(79, 70, 229, 0.06); border: 1px solid rgba(79, 70, 229, 0.18); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
         <i class="ph-bold ph-shield-check" style="color: var(--primary);"></i>
-        This recruiter has requested additional profile data. Enter your information below &mdash; it will be <strong>saved automatically to your candidate profile</strong> for future campus drives.
+        Submit your verified application for this recruitment drive. You can choose to attach your master profile resume or upload a custom-tailored CV for this role.
+      </div>
+
+      <!-- Resume Choice Section (Tailored vs Master Profile) -->
+      <div style="background: var(--bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 1.15rem; margin-bottom: 1.25rem;">
+        <div style="font-size: 0.88rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 0.4rem;">
+            <i class="ph-bold ph-file-pdf" style="color: var(--primary);"></i>
+            <span>Resume Submission for this Drive</span>
+          </span>
+          <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); font-size: 0.7rem; font-weight: 700;">Role Specific</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.85rem 0; line-height: 1.4;">
+          Select whether to submit your verified master placement resume or attach a customized resume tailored for this company and position.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
+            <input type="radio" name="resume_choice" id="choice_default_resume" value="default" checked onchange="toggleCustomResumeUpload(false)" style="accent-color: var(--primary); width: 18px; height: 18px;">
+            <span>Submit Master Profile Resume</span>
+            {% if student and student.resume_file_id %}
+            <a href="{{ url_for('file_serving.serve_file', file_id=student.resume_file_id) }}" target="_blank" style="font-size: 0.75rem; color: var(--primary); text-decoration: underline; margin-left: 0.4rem;">(Preview File)</a>
+            {% endif %}
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
+            <input type="radio" name="resume_choice" id="choice_custom_resume" value="custom" onchange="toggleCustomResumeUpload(true)" style="accent-color: var(--primary); width: 18px; height: 18px;">
+            <span>Upload New / Tailored Resume for this Drive (PDF)</span>
+          </label>
+
+          <div id="custom_resume_upload_box" style="display: none; margin-top: 0.4rem; padding: 0.85rem 1rem; background: var(--surface); border: 1.5px dashed var(--primary); border-radius: 12px;">
+            <label for="apply_custom_resume" style="font-size: 0.78rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 0.35rem;">
+              Select Custom PDF Resume (Max 5MB) *
+            </label>
+            <input type="file" name="custom_resume" id="apply_custom_resume" accept=".pdf" style="font-size: 0.84rem; width: 100%;">
+            <small style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+              Submitted specifically to this recruiter. Your master profile resume remains untouched.
+            </small>
+          </div>
+        </div>
       </div>
 
       <!-- GitHub Field -->
@@ -708,6 +737,13 @@ function openApplyModal(jobId, company, role, reqs) {
   title.textContent = `${role} at ${company}`;
   form.action = `/student/jobs/${jobId}/apply`;
 
+  // Reset resume choice to default
+  const defaultRadio = document.getElementById('choice_default_resume');
+  if (defaultRadio) defaultRadio.checked = true;
+  toggleCustomResumeUpload(false);
+  const customResumeInput = document.getElementById('apply_custom_resume');
+  if (customResumeInput) customResumeInput.value = '';
+
   const fieldGithub = document.getElementById('field_github');
   const inputGithub = document.getElementById('apply_github');
   if (reqs && reqs.require_github) {
@@ -768,6 +804,15 @@ function closeApplyModal() {
   const modal = document.getElementById('applyCustomModal');
   if (modal) modal.style.display = 'none';
   document.body.style.overflow = '';
+}
+
+function toggleCustomResumeUpload(show) {
+  const box = document.getElementById('custom_resume_upload_box');
+  const input = document.getElementById('apply_custom_resume');
+  if (box && input) {
+    box.style.display = show ? 'block' : 'none';
+    input.required = show;
+  }
 }
 
 function confirmApply(company, role) {

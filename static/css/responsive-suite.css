@@ -323,42 +323,50 @@ img, video, iframe, canvas {
   #superAdminAlertModal,
   .modal-overlay,
   .modal-backdrop {
-    padding: 0.5rem !important;
+    padding: 0.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   #superAdminAlertModal > div,
   .priority-auth-modal-card {
     width: 100% !important;
-    max-width: 96vw !important;
-    height: 82vh !important;
-    max-height: 85vh !important;
+    max-width: 95vw !important;
+    height: auto !important;
+    max-height: 88vh !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    border-radius: 18px !important;
-    margin: 0 auto !important;
+    border-radius: 20px !important;
+    margin: auto !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
   }
 
   .priority-auth-modal-header {
     flex-shrink: 0 !important;
+    padding: 0.85rem 1rem !important;
   }
 
   .priority-auth-modal-body,
   .modal-scroll-body,
   #superAdminAlertModal .modal-scroll-body {
     flex: 1 1 auto !important;
-    min-height: 220px !important;
+    min-height: 0 !important;
     height: auto !important;
-    max-height: calc(82vh - 160px) !important;
+    max-height: calc(88vh - 160px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 0.75rem !important;
+    padding: 0.85rem 1rem !important;
   }
 
   .priority-auth-modal-footer {
     flex-shrink: 0 !important;
+    padding: 0.75rem 1rem !important;
   }
 
   .modal-content,
@@ -671,7 +679,8 @@ table th, table td {
 }
 
 @media (max-width: 768px) {
-  table th, table td {
+  table:not(.applications-streamlined-table) th,
+  table:not(.applications-streamlined-table) td {
     padding: 0.65rem 0.6rem !important;
     font-size: 0.82rem !important;
   }
@@ -1005,5 +1014,19 @@ table th, table td {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* ── 9. MANDATORY ONBOARDING DISTRACTION-FREE SHELL ───────────── */
+.onboarding-main {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  padding: 1.5rem 1rem !important;
+}
+@media (max-width: 768px) {
+  .onboarding-main {
+    padding: 0.75rem 0.5rem !important;
   }
 }

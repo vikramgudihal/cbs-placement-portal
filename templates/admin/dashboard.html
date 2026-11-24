@@ -627,7 +627,7 @@
        ============================================================ -->
   {% if admin_level == 'super_admin' and pending_students and pending_students|length > 0 %}
   <div id="superAdminAlertModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 0.75rem;">
-    <div class="priority-auth-modal-card" style="background: var(--surface); border: 2px solid #f59e0b; border-radius: 18px; max-width: 720px; width: 100%; height: 82vh; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); overflow: hidden; position: relative;">
+    <div class="priority-auth-modal-card" style="background: var(--surface); border: 2px solid #f59e0b; border-radius: 20px; max-width: 720px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45); overflow: hidden; position: relative;">
       
       <!-- Modal Header -->
       <div class="priority-auth-modal-header" style="padding: 1rem 1.15rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); border-bottom: 1.5px solid #fde68a; display: flex; justify-content: space-between; align-items: center; position: relative; flex-shrink: 0;">
@@ -646,60 +646,60 @@
       </div>
 
       <!-- Modal Body (Scrollable List) -->
-      <div class="priority-auth-modal-body modal-scroll-body" style="padding: 1rem 1.15rem; overflow-y: auto; flex: 1 1 auto; min-height: 220px; display: flex; flex-direction: column; gap: 0.75rem; -webkit-overflow-scrolling: touch;">
+      <div class="priority-auth-modal-body modal-scroll-body" style="padding: 1rem 1.15rem; overflow-y: auto; flex: 1 1 auto; min-height: 0; max-height: 62vh; display: flex; flex-direction: column; gap: 0.75rem; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
         {% if urgent_notifications %}
-        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 0.65rem 0.85rem; display: flex; align-items: center; gap: 0.55rem; flex-shrink: 0;">
-          <i class="ph-fill ph-warning-circle" style="color: #dc2626; font-size: 1.1rem; flex-shrink: 0;"></i>
-          <span style="font-size: 0.78rem; color: #991b1b; font-weight: 600;">
-            Urgent approval reminder(s) active! Users have clicked "Notify Admin" requesting authorization.
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.3); border-left: 4px solid #dc2626; border-radius: 10px; padding: 0.65rem 0.85rem; display: flex; align-items: center; gap: 0.55rem; flex-shrink: 0;">
+          <i class="ph-fill ph-warning-circle" style="color: #dc2626; font-size: 1.2rem; flex-shrink: 0;"></i>
+          <span style="font-size: 0.8rem; color: #991b1b; font-weight: 700;">
+            Urgent approval reminder active! Student(s) have requested immediate portal access.
           </span>
         </div>
         {% endif %}
 
         {% for user in pending_students %}
-        <div style="display: flex; flex-direction: column; gap: 0.65rem; padding: 0.85rem 1rem; background: var(--surface); border: 1.5px solid {% if user.has_urgent_reminder %}#f59e0b{% else %}var(--border){% endif %}; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); flex-shrink: 0;">
+        <div style="display: flex; flex-direction: column; gap: 0.65rem; padding: 0.9rem 1rem; background: var(--surface, #ffffff); border: 1.5px solid {% if user.has_urgent_reminder %}#f59e0b{% else %}var(--border, #e2e8f0){% endif %}; border-left: 4px solid {% if user.has_urgent_reminder %}#dc2626{% else %}#2563eb{% endif %}; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex-shrink: 0;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div style="width: 38px; height: 38px; border-radius: 10px; background: {% if user.role == 'student' %}rgba(37, 99, 235, 0.1){% else %}rgba(124, 58, 237, 0.1){% endif %}; color: {% if user.role == 'student' %}#2563eb{% else %}#7c3aed{% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; flex-shrink: 0;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: {% if user.role == 'student' %}rgba(37, 99, 235, 0.12){% else %}rgba(124, 58, 237, 0.12){% endif %}; color: {% if user.role == 'student' %}#2563eb{% else %}#7c3aed{% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">
               {{ (user.email or 'U')[0]|upper }}
             </div>
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-                <strong style="font-size: 0.9rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <strong style="font-size: 0.92rem; color: var(--text-main, #0f172a); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   {{ (user.student_info.name if user.student_info and user.student_info.name else None) or user.name or user.full_name or user.email }}
                 </strong>
-                <span class="badge" style="background: {% if user.role == 'student' %}#eff6ff; color: #1d4ed8{% else %}#f5f3ff; color: #6d28d9{% endif %}; font-size: 0.68rem; padding: 0.12rem 0.45rem; text-transform: uppercase; font-weight: 700;">
+                <span class="badge" style="background: {% if user.role == 'student' %}#eff6ff; color: #1d4ed8{% else %}#f5f3ff; color: #6d28d9{% endif %}; font-size: 0.68rem; padding: 0.12rem 0.45rem; text-transform: uppercase; font-weight: 700; border-radius: 4px;">
                   {{ user.role if user.role == 'student' else user.admin_level or 'Admin' }}
                 </span>
                 {% if user.has_urgent_reminder %}
-                <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.68rem; padding: 0.12rem 0.45rem; font-weight: 700;">
+                <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.68rem; padding: 0.12rem 0.45rem; font-weight: 700; border-radius: 4px;">
                   🚨 Urgent
                 </span>
                 {% endif %}
               </div>
 
-              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <span style="word-break: break-all;">{{ user.email }}</span>
                 {% if user.student_info and user.student_info.student_id %}
                 <span style="font-family: monospace; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 0.1rem 0.4rem; border-radius: 4px; letter-spacing: 0.03em;">
                   Roll: {{ user.student_info.student_id }}
                 </span>
                 {% endif %}
-                <span>&bull; {{ user.created_at.strftime('%d %b %Y, %H:%M') if user.created_at else 'Recently' }}</span>
+                <span>&bull; {{ user.created_at.strftime('%d %b %Y, %H:%M') if user.created_at and user.created_at.strftime is defined else 'Recently' }}</span>
               </div>
             </div>
           </div>
 
           <!-- Actions: Side by side on mobile for easy thumb reach -->
-          <div style="display: flex; align-items: center; gap: 0.45rem; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; width: 100%; margin-top: 0.25rem;">
             <form action="{{ url_for('approve_user', user_id=user._id) }}" method="POST" style="margin: 0; flex: 1;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-success btn-sm" style="font-size: 0.78rem; padding: 0.45rem 0.65rem; font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <button type="submit" class="btn btn-success btn-sm" style="font-size: 0.8rem; padding: 0.5rem 0.75rem; font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 8px;">
                 <i class="ph-bold ph-check"></i> Approve
               </button>
             </form>
             <form action="{{ url_for('reject_user', user_id=user._id) }}" method="POST" onsubmit="return confirm('Reject and remove this registration?');" style="margin: 0; flex: 1;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.78rem; padding: 0.45rem 0.65rem; font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.8rem; padding: 0.5rem 0.75rem; font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 8px;">
                 <i class="ph-bold ph-x"></i> Reject
               </button>
             </form>
