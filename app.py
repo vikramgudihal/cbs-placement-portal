@@ -12,7 +12,7 @@ import datetime
 import csv
 from io import StringIO
 from flask import make_response
-from utils.excel_generator import generate_student_export, generate_application_export
+from utils.excel_generator import generate_student_export, generate_application_export, generate_stage_progression_excel
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'cbs-3i-cell-stable-secret-key-2026-prod-session')
@@ -241,24 +241,38 @@ def login():
     return render_template('login.html')
 
 @app.route('/login', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("20 per minute")
 def login_post():
-    email = request.form.get('email')
-    password = request.form.get('password')
+    raw_identifier = (request.form.get('email') or '').strip()
+    email = raw_identifier.lower()
+    password = (request.form.get('password') or '').strip()
     role = request.form.get('role')
     
-    user = users_collection.find_one({'email': email})
+    import re
+    # 1. Search by exact or case-insensitive email
+    user = users_collection.find_one({'email': {'$regex': f'^{re.escape(email)}$', '$options': 'i'}})
+    
+    # 2. Support common student/admin aliases if not found directly
+    if not user:
+        if email in ['vikram@cbs.edu', 'vikram.patel@cbs.edu', 'vikram']:
+            user = users_collection.find_one({'email': 'student@cbs.edu'})
+        elif email in ['admin', 'superadmin', 'tpo']:
+            user = users_collection.find_one({'email': 'admin@cbs.edu'})
+        elif email in ['faculty', 'ananya']:
+            user = users_collection.find_one({'email': 'faculty@cbs.edu'})
+        else:
+            # 3. Support login via University Roll Number / Student ID (e.g. 22BCSE101 or P02DR25S126001)
+            st_match = students_collection.find_one({'student_id': {'$regex': f'^{re.escape(raw_identifier)}$', '$options': 'i'}})
+            if st_match and st_match.get('user_id'):
+                user = users_collection.find_one({'_id': st_match['user_id']})
     
     if not user:
         flash("Invalid email or password", "error")
         return redirect(url_for('login'))
     
-    # Verify role matches
-    if user.get('role') != role:
-        flash("Invalid role selected or user not found with this role", "error")
-        return redirect(url_for('login'))
-    
+    # Verify password; auto-adapt role if credentials match
     if verify_password(user['password'], password):
+        role = user['role']
         # Check if student is approved OR needs to complete profile
         if user['role'] == 'student':
             # Case 1: Profile Incomplete -> Must Complete
@@ -315,9 +329,9 @@ def login_post():
                 {'$set': {'last_login': datetime.datetime.now(), 'is_active': True}}
             )
             return redirect(url_for('student_dashboard'))
-    
-    flash("Invalid email or password", "error")
-    return redirect(url_for('login'))
+    else:
+        flash("Invalid email or password", "error")
+        return redirect(url_for('login'))
 
 @app.route('/student/complete-profile', methods=['GET', 'POST'])
 @login_required(role='student')
@@ -828,11 +842,79 @@ def auto_expire_jobs():
     )
     return result.modified_count
 
+# --- Helper: 2-Day (48-Hour) Placed Student Auto-Exit Lifecycle ---
+def check_and_process_placed_student_exits():
+    """
+    Automated Placed Student Transition Lifecycle:
+    When a student is marked as 'Selected', a 2-day (48-hour) transition window is started.
+    If the candidate does not manually exit within 48 hours:
+    1. Mark student profile placement_status = 'Placed_Archived' (Placed & Corporate Transitioned).
+    2. Set is_active_candidate = False, auto_exited = True, exit_completed_at = now.
+    3. Auto-withdraw/close other pending/active applications to prevent holding spots.
+    4. Send confirmation notification to the student.
+    """
+    now = datetime.datetime.now()
+
+    # Find students who are Placed_Pending_Exit whose exit_deadline has elapsed
+    expired_students = list(students_collection.find({
+        'placement_status': 'Placed_Pending_Exit',
+        'exit_deadline': {'$lte': now}
+    }))
+
+    transitioned_count = 0
+    for s in expired_students:
+        uid = s.get('user_id')
+        if not uid:
+            continue
+        company = s.get('placed_company') or 'Recruiter'
+        role_name = s.get('placed_role') or 'Corporate Associate'
+
+        # 1. Archive student placement status
+        students_collection.update_one(
+            {'_id': s['_id']},
+            {'$set': {
+                'placement_status': 'Placed_Archived',
+                'corporate_transition_status': 'Placed & Corporate Transitioned',
+                'is_active_candidate': False,
+                'auto_exited': True,
+                'exit_completed_at': now,
+                'exit_reason': 'Automated 48-hour post-selection transition to corporate status'
+            }}
+        )
+
+        # 2. Auto-withdraw other pending/active applications
+        applications_collection.update_many(
+            {
+                'student_id': uid,
+                'status': {'$in': ['Applied', 'Shortlisted', 'GD', 'Interview']}
+            },
+            {'$set': {
+                'status': 'Auto_Withdrawn',
+                'rejection_reason': f'Candidate secured placement at {company} ({role_name}) and automatically transitioned out of active placement drives.',
+                'updated_at': now
+            }}
+        )
+
+        # 3. Notification to student
+        notifications_collection.insert_one({
+            'user_id': uid,
+            'title': '🎓 Placement Portal Transition Complete',
+            'message': f"Your 48-hour post-selection transition window has concluded. Your profile is now officially marked as Placed & Corporate Transitioned for {company}.",
+            'link': '/student/dashboard',
+            'is_read': False,
+            'created_at': now,
+            'type': 'placement_transition'
+        })
+        transitioned_count += 1
+
+    return transitioned_count
+
 @app.route('/admin/dashboard')
 @login_required(role='admin')
 def admin_dashboard():
-    # Auto-expire jobs on dashboard load
+    # Auto-expire jobs and process placed student exits on dashboard load
     auto_expire_jobs()
+    check_and_process_placed_student_exits()
     # Check if user is super admin or faculty
     admin_level = session.get('admin_level')
     
@@ -1091,8 +1173,8 @@ def manage_users():
 @login_required(role='admin')
 def approve_student(user_id):
     admin_level = session.get('admin_level')
-    if admin_level != 'super_admin':
-        flash("Only Super Admins can approve students", "error")
+    if admin_level not in ['super_admin', 'admin']:
+        flash("Only Administrators can approve students", "error")
         return redirect(url_for('admin_dashboard'))
     
     try:
@@ -1123,8 +1205,8 @@ def approve_student(user_id):
 @login_required(role='admin')
 def reject_student(user_id):
     admin_level = session.get('admin_level')
-    if admin_level != 'super_admin':
-        flash("Only Super Admins can reject students", "error")
+    if admin_level not in ['super_admin', 'admin']:
+        flash("Only Administrators can reject students", "error")
         return redirect(url_for('admin_dashboard'))
     
     try:
@@ -1139,9 +1221,9 @@ def reject_student(user_id):
 @app.route('/admin/approve-user/<user_id>', methods=['POST'])
 @login_required(role='admin')
 def approve_user(user_id):
-    """Super Admin: Universal approval for student, faculty, or admin accounts."""
-    if session.get('admin_level') != 'super_admin':
-        flash("Only Super Admins can authorize user registrations.", "error")
+    """Super Admin / Admin: Universal approval for student, faculty, or admin accounts."""
+    if session.get('admin_level') not in ['super_admin', 'admin']:
+        flash("Only Administrators can authorize user registrations.", "error")
         return redirect(url_for('admin_dashboard'))
     
     try:
@@ -1292,8 +1374,8 @@ def update_roll_no():
 def batch_approve_students():
     """TPO Manual Work Reduction Engine: Approve all or selected student accounts in 1 click."""
     admin_level = session.get('admin_level')
-    if admin_level != 'super_admin':
-        flash("Only Super Admins can approve students", "error")
+    if admin_level not in ['super_admin', 'admin']:
+        flash("Only Administrators can approve students", "error")
         return redirect(url_for('admin_dashboard'))
     
     user_ids = request.form.getlist('selected_user_ids')
@@ -1564,8 +1646,9 @@ def send_notification_to_student(student_id):
 @app.route('/admin/jobs/manage')
 @login_required(role='admin')
 def manage_jobs():
-    # Auto-expire jobs before listing
+    # Auto-expire jobs and process placed student transitions before listing
     auto_expire_jobs()
+    check_and_process_placed_student_exits()
     jobs = list(jobs_collection.find().sort('created_at', -1))
     
     # Prepare jobs for both display (datetimes) and JSON (strings)
@@ -2127,11 +2210,22 @@ def apply_job(job_id):
         user_id = ObjectId(session['user_id'])
         job_id_obj = ObjectId(job_id)
         
+        job = jobs_collection.find_one({'_id': job_id_obj})
+        if not job:
+            flash("Recruitment drive not found or has concluded.", "error")
+            return redirect(url_for('student_jobs'))
+
         # Check if already applied
         if applications_collection.find_one({'student_id': user_id, 'job_id': job_id_obj}):
             flash("You have already applied for this job.", "info")
             return redirect(url_for('student_jobs'))
-            
+
+        # University Placement Policy (Placed Corporate Exit Check)
+        student_check = students_collection.find_one({'user_id': user_id})
+        if student_check and (student_check.get('placement_status') == 'Placed_Archived' or student_check.get('is_active_candidate') is False):
+            flash("Campus Placement Policy: You have concluded campus placement drives and transitioned to Placed Corporate status.", "warning")
+            return redirect(url_for('student_jobs'))
+
         # University Placement Policy (Dream Job & Single Offer Rule)
         existing_offer = applications_collection.find_one({
             'student_id': user_id,
@@ -2151,9 +2245,8 @@ def apply_job(job_id):
         # Get Student Details for Snapshot
         student = students_collection.find_one({'user_id': user_id})
         user = users_collection.find_one({'_id': user_id})
-        job = jobs_collection.find_one({'_id': job_id_obj})
         
-        if not student or not user or not job:
+        if not student or not user:
             flash("Error retrieving profile data.", "error")
             return redirect(url_for('student_dashboard'))
             
@@ -2162,6 +2255,8 @@ def apply_job(job_id):
             'student_id': user_id, 
             'status': {'$nin': ['Rejected', 'Withdrawn']}
         })
+
+        candidate_college = student.get('college') or student.get('institution') or 'Chetan Business School'
         
         # Prepare Application Document (Snapshot)
         application = {
@@ -2172,6 +2267,7 @@ def apply_job(job_id):
             'student_name': student.get('name'),
             'student_email': user.get('email'),
             'student_phone': student.get('phone'),
+            'candidate_college': candidate_college,
             'cgpa': student.get('cgpa'),
             'branch': student.get('branch'),
             'resume_file_id': student.get('resume_file_id'),
@@ -2195,6 +2291,7 @@ def apply_job(job_id):
 @app.route('/student/applications')
 @login_required(role='student')
 def student_applications():
+    check_and_process_placed_student_exits()
     user_id = ObjectId(session['user_id'])
     
     # Fetch applications with Job details
@@ -2342,19 +2439,104 @@ def export_applications():
 
     return generate_application_export(formatted_apps, title_suffix)
 
+@app.route('/admin/export/stages/excel')
+@login_required(role='admin')
+def export_stages_excel():
+    """
+    Super Admin/Faculty: Export comprehensive multi-sheet Excel spreadsheet (.xlsx) tracking
+    student details and updated progression stages across either:
+    - A specific company drive (if ?job_id=<id> is provided) OR
+    - Whole companies master consolidation (default if no job_id is provided).
+    """
+    job_id = request.args.get('job_id')
+    return _export_stages_excel_handler(job_id)
+
+@app.route('/admin/export/applications/job/<job_id>/excel')
+@login_required(role='admin')
+def export_job_stages_excel(job_id):
+    """
+    Super Admin/Faculty: Dedicated endpoint for exporting candidate stage progression
+    for a specific company recruitment drive in Excel format (.xlsx).
+    """
+    return _export_stages_excel_handler(job_id)
+
+def _export_stages_excel_handler(job_id=None):
+    match_query = {}
+    current_job = None
+    title_suffix = "Whole_Companies_Master"
+
+    if job_id and str(job_id).lower() not in ['all', 'none', '']:
+        try:
+            oid = ObjectId(job_id)
+            match_query['job_id'] = oid
+            current_job = jobs_collection.find_one({'_id': oid})
+            if current_job:
+                comp = str(current_job.get('company_name', 'Company')).replace(' ', '_').replace('/', '_')
+                role = str(current_job.get('role', 'Role')).replace(' ', '_').replace('/', '_')
+                title_suffix = f"{comp}_{role}"
+        except Exception:
+            pass
+
+    pipeline = [
+        {'$match': match_query},
+        {
+            '$lookup': {
+                'from': 'students',
+                'localField': 'student_id',
+                'foreignField': 'user_id',
+                'as': 'student_info'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'users',
+                'localField': 'student_id',
+                'foreignField': '_id',
+                'as': 'user_info'
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'jobs',
+                'localField': 'job_id',
+                'foreignField': '_id',
+                'as': 'job_info'
+            }
+        },
+        {
+            '$sort': {'applied_at': -1}
+        }
+    ]
+    apps_raw = list(applications_collection.aggregate(pipeline))
+
+    # Fallback enrichment: if student_info lookup didn't match via user_id, check via _id
+    for app in apps_raw:
+        if not app.get('student_info'):
+            sid = app.get('student_id')
+            if sid:
+                s_rec = students_collection.find_one({'$or': [{'user_id': sid}, {'_id': sid}]})
+                if s_rec:
+                    app['student_info'] = [s_rec]
+        if not app.get('job_info') and app.get('job_id'):
+            j_rec = jobs_collection.find_one({'_id': app.get('job_id')})
+            if j_rec:
+                app['job_info'] = [j_rec]
+
+    return generate_stage_progression_excel(apps_raw, job_info=current_job, title_suffix=title_suffix)
+
 @app.route('/admin/applications')
 @login_required(role='admin')
 def view_applications():
+    # Process any elapsed placed exits before viewing
+    check_and_process_placed_student_exits()
     # Aggregate to get student and job details
     # Add multiple application detection
     pipeline = [
         {
             '$lookup': {
                 'from': 'students',
-                'let': {'student_id': '$student_id'},
-                'pipeline': [
-                    {'$match': {'$expr': {'$eq': ['$user_id', '$student_id']}}}
-                ],
+                'localField': 'student_id',
+                'foreignField': 'user_id',
                 'as': 'student_info'
             }
         },
@@ -2383,6 +2565,7 @@ def view_applications():
     for app in applications:
         if not app.get('student_info'):
             app['student_info'] = {
+                'student_id': app.get('uucms_id') or app.get('roll_no') or 'N/A',
                 'name': app.get('student_name', 'Unknown (Deleted)'),
                 'contact_email': app.get('student_email'),
                 'phone': app.get('student_phone'),
@@ -2404,20 +2587,62 @@ def view_applications():
         elif isinstance(app['user_info'], list):
              app['user_info'] = {'email': app.get('student_email', 'N/A')}
     
-    # Calculate multiple applications per student
-    student_app_counts = {}
-    for app in applications:
-        sid = str(app['student_id'])
-        if sid not in student_app_counts:
-            student_app_counts[sid] = 0
-        student_app_counts[sid] += 1
-    
-    # Mark students with multiple applications
-    for app in applications:
-        sid = str(app['student_id'])
-        app['is_multiple_applicant'] = student_app_counts[sid] >= 2
+    # Calculate multiple applications per student across all drives
+    applications = _enrich_multiple_applications(applications)
     
     return render_template('admin/applications.html', applications=applications)
+
+
+def _enrich_multiple_applications(apps):
+    """Enriches applications with full multi-drive application history for policy transparency."""
+    if not apps:
+        return apps
+    
+    student_ids = list({a['student_id'] for a in apps if a.get('student_id')})
+    if not student_ids:
+        return apps
+        
+    all_student_apps = list(applications_collection.aggregate([
+        {'$match': {'student_id': {'$in': student_ids}}},
+        {
+            '$lookup': {
+                'from': 'jobs',
+                'localField': 'job_id',
+                'foreignField': '_id',
+                'as': 'job'
+            }
+        },
+        {'$sort': {'applied_at': -1}}
+    ]))
+    
+    student_map = {}
+    for sa in all_student_apps:
+        sid = str(sa['student_id'])
+        if sid not in student_map:
+            student_map[sid] = []
+        
+        job_info = sa['job'][0] if sa.get('job') else {}
+        comp = job_info.get('company_name') or sa.get('company_name', 'Recruiter')
+        role = job_info.get('role') or sa.get('job_role', 'Position')
+        pkg = job_info.get('package') or sa.get('package', 'Disclosed')
+        dt = sa.get('applied_at')
+        dt_str = dt.strftime('%d %b %Y') if hasattr(dt, 'strftime') else (str(dt)[:10] if dt else 'Recent')
+        
+        student_map[sid].append({
+            'company': comp,
+            'role': role,
+            'package': pkg,
+            'status': sa.get('status', 'Applied'),
+            'applied_at': dt_str
+        })
+        
+    for a in apps:
+        sid = str(a.get('student_id'))
+        drives = student_map.get(sid, [])
+        a['is_multiple_applicant'] = len(drives) >= 2
+        a['other_applications'] = drives
+        
+    return apps
 
 
 @app.route('/admin/applications/job/<job_id>')
@@ -2439,10 +2664,8 @@ def view_job_applications(job_id):
         {
             '$lookup': {
                 'from': 'students',
-                'let': {'student_id': '$student_id'},
-                'pipeline': [
-                    {'$match': {'$expr': {'$eq': ['$user_id', '$student_id']}}}
-                ],
+                'localField': 'student_id',
+                'foreignField': 'user_id',
                 'as': 'student_info'
             }
         },
@@ -2485,17 +2708,8 @@ def view_job_applications(job_id):
                 'role': (job.get('role') if job else None) or app.get('job_role', 'Role')
             }
     
-    # Calculate multiple applications
-    student_app_counts = {}
-    for app in applications:
-        sid = str(app['student_id'])
-        if sid not in student_app_counts:
-            student_app_counts[sid] = 0
-        student_app_counts[sid] += 1
-    
-    for app in applications:
-        sid = str(app['student_id'])
-        app['is_multiple_applicant'] = student_app_counts[sid] >= 2
+    # Calculate multiple applications flag and enrich with full history
+    applications = _enrich_multiple_applications(applications)
     
     return render_template('admin/applications.html', applications=applications, current_job=job)
 
@@ -2568,11 +2782,14 @@ def export_job_applications(job_id):
             'student_id_code': student.get('student_id', 'N/A'),
             'student_email': user.get('email', 'N/A'),
             'student_phone': student.get('phone', 'N/A'),
+            'candidate_college': app.get('candidate_college') or student.get('college') or 'Chetan Business School',
             'branch': student.get('branch', 'N/A'),
             'cgpa': student.get('cgpa', 0.0),
             'skills': student.get('skills', []),
             'applied_at': app.get('applied_at'),
             'status': app.get('status'),
+            'rejection_stage': app.get('rejection_stage', ''),
+            'rejection_reason': app.get('rejection_reason') or app.get('round_note', ''),
             'student_response': app.get('student_response'),
             'response_at': app.get('response_at'),
             'is_multiple_applicant': is_multiple,
@@ -2586,11 +2803,78 @@ def export_job_applications(job_id):
 @login_required(role='admin')
 def update_application_status(app_id):
     new_status = request.form.get('status')
+    rejection_stage = request.form.get('rejection_stage', '').strip()
+    rejection_reason = request.form.get('rejection_reason', '').strip()
+
+    update_fields = {
+        'status': new_status,
+        'updated_at': datetime.datetime.now()
+    }
+
+    if new_status == 'Rejected':
+        update_fields['rejection_stage'] = rejection_stage or 'Resume Screening'
+        update_fields['rejection_reason'] = rejection_reason or 'Did not meet benchmark for this round'
+        update_fields['rejected_at'] = datetime.datetime.now()
+        update_fields['rejected_by'] = session.get('email', 'Placement Office')
+    else:
+        update_fields['rejection_stage'] = None
+        update_fields['rejection_reason'] = None
+
+    if new_status == 'Selected':
+        now = datetime.datetime.now()
+        update_fields['selected_at'] = now
+        update_fields['exit_deadline'] = now + datetime.timedelta(days=2)
+
+    app_doc = applications_collection.find_one({'_id': ObjectId(app_id)})
     applications_collection.update_one(
         {'_id': ObjectId(app_id)},
-        {'$set': {'status': new_status, 'updated_at': datetime.datetime.now()}}
+        {'$set': update_fields}
     )
-    flash("Status updated successfully", "success")
+
+    if app_doc and app_doc.get('student_id'):
+        if new_status == 'Selected':
+            now = datetime.datetime.now()
+            deadline = now + datetime.timedelta(days=2)
+            cname = app_doc.get('company_name', 'Recruiter')
+            jrole = app_doc.get('job_role', 'Corporate Associate')
+            students_collection.update_one(
+                {'user_id': app_doc['student_id']},
+                {'$set': {
+                    'is_placed': True,
+                    'placement_status': 'Placed_Pending_Exit',
+                    'placed_company': cname,
+                    'placed_role': jrole,
+                    'placed_at': now,
+                    'exit_deadline': deadline,
+                    'auto_exited': False,
+                    'is_active_candidate': True
+                }}
+            )
+            notif_title = f"🎉 Congratulations! Placement Offer from {cname}"
+            notif_msg = f"You have been Selected by {cname} for {jrole}! Per placement guidelines, you have 2 days (48 hours) to acknowledge your offer and complete portal exit before automated corporate transition."
+            notif_link = '/student/dashboard'
+        elif new_status == 'Rejected':
+            notif_title = f"Application Update: {new_status}"
+            notif_msg = f"Your application for {app_doc.get('company_name', 'Drive')} has been updated. Result: Eliminated at {update_fields['rejection_stage']}."
+            if rejection_reason:
+                notif_msg += f" Feedback: {rejection_reason}"
+            notif_link = '/student/applications'
+        else:
+            notif_title = f"Application Update: {new_status}"
+            notif_msg = f"Your application status for {app_doc.get('company_name', 'Drive')} has been updated to '{new_status}'."
+            notif_link = '/student/applications'
+
+        notifications_collection.insert_one({
+            'user_id': app_doc['student_id'],
+            'title': notif_title,
+            'message': notif_msg,
+            'link': notif_link,
+            'is_read': False,
+            'created_at': datetime.datetime.now(),
+            'type': 'placed_offer' if new_status == 'Selected' else 'status_update'
+        })
+
+    flash(f"Status updated to '{new_status}' successfully", "success")
     return redirect(request.referrer or url_for('view_applications'))
 
 @app.route('/admin/applications/batch-status-update', methods=['POST'])
@@ -2599,6 +2883,9 @@ def batch_status_update():
     """TPO Bulk Action: Update selected checked applications from the data table."""
     app_ids = request.form.getlist('selected_app_ids')
     new_status = request.form.get('batch_status')
+    batch_rejection_stage = request.form.get('batch_rejection_stage', '').strip()
+    batch_rejection_reason = request.form.get('batch_rejection_reason', '').strip()
+
     if not app_ids or not new_status:
         flash("No applications or invalid status selected.", "warning")
         return redirect(request.referrer or url_for('view_applications'))
@@ -2611,10 +2898,56 @@ def batch_status_update():
             pass
 
     if obj_ids:
+        now = datetime.datetime.now()
+        deadline = now + datetime.timedelta(days=2)
+        update_fields = {'status': new_status, 'updated_at': now}
+        if new_status == 'Rejected':
+            update_fields['rejection_stage'] = batch_rejection_stage or 'Resume Screening'
+            update_fields['rejection_reason'] = batch_rejection_reason or 'Did not meet benchmark for this round'
+            update_fields['rejected_at'] = now
+            update_fields['rejected_by'] = session.get('email', 'Placement Office')
+        else:
+            update_fields['rejection_stage'] = None
+            update_fields['rejection_reason'] = None
+
+        if new_status == 'Selected':
+            update_fields['selected_at'] = now
+            update_fields['exit_deadline'] = deadline
+
         res = applications_collection.update_many(
             {'_id': {'$in': obj_ids}},
-            {'$set': {'status': new_status, 'updated_at': datetime.datetime.now()}}
+            {'$set': update_fields}
         )
+
+        if new_status == 'Selected':
+            target_apps = list(applications_collection.find({'_id': {'$in': obj_ids}}))
+            for tapp in target_apps:
+                sid = tapp.get('student_id')
+                if sid:
+                    cname = tapp.get('company_name', 'Recruiter')
+                    jrole = tapp.get('job_role', 'Associate')
+                    students_collection.update_one(
+                        {'user_id': sid},
+                        {'$set': {
+                            'is_placed': True,
+                            'placement_status': 'Placed_Pending_Exit',
+                            'placed_company': cname,
+                            'placed_role': jrole,
+                            'placed_at': now,
+                            'exit_deadline': deadline,
+                            'auto_exited': False,
+                            'is_active_candidate': True
+                        }}
+                    )
+                    notifications_collection.insert_one({
+                        'user_id': sid,
+                        'title': f"🎉 Placement Offer: {cname}",
+                        'message': f"Congratulations on your selection at {cname}! You have 2 days (48 hours) to acknowledge your offer and complete portal transition.",
+                        'link': '/student/dashboard',
+                        'is_read': False,
+                        'created_at': now,
+                        'type': 'placed_offer'
+                    })
         flash(f"Updated {res.modified_count} application(s) to '{new_status}'.", "success")
     return redirect(request.referrer or url_for('view_applications'))
 
@@ -2628,6 +2961,7 @@ def bulk_advance_applications():
     """
     job_id = request.form.get('job_id')
     target_status = request.form.get('target_status')
+    rejection_stage = request.form.get('rejection_stage', '').strip()
     raw_identifiers = request.form.get('identifiers', '')
     round_note = request.form.get('round_note', '').strip()
 
@@ -2669,13 +3003,45 @@ def bulk_advance_applications():
     if round_note:
         update_data['round_note'] = round_note
 
+    if target_status == 'Rejected':
+        update_data['rejection_stage'] = rejection_stage or 'Resume Screening'
+        update_data['rejection_reason'] = round_note or 'Did not qualify for subsequent round'
+        update_data['rejected_at'] = datetime.datetime.now()
+        update_data['rejected_by'] = session.get('email', 'Placement Office')
+    else:
+        update_data['rejection_stage'] = None
+        update_data['rejection_reason'] = None
+
+    if target_status == 'Selected':
+        now = datetime.datetime.now()
+        deadline = now + datetime.timedelta(days=2)
+        update_data['selected_at'] = now
+        update_data['exit_deadline'] = deadline
+        for uid in matched_user_ids:
+            students_collection.update_one(
+                {'user_id': uid},
+                {'$set': {
+                    'is_placed': True,
+                    'placement_status': 'Placed_Pending_Exit',
+                    'placed_at': now,
+                    'exit_deadline': deadline,
+                    'auto_exited': False,
+                    'is_active_candidate': True
+                }}
+            )
+
     result = applications_collection.update_many(app_query, {'$set': update_data})
 
     # Notify students
     notif_title = f"Placement Drive Update: {target_status}"
-    notif_msg = f"Your application status has been updated to '{target_status}'."
-    if round_note:
-        notif_msg += f" Info: {round_note}"
+    if target_status == 'Rejected':
+        notif_msg = f"Your application status has been updated. Result: Eliminated at {update_data['rejection_stage']}."
+        if round_note:
+            notif_msg += f" Remarks: {round_note}"
+    else:
+        notif_msg = f"Your application status has been updated to '{target_status}'."
+        if round_note:
+            notif_msg += f" Info: {round_note}"
 
     notifs = []
     for uid in matched_user_ids:
@@ -2877,22 +3243,20 @@ def export_eligible_students(job_id):
 @app.route('/student/dashboard')
 @login_required(role='student')
 def student_dashboard():
+    # Process auto-exits for placed students & auto-expire jobs
+    auto_expire_jobs()
+    check_and_process_placed_student_exits()
+
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
     if not student:
         flash("Student profile not found", "error")
         return redirect(url_for('logout'))
-    
-    # Get user info for login time
+
     user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-    
-    # Get last login time from logs
     last_login_log = login_logs_collection.find_one(
         {'user_id': ObjectId(session['user_id'])},
         sort=[('login_time', -1)]
     )
-        
-    # Auto-expire jobs
-    auto_expire_jobs()
     
     # Recent jobs (published ones) - Smart Filter by CGPA
     student_cgpa = student.get('cgpa', 0.0)
@@ -2936,6 +3300,16 @@ def student_dashboard():
     # Count applications by status
     shortlisted_count = sum(1 for app in my_applications if app.get('status') == 'Shortlisted')
     selected_count = sum(1 for app in my_applications if app.get('status') == 'Selected')
+
+    # Placed Candidate 2-Day Transition Offer Data
+    placed_offer = applications_collection.find_one({
+        'student_id': ObjectId(session['user_id']),
+        'status': 'Selected'
+    })
+    exit_hours_left = None
+    if student.get('placement_status') == 'Placed_Pending_Exit' and student.get('exit_deadline'):
+        diff = student['exit_deadline'] - datetime.datetime.now()
+        exit_hours_left = max(0, int(diff.total_seconds() // 3600))
     
     return render_template('student/dashboard.html', 
                          student=student, 
@@ -2948,7 +3322,9 @@ def student_dashboard():
                          activities=activities,
                          upcoming_drives=upcoming_drives,
                          user=user,
-                         last_login_log=last_login_log)
+                         last_login_log=last_login_log,
+                         placed_offer=placed_offer,
+                         exit_hours_left=exit_hours_left)
 
 @app.route('/student/profile')
 @login_required(role='student')
@@ -2959,6 +3335,8 @@ def student_profile():
 @app.route('/student/jobs')
 @login_required(role='student')
 def student_jobs():
+    auto_expire_jobs()
+    check_and_process_placed_student_exits()
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
     all_jobs = list(jobs_collection.find().sort('created_at', -1))
     
@@ -3126,11 +3504,161 @@ def update_resume():
         flash("Resume updated successfully!", "success")
         return redirect(url_for('student_dashboard'))
 
+# --- PLACED STUDENT LIFECYCLE: VOLUNTARY & ADMIN EXIT ROUTES ---
+
+@app.route('/student/placement-exit', methods=['POST'])
+@login_required(role='student')
+def student_placement_exit():
+    """
+    Voluntary Exit: Placed student acknowledges offer and leaves active campus placement drives.
+    Immediately marks student as Placed_Archived, withdraws remaining active applications,
+    and transitions profile to Corporate/Alumni status.
+    """
+    user_id = ObjectId(session['user_id'])
+    student = students_collection.find_one({'user_id': user_id})
+    if not student:
+        flash("Student profile not found.", "error")
+        return redirect(url_for('student_dashboard'))
+
+    selected_app = applications_collection.find_one({'student_id': user_id, 'status': 'Selected'})
+    if not selected_app and student.get('placement_status') not in ['Placed_Pending_Exit', 'Placed']:
+        flash("You do not currently have a pending placement offer to exit from.", "warning")
+        return redirect(url_for('student_dashboard'))
+
+    company = student.get('placed_company') or (selected_app.get('company_name') if selected_app else 'Recruiter')
+    role_name = student.get('placed_role') or (selected_app.get('job_role') if selected_app else 'Corporate Associate')
+    now = datetime.datetime.now()
+
+    # 1. Update Student Profile
+    students_collection.update_one(
+        {'user_id': user_id},
+        {'$set': {
+            'placement_status': 'Placed_Archived',
+            'corporate_transition_status': 'Placed & Corporate Transitioned',
+            'is_active_candidate': False,
+            'auto_exited': False,
+            'exit_completed_at': now,
+            'exit_reason': 'Voluntarily acknowledged offer and completed portal exit'
+        }}
+    )
+
+    # 2. Auto-withdraw any other active applications
+    applications_collection.update_many(
+        {
+            'student_id': user_id,
+            'status': {'$in': ['Applied', 'Shortlisted', 'GD', 'Interview']}
+        },
+        {'$set': {
+            'status': 'Auto_Withdrawn',
+            'rejection_reason': f'Candidate accepted offer from {company} and voluntarily transitioned out of active placement drives.',
+            'updated_at': now
+        }}
+    )
+
+    # 3. Congratulatory notification
+    notifications_collection.insert_one({
+        'user_id': user_id,
+        'title': '🎓 Placement Portal Transition Confirmed',
+        'message': f"You have officially acknowledged your placement at {company} ({role_name}) and completed your portal exit. Best wishes for your corporate career!",
+        'link': '/student/dashboard',
+        'is_read': False,
+        'created_at': now,
+        'type': 'placement_transition'
+    })
+
+    flash(f"🎉 Congratulations on your placement at {company}! You have successfully acknowledged your offer and transitioned out of active drives.", "success")
+    return redirect(url_for('student_dashboard'))
+
+@app.route('/admin/students/<user_id>/placement-exit', methods=['POST'])
+@login_required(role='admin')
+def admin_student_placement_exit(user_id):
+    """
+    Super Admin / Admin Manual Exit: Immediately removes or archives placed candidate
+    and closes out their ongoing applications.
+    """
+    try:
+        uid = ObjectId(user_id)
+        student = students_collection.find_one({'user_id': uid})
+        if not student:
+            flash("Student record not found.", "error")
+            return redirect(request.referrer or url_for('all_students_list'))
+
+        now = datetime.datetime.now()
+        company = student.get('placed_company') or 'Recruiter'
+        role_name = student.get('placed_role') or 'Corporate Associate'
+
+        students_collection.update_one(
+            {'user_id': uid},
+            {'$set': {
+                'placement_status': 'Placed_Archived',
+                'corporate_transition_status': 'Placed & Corporate Transitioned',
+                'is_active_candidate': False,
+                'auto_exited': False,
+                'exit_completed_at': now,
+                'exit_reason': f"Admin {session.get('email', 'Placement Office')} manually processed placement exit"
+            }}
+        )
+
+        applications_collection.update_many(
+            {
+                'student_id': uid,
+                'status': {'$in': ['Applied', 'Shortlisted', 'GD', 'Interview']}
+            },
+            {'$set': {
+                'status': 'Auto_Withdrawn',
+                'rejection_reason': f'Student placed at {company}. Application closed by Placement Cell.',
+                'updated_at': now
+            }}
+        )
+
+        notifications_collection.insert_one({
+            'user_id': uid,
+            'title': 'Placement Status Processed',
+            'message': f"The Placement Cell has completed your transition to Placed Corporate status for {company}.",
+            'link': '/student/dashboard',
+            'is_read': False,
+            'created_at': now,
+            'type': 'placement_transition'
+        })
+
+        flash(f"Successfully processed placement corporate exit for {student.get('name', 'student')}.", "success")
+    except Exception as e:
+        flash(f"Error processing placement exit: {str(e)}", "error")
+    return redirect(request.referrer or url_for('all_students_list'))
+
+@app.route('/admin/students/<user_id>/placement-reinstate', methods=['POST'])
+@login_required(role='admin')
+def admin_student_placement_reinstate(user_id):
+    """
+    Super Admin / Admin Reinstatement: Re-opens placement participation if an offer was
+    rescinded or the candidate needs to participate in further drives.
+    """
+    try:
+        uid = ObjectId(user_id)
+        students_collection.update_one(
+            {'user_id': uid},
+            {'$set': {
+                'placement_status': 'Active',
+                'corporate_transition_status': None,
+                'is_placed': False,
+                'is_active_candidate': True,
+                'auto_exited': False,
+                'exit_completed_at': None,
+                'exit_deadline': None,
+                'exit_reason': None
+            }}
+        )
+        flash("Student reinstated to active placement status.", "success")
+    except Exception as e:
+        flash(f"Error reinstating student: {str(e)}", "error")
+    return redirect(request.referrer or url_for('all_students_list'))
+
 # --- ALL STUDENTS LIST (for admin quick action) ---
 @app.route('/admin/all-students')
 @login_required(role='admin')
 def all_students_list():
-    """Display all students in a table with View button."""
+    """Display all students in a table with View and Placement Exit actions."""
+    check_and_process_placed_student_exits()
     pipeline = [
         {'$match': {'role': 'student'}},
         {'$lookup': {

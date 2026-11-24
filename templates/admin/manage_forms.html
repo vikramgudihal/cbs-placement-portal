@@ -75,6 +75,64 @@
     flex-wrap: wrap;
   }
 
+  .btn-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-view-toggle.active {
+    background: #ffffff;
+    color: #1e1b4b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  .btn-hdr-form-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.15rem;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  .btn-hdr-form-primary:hover {
+    background: #1d4ed8;
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+  .btn-hdr-form-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .btn-hdr-form-glass:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
   .btn-banner-primary {
     display: inline-flex;
     align-items: center;
@@ -315,11 +373,20 @@
       </div>
 
       <div class="banner-actions">
-        <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-banner-primary">
+        <!-- View Mode Switcher -->
+        <div class="view-mode-pill-group" style="display: inline-flex; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); border-radius: 9999px; padding: 3px; backdrop-filter: blur(8px);">
+          <button type="button" id="btnListView" onclick="switchFormView('list')" class="btn-view-toggle active" title="Inline List / Table View">
+            <i class="ph-bold ph-list"></i> <span>List</span>
+          </button>
+          <button type="button" id="btnGridView" onclick="switchFormView('grid')" class="btn-view-toggle" title="Box Grid / Card View">
+            <i class="ph-bold ph-squares-four"></i> <span>Box Grid</span>
+          </button>
+        </div>
+        <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-hdr-form-primary">
           <i class="ph-bold ph-plus-circle"></i>
-          <span>Create Custom Form</span>
+          <span>Create Form</span>
         </a>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn-banner-glass">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-hdr-form-glass">
           <i class="ph-bold ph-arrow-left"></i>
           <span>Dashboard</span>
         </a>
@@ -328,17 +395,17 @@
   </section>
 
   <!-- ============================================================
-       2. MODERN TABLE CONTAINER
+       2. LIST / TABLE VIEW CONTAINER
        ============================================================ -->
-  <div class="fluid-table-card">
-    <div style="overflow-x: auto;">
-      <table class="modern-forms-table">
+  <div id="formsListView" class="fluid-table-card">
+    <div style="width: 100%; overflow-x: auto;">
+      <table class="modern-forms-table" style="width: 100%; table-layout: auto;">
         <thead>
           <tr>
-            <th>Form Identity &amp; Details</th>
-            <th>Creation Date</th>
-            <th>Status</th>
-            <th style="text-align: right;">Operations</th>
+            <th style="min-width: 260px;">Form Identity &amp; Details</th>
+            <th style="width: 140px;">Creation Date</th>
+            <th style="width: 120px;">Status</th>
+            <th style="width: 290px; text-align: right;">Operations</th>
           </tr>
         </thead>
         <tbody>
@@ -357,7 +424,7 @@
             </td>
 
             <td>
-              <span style="font-weight: 600; color: var(--text-main);">
+              <span style="font-weight: 600; color: var(--text-main); font-size: 0.85rem;">
                 {{ form.created_at.strftime('%d %b %Y') if form.created_at else 'N/A' }}
               </span>
             </td>
@@ -374,7 +441,7 @@
               {% endif %}
             </td>
 
-            <td>
+            <td style="text-align: right;">
               <div class="actions-cluster">
                 <a href="{{ url_for('dynamic_forms.view_form_responses', form_id=form._id) }}" class="btn-action-tool primary" title="View Responses">
                   <i class="ph-bold ph-list-dashes"></i> Responses
@@ -396,7 +463,7 @@
                 </a>
 
                 <button onclick="confirmDeleteForm('{{ form._id }}', '{{ form.title }}')" class="btn-action-tool danger" title="Delete Form">
-                  <i class="ph-bold ph-trash"></i> Delete
+                  <i class="ph-bold ph-trash"></i>
                 </button>
               </div>
             </td>
@@ -409,7 +476,7 @@
               <p style="font-size: 0.88rem; max-width: 380px; margin: 0 auto 1.25rem auto;">
                 Create dynamic surveys and forms to collect drive preferences, certifications, and project records from students.
               </p>
-              <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-banner-primary" style="display: inline-flex;">
+              <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-hdr-form-primary" style="display: inline-flex;">
                 <i class="ph-bold ph-plus-circle"></i> Create First Form
               </a>
             </td>
@@ -420,9 +487,111 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       3. BOX GRID VIEW CONTAINER (Flexible Card Grid)
+       ============================================================ -->
+  <div id="formsGridView" style="display: none;">
+    {% if forms and forms|length > 0 %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+      {% for form in forms %}
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.1rem; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; gap: 0.5rem;">
+            <div class="form-icon-disc">
+              <i class="ph-duotone ph-clipboard-text"></i>
+            </div>
+            {% if form.is_active %}
+            <span class="status-pill-badge active">
+              <i class="ph-bold ph-check-circle"></i> Active
+            </span>
+            {% else %}
+            <span class="status-pill-badge inactive">
+              <i class="ph-bold ph-pause-circle"></i> Inactive
+            </span>
+            {% endif %}
+          </div>
+          
+          <div class="form-title-text" style="font-size: 1.05rem; margin-bottom: 0.4rem; color: var(--text-main);">
+            {{ form.title }}
+          </div>
+          <div class="form-desc-text" style="line-height: 1.5; color: var(--text-muted); font-size: 0.82rem;">
+            {{ form.description or 'No description provided' }}
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 0.85rem; display: flex; flex-direction: column; gap: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-subtle);">
+            <span><i class="ph-bold ph-calendar"></i> {{ form.created_at.strftime('%d %b %Y') if form.created_at else 'N/A' }}</span>
+            <span style="font-weight: 700; color: var(--text-muted);">{{ (form.fields or [])|length }} Questions</span>
+          </div>
+
+          <div class="actions-cluster" style="justify-content: flex-start; flex-wrap: wrap; width: 100%; gap: 0.4rem;">
+            <a href="{{ url_for('dynamic_forms.view_form_responses', form_id=form._id) }}" class="btn-action-tool primary" style="flex: 1; justify-content: center;" title="View Responses">
+              <i class="ph-bold ph-list-dashes"></i> Responses
+            </a>
+            <form action="{{ url_for('dynamic_forms.toggle_form', form_id=form._id) }}" method="POST" style="display: inline; margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn-action-tool toggle-btn" title="{{ 'Deactivate Form' if form.is_active else 'Activate Form' }}">
+                {% if form.is_active %}
+                <i class="ph-bold ph-stop"></i> Pause
+                {% else %}
+                <i class="ph-bold ph-play"></i>
+                {% endif %}
+              </button>
+            </form>
+            <a href="{{ url_for('dynamic_forms.edit_form', form_id=form._id) }}" class="btn-action-tool" title="Edit Form Schema">
+              <i class="ph-bold ph-pencil"></i> Edit
+            </a>
+            <button onclick="confirmDeleteForm('{{ form._id }}', '{{ form.title }}')" class="btn-action-tool danger" title="Delete Form">
+              <i class="ph-bold ph-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; color: var(--text-muted);">
+      <i class="ph-duotone ph-clipboard" style="font-size: 3rem; color: var(--fm-indigo); margin-bottom: 0.75rem; display: block;"></i>
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">No Custom Forms Created</h3>
+      <p style="font-size: 0.88rem; max-width: 380px; margin: 0 auto 1.25rem auto;">
+        Create dynamic surveys and forms to collect drive preferences, certifications, and project records from students.
+      </p>
+      <a href="{{ url_for('dynamic_forms.create_form') }}" class="btn-hdr-form-primary" style="display: inline-flex;">
+        <i class="ph-bold ph-plus-circle"></i> Create First Form
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
 </div>
 
 <script>
+function switchFormView(mode) {
+  const listContainer = document.getElementById('formsListView');
+  const gridContainer = document.getElementById('formsGridView');
+  const btnList = document.getElementById('btnListView');
+  const btnGrid = document.getElementById('btnGridView');
+
+  if (mode === 'grid') {
+    listContainer.style.display = 'none';
+    gridContainer.style.display = 'block';
+    btnGrid.classList.add('active');
+    btnList.classList.remove('active');
+    localStorage.setItem('forms_view_mode', 'grid');
+  } else {
+    listContainer.style.display = 'block';
+    gridContainer.style.display = 'none';
+    btnList.classList.add('active');
+    btnGrid.classList.remove('active');
+    localStorage.setItem('forms_view_mode', 'list');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const savedMode = localStorage.getItem('forms_view_mode') || 'list';
+  switchFormView(savedMode);
+});
 function confirmDeleteForm(formId, formTitle) {
   if (confirm(`Are you sure you want to delete "${formTitle}"? This will delete the form schema and all student responses.`)) {
     const form = document.createElement('form');

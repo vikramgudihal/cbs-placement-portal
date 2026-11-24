@@ -21,6 +21,9 @@ logs/
 # Scratch scripts
 scratch/
 test_resume.pdf
+*.docx
+*.xlsx
+*.csv
 
 # IDE & OS artifacts
 .vscode/

@@ -424,7 +424,9 @@
   <div class="drives-feed" id="drivesFeedList">
     {% for job in jobs %}
     {% set is_applied = job._id|string in applied_job_ids_str %}
-    {% set is_eligible = student.cgpa >= job.min_cgpa %}
+    {% set job_min_cgpa = (job.min_cgpa|float) if (job.min_cgpa is defined and job.min_cgpa is not none and job.min_cgpa != '') else 0.0 %}
+    {% set stud_cgpa = (student.cgpa|float) if (student and student.cgpa is defined and student.cgpa is not none and student.cgpa != '') else 0.0 %}
+    {% set is_eligible = stud_cgpa >= job_min_cgpa %}
     {% set is_dream = (job.package and '10' in job.package) or (job.package and ('1' in job.package or '2' in job.package or '3' in job.package) and 'LPA' in job.package) %}
 
     <div class="drive-row {% if not is_eligible %}is-locked{% endif %}"
@@ -501,12 +503,12 @@
           <i class="ph-bold ph-check-circle"></i> Applied
         </span>
         {% elif is_eligible %}
-        <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-apply-corp">
-            Apply Now <i class="ph-bold ph-arrow-right"></i>
-          </button>
-        </form>
+          <form action="{{ url_for('apply_job', job_id=job._id) }}" method="POST" onsubmit="return confirmApply('{{ job.company_name }}', '{{ job.role }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-apply-corp">
+              Apply Now <i class="ph-bold ph-arrow-right"></i>
+            </button>
+          </form>
         {% else %}
         <span style="font-size: 0.775rem; color: var(--text-subtle); display: inline-flex; align-items: center; gap: 0.25rem;">
           <i class="ph-bold ph-lock"></i> Criteria Not Met

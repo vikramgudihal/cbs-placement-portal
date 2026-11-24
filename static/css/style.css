@@ -623,26 +623,6 @@ body {
 .mobile-nav-item.active {
   opacity: 1;
   color: var(--primary);
-  background: rgba(99, 102, 241, 0.1);
-}
-
-.mobile-nav-item.center-item {
-  color: var(--primary);
-  transform: translateY(-20px);
-  background: var(--surface-solid);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
-}
-
-.mobile-nav-item.center-item i {
-  font-size: 1.8rem;
-  margin: 0;
 }
 
 /* Form Styles Flexibility */

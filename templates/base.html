@@ -157,7 +157,7 @@
         </a>
         <a
           href="{{ url_for('dynamic_forms.manage_forms') }}"
-          class="sidebar-item {% if request.endpoint == 'manage_forms' %}active{% endif %}"
+          class="sidebar-item {% if request.endpoint in ['dynamic_forms.manage_forms', 'dynamic_forms.create_form', 'dynamic_forms.edit_form', 'dynamic_forms.view_form_responses', 'manage_forms'] %}active{% endif %}"
         >
           <i class="ph-fill ph-clipboard-text"></i>
           <span>Forms</span>
@@ -214,7 +214,7 @@
         </a>
         <a
           href="{{ url_for('dynamic_forms.list_student_forms') }}"
-          class="sidebar-item {% if request.endpoint == 'list_student_forms' %}active{% endif %}"
+          class="sidebar-item {% if request.endpoint in ['dynamic_forms.list_student_forms', 'dynamic_forms.view_form', 'list_student_forms'] %}active{% endif %}"
         >
           <i class="ph-fill ph-clipboard-text"></i>
           <span>Forms</span>
@@ -357,78 +357,78 @@
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
       <div class="mobile-nav-container">
         {% if user_role == 'admin' %}
-        <!-- ADMIN MOBILE NAV -->
+        <!-- ADMIN MOBILE NAV (iOS Native Tab Bar) -->
         <a
           href="{{ url_for('admin_dashboard') }}"
-          class="mobile-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
+          class="mobile-nav-item {% if request.endpoint in ['admin_dashboard'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-house-simple"></i>
+          <i class="{% if request.endpoint in ['admin_dashboard'] %}ph-fill{% else %}ph{% endif %} ph-house-simple"></i>
           <span>Home</span>
         </a>
         <a
           href="{{ url_for('manage_jobs') }}"
-          class="mobile-nav-item {% if request.endpoint == 'manage_jobs' %}active{% endif %}"
+          class="mobile-nav-item {% if request.endpoint in ['manage_jobs', 'create_job', 'edit_job'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-briefcase"></i>
+          <i class="{% if request.endpoint in ['manage_jobs', 'create_job', 'edit_job'] %}ph-fill{% else %}ph{% endif %} ph-briefcase"></i>
           <span>Jobs</span>
-        </a>
-        <a
-          href="{{ url_for('manage_users') }}"
-          class="mobile-nav-item center-item"
-        >
-          <i class="ph-fill ph-users"></i>
-          <span>Users</span>
-        </a>
-        <a
-          href="{{ url_for('manage_announcements') }}"
-          class="mobile-nav-item {% if request.endpoint == 'manage_announcements' %}active{% endif %}"
-        >
-          <i class="ph-fill ph-megaphone"></i>
-          <span>Hall</span>
         </a>
         <a
           href="{{ url_for('view_applications') }}"
-          class="mobile-nav-item {% if request.endpoint == 'view_applications' %}active{% endif %}"
+          class="mobile-nav-item {% if request.endpoint in ['view_applications', 'view_job_applications'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-files"></i>
-          <span>Apps</span>
+          <i class="{% if request.endpoint in ['view_applications', 'view_job_applications'] %}ph-fill{% else %}ph{% endif %} ph-chart-donut"></i>
+          <span>Pipeline</span>
+        </a>
+        <a
+          href="{{ url_for('dynamic_forms.manage_forms') }}"
+          class="mobile-nav-item {% if request.endpoint in ['dynamic_forms.manage_forms', 'dynamic_forms.create_form', 'dynamic_forms.edit_form', 'dynamic_forms.view_form_responses', 'manage_forms'] %}active{% endif %}"
+        >
+          <i class="{% if request.endpoint in ['dynamic_forms.manage_forms', 'dynamic_forms.create_form', 'dynamic_forms.edit_form', 'dynamic_forms.view_form_responses', 'manage_forms'] %}ph-fill{% else %}ph{% endif %} ph-clipboard-text"></i>
+          <span>Forms</span>
+        </a>
+        <a
+          href="{{ url_for('manage_users') }}"
+          class="mobile-nav-item {% if request.endpoint in ['manage_users', 'all_students_list', 'view_student_details'] %}active{% endif %}"
+        >
+          <i class="{% if request.endpoint in ['manage_users', 'all_students_list', 'view_student_details'] %}ph-fill{% else %}ph{% endif %} ph-users"></i>
+          <span>Students</span>
         </a>
 
         {% else %}
-        <!-- STUDENT MOBILE NAV -->
-        <a
-          href="{{ url_for('student_jobs') }}"
-          class="mobile-nav-item {% if request.endpoint == 'student_jobs' %}active{% endif %}"
-        >
-          <i class="ph-fill ph-briefcase"></i>
-          <span>Jobs</span>
-        </a>
-        <a
-          href="{{ url_for('student_announcements') }}"
-          class="mobile-nav-item {% if request.endpoint == 'student_announcements' %}active{% endif %}"
-        >
-          <i class="ph-fill ph-megaphone"></i>
-          <span>Hall</span>
-        </a>
+        <!-- STUDENT MOBILE NAV (iOS Native Tab Bar) -->
         <a
           href="{{ url_for('student_dashboard') }}"
-          class="mobile-nav-item center-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}"
+          class="mobile-nav-item {% if request.endpoint in ['student_dashboard'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-house-simple"></i>
+          <i class="{% if request.endpoint in ['student_dashboard'] %}ph-fill{% else %}ph{% endif %} ph-house-simple"></i>
           <span>Home</span>
         </a>
         <a
-          href="{{ url_for('dynamic_forms.list_student_forms') }}"
-          class="mobile-nav-item {% if request.endpoint == 'list_student_forms' %}active{% endif %}"
+          href="{{ url_for('student_jobs') }}"
+          class="mobile-nav-item {% if request.endpoint in ['student_jobs', 'student_view_job'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-clipboard-text"></i>
+          <i class="{% if request.endpoint in ['student_jobs', 'student_view_job'] %}ph-fill{% else %}ph{% endif %} ph-briefcase"></i>
+          <span>Jobs</span>
+        </a>
+        <a
+          href="{{ url_for('student_applications') }}"
+          class="mobile-nav-item {% if request.endpoint in ['student_applications'] %}active{% endif %}"
+        >
+          <i class="{% if request.endpoint in ['student_applications'] %}ph-fill{% else %}ph{% endif %} ph-files"></i>
+          <span>My Apps</span>
+        </a>
+        <a
+          href="{{ url_for('dynamic_forms.list_student_forms') }}"
+          class="mobile-nav-item {% if request.endpoint in ['dynamic_forms.list_student_forms', 'dynamic_forms.view_form', 'list_student_forms'] %}active{% endif %}"
+        >
+          <i class="{% if request.endpoint in ['dynamic_forms.list_student_forms', 'dynamic_forms.view_form', 'list_student_forms'] %}ph-fill{% else %}ph{% endif %} ph-clipboard-text"></i>
           <span>Forms</span>
         </a>
         <a
           href="{{ url_for('student_profile') }}"
-          class="mobile-nav-item {% if request.endpoint == 'student_profile' %}active{% endif %}"
+          class="mobile-nav-item {% if request.endpoint in ['student_profile'] %}active{% endif %}"
         >
-          <i class="ph-fill ph-user-circle"></i>
+          <i class="{% if request.endpoint in ['student_profile'] %}ph-fill{% else %}ph{% endif %} ph-user-circle"></i>
           <span>Profile</span>
         </a>
         {% endif %}

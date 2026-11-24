@@ -37,6 +37,7 @@
           <th style="padding: 0.75rem; text-align: left;">Email ID</th>
           <th style="padding: 0.75rem; text-align: left;">Branch</th>
           <th style="padding: 0.75rem; text-align: left;">CGPA</th>
+          <th style="padding: 0.75rem; text-align: left;">Placement Status</th>
           <th style="padding: 0.75rem; text-align: center;">Action</th>
         </tr>
       </thead>
@@ -57,15 +58,53 @@
           <td style="padding: 0.75rem;">
             {{ student.student_info.cgpa if student.student_info and student.student_info.cgpa else 'N/A' }}
           </td>
-          <td style="padding: 0.75rem; text-align: center;">
-            <a href="{{ url_for('view_student_details', user_id=student._id) }}" class="btn btn-view" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-              <i class="ph-bold ph-eye"></i> View
-            </a>
+          <td style="padding: 0.75rem;">
+            {% if student.student_info and student.student_info.placement_status == 'Placed_Pending_Exit' %}
+            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+              <i class="ph-bold ph-hourglass"></i> Placed (48h Window)
+            </span>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+              {{ student.student_info.placed_company or 'Recruiter' }}
+            </div>
+            {% elif student.student_info and student.student_info.placement_status == 'Placed_Archived' %}
+            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+              <i class="ph-bold ph-check-circle"></i> Placed & Exited
+            </span>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+              {{ student.student_info.placed_company or 'Recruiter' }}
+            </div>
+            {% else %}
+            <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: #1d4ed8; font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 600;">
+              Active Candidate
+            </span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem; text-align: center; white-space: nowrap;">
+            <div style="display: flex; gap: 0.4rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+              <a href="{{ url_for('view_student_details', user_id=student._id) }}" class="btn btn-view" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">
+                <i class="ph-bold ph-eye"></i> View
+              </a>
+              {% if student.student_info and student.student_info.placement_status == 'Placed_Pending_Exit' %}
+              <form action="{{ url_for('admin_student_placement_exit', user_id=student._id) }}" method="POST" onsubmit="return confirm('Immediately complete corporate exit and transition this student out of active drives?');" style="display: inline; margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm" style="background: #b45309; color: #fff; border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;" title="Manually execute placement exit">
+                  <i class="ph-bold ph-sign-out"></i> Exit
+                </button>
+              </form>
+              {% elif student.student_info and student.student_info.placement_status == 'Placed_Archived' %}
+              <form action="{{ url_for('admin_student_placement_reinstate', user_id=student._id) }}" method="POST" onsubmit="return confirm('Reinstate student to active candidate status?');" style="display: inline; margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm" style="background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;" title="Reinstate student">
+                  <i class="ph-bold ph-arrow-counter-clockwise"></i> Reinstate
+                </button>
+              </form>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+          <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
             <i class="ph-duotone ph-users" style="font-size: 3rem; opacity: 0.5; margin-bottom: 0.5rem;"></i>
             <p>No students found.</p>
           </td>

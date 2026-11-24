@@ -567,6 +567,39 @@
     }
   }
 
+  @media (max-width: 768px) {
+    .tpo-table thead {
+      display: none !important;
+    }
+    .tpo-table,
+    .tpo-table tbody,
+    .tpo-table tr,
+    .tpo-table td {
+      display: block !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .tpo-table tr {
+      margin-bottom: 1rem !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 12px !important;
+      padding: 1rem !important;
+      background: var(--surface) !important;
+    }
+    .tpo-table td {
+      padding: 0.5rem 0 !important;
+      border-bottom: 1px dashed rgba(226, 232, 240, 0.7) !important;
+      text-align: left !important;
+    }
+    .tpo-table td:last-child {
+      border-bottom: none !important;
+      padding-top: 0.75rem !important;
+    }
+    .tpo-table td > div {
+      justify-content: flex-start !important;
+    }
+  }
+
   @media (max-width: 640px) {
     .tpo-command-banner {
       padding: 1.75rem 1.25rem;
@@ -721,9 +754,13 @@
           <i class="ph-bold ph-lightning"></i>
           <span>Batch Roll Advance Desk</span>
         </a>
-        <a href="{{ url_for('export_applications') }}" class="btn-command-secondary">
+        <a href="{{ url_for('export_stages_excel') }}" class="btn-command-secondary" style="background: #ecfdf5; border-color: #10b981; color: #065f46;" title="Export Whole Companies Stage Master Sheet (.xlsx)">
+          <i class="ph-bold ph-file-xls"></i>
+          <span>Stage Excel (Whole Companies)</span>
+        </a>
+        <a href="{{ url_for('export_applications') }}" class="btn-command-secondary" title="Export Master CSV">
           <i class="ph-bold ph-download-simple"></i>
-          <span>Master HR Export</span>
+          <span>Master HR CSV</span>
         </a>
       </div>
     </div>
@@ -933,17 +970,14 @@
       </a>
     </div>
 
-    <div style="overflow-x: auto;">
-      <table class="tpo-table">
+    <div class="table-responsive-container" style="width: 100%; overflow-x: auto;">
+      <table class="tpo-table" style="width: 100%; table-layout: auto;">
         <thead>
           <tr>
-            <th>Company &amp; Role</th>
-            <th>Drive Schedule</th>
-            <th>Compensation</th>
-            <th>Eligibility</th>
-            <th style="text-align: center;">Applicants</th>
-            <th style="text-align: center;">Shortlisted</th>
-            <th style="text-align: right;">Operations</th>
+            <th style="min-width: 240px;">Company &amp; Role</th>
+            <th style="width: 160px;">Schedule &amp; Cutoff</th>
+            <th style="width: 140px; text-align: center;">Applicants</th>
+            <th style="width: 290px; text-align: right;">Operations</th>
           </tr>
         </thead>
         <tbody>
@@ -958,43 +992,46 @@
                 </div>
                 <div>
                   <strong style="color: var(--text-main); font-size: 0.92rem;">{{ j.company_name }}</strong>
-                  <div style="font-size: 0.78rem; color: var(--text-muted);">{{ j.role }}</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; margin-top: 0.15rem; flex-wrap: wrap;">
+                    <span>{{ j.role }}</span>
+                    <span class="package-pill-tag" style="font-size: 0.7rem; padding: 0.1rem 0.45rem;">
+                      {{ j.package or 'Disclosed' }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </td>
 
             <td>
-              <span style="font-weight: 600; color: var(--text-main);">
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">
+                <i class="ph-bold ph-calendar" style="color: var(--tpo-indigo); margin-right: 0.2rem;"></i>
                 {{ j.drive_date[:10] if j.drive_date is string else j.drive_date.strftime('%d %b %Y') if j.drive_date else 'Scheduled' }}
-              </span>
-            </td>
-
-            <td>
-              <span class="package-pill-tag">
-                {{ j.package or 'Disclosed' }}
-              </span>
-            </td>
-
-            <td>
-              <span style="font-weight: 700; color: var(--text-main); font-size: 0.82rem;">
-                {{ j.min_cgpa or '0.0' }}+ CGPA
-              </span>
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem; font-weight: 600;">
+                Min {{ j.min_cgpa or '0.0' }}+ CGPA
+              </div>
             </td>
 
             <td style="text-align: center;">
-              <span class="stat-bubble" style="color: var(--tpo-indigo);">{{ j.applicant_count }}</span>
-            </td>
-
-            <td style="text-align: center;">
-              <span class="stat-bubble" style="color: var(--tpo-emerald);">{{ j.shortlisted_count }}</span>
+              <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg); padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid var(--border);">
+                <span class="stat-bubble" style="color: var(--tpo-indigo); font-size: 0.88rem;" title="Total Applicants">{{ j.applicant_count }}</span>
+                <span style="font-size: 0.72rem; color: var(--text-subtle);">/</span>
+                <span class="stat-bubble" style="color: var(--tpo-emerald); font-size: 0.88rem;" title="Shortlisted Candidates">{{ j.shortlisted_count }}</span>
+              </div>
+              <div style="font-size: 0.68rem; color: var(--text-subtle); margin-top: 0.15rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                applied &middot; shortlisted
+              </div>
             </td>
 
             <td style="text-align: right;">
-              <div style="display: inline-flex; gap: 0.45rem;">
-                <a href="{{ url_for('view_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="View Candidate Pipeline">
+              <div style="display: inline-flex; gap: 0.35rem; justify-content: flex-end; align-items: center; flex-wrap: nowrap;">
+                <a href="{{ url_for('view_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="View Candidate Pipeline" style="padding: 0.35rem 0.7rem; font-size: 0.76rem;">
                   <i class="ph-bold ph-users-three"></i> Pipeline
                 </a>
-                <a href="{{ url_for('export_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="Download HR Excel Sheet">
+                <a href="{{ url_for('export_job_stages_excel', job_id=j._id) }}" class="btn-tpo-action" style="color: #047857; background: #ecfdf5; border-color: #a7f3d0; padding: 0.35rem 0.7rem; font-size: 0.76rem;" title="Download Stage Progression Excel (.xlsx)">
+                  <i class="ph-bold ph-file-xls"></i> Stage Excel
+                </a>
+                <a href="{{ url_for('export_job_applications', job_id=j._id) }}" class="btn-tpo-action" title="Download HR Recruiter Master Sheet" style="padding: 0.35rem 0.7rem; font-size: 0.76rem;">
                   <i class="ph-bold ph-download-simple"></i> HR Sheet
                 </a>
               </div>

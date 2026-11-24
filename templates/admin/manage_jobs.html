@@ -296,73 +296,178 @@
     justify-content: space-between;
   }
 
-  /* Unified Action Toolbar */
+  /* Redesigned Drive Card Actions - Professional 2-Tier Modular Toolbar */
+  .drive-actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+
   .drive-actions-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    border-top: 1px solid var(--border);
-    padding-top: 1rem;
+    width: 100%;
+  }
+
+  .drive-actions-row.top-tier {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drive-actions-row.top-tier .btn-drive-action.edit {
+    flex: 1 1 auto;
+  }
+
+  .drive-actions-row.top-tier form {
+    margin: 0;
+    display: flex;
+    flex: 0 0 auto;
+  }
+
+  .drive-actions-row.export-tier {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
   }
 
   .btn-drive-action {
-    flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    padding: 0.55rem 0.85rem;
-    border-radius: 10px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    gap: 0.4rem;
+    height: 38px;
+    padding: 0 0.85rem;
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
     text-decoration: none;
     border: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface);
     color: var(--text-main);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.18s ease-in-out;
+    box-sizing: border-box;
+    line-height: 1;
+  }
+
+  .btn-drive-action i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
   }
 
   .btn-drive-action:hover {
-    border-color: var(--job-indigo);
-    background: var(--surface);
-    color: var(--job-indigo);
     transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
   }
 
-  .btn-drive-action.primary {
-    background: var(--job-indigo);
-    color: #ffffff;
-    border-color: var(--job-indigo);
+  /* 1. Edit Action - Modern Slate Neutral */
+  .btn-drive-action.edit {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155;
+  }
+  .btn-drive-action.edit i {
+    color: #475569;
+  }
+  .btn-drive-action.edit:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+  [data-theme="dark"] .btn-drive-action.edit {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
   }
 
-  .btn-drive-action.primary:hover {
-    background: #4338ca;
-    color: #ffffff;
-  }
-
+  /* 2. Publish Action - Gentle Amber */
   .btn-drive-action.publish {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: #059669;
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+    padding: 0 0.85rem;
+  }
+  .btn-drive-action.publish i {
+    color: #d97706;
+  }
+  .btn-drive-action.publish:hover {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
+  }
+  [data-theme="dark"] .btn-drive-action.publish {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
   }
 
+  /* 3. Delete Action - Soft Coral / Crimson */
   .btn-drive-action.danger {
-    border-color: rgba(239, 68, 68, 0.3);
-    background: rgba(239, 68, 68, 0.08);
+    background: #fff1f2;
+    border-color: #fecdd3;
     color: #e11d48;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.55rem 0.95rem;
+    padding: 0 0.85rem;
+  }
+  .btn-drive-action.danger i {
+    color: #e11d48;
+  }
+  .btn-drive-action.danger:hover {
+    background: #ffe4e6;
+    border-color: #fda4af;
+    color: #be123c;
+  }
+  [data-theme="dark"] .btn-drive-action.danger {
+    background: rgba(225, 29, 72, 0.12);
+    border-color: rgba(244, 63, 94, 0.3);
+    color: #fb7185;
   }
 
-  .btn-drive-action.danger:hover {
-    background: linear-gradient(135deg, #f43f5e, #e11d48);
-    color: #ffffff;
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  /* 4. Stage Excel - Fresh Spreadsheet Emerald */
+  .btn-drive-action.stage-excel {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+  }
+  .btn-drive-action.stage-excel i {
+    color: #16a34a;
+  }
+  .btn-drive-action.stage-excel:hover {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #14532d;
+  }
+  [data-theme="dark"] .btn-drive-action.stage-excel {
+    background: rgba(22, 163, 74, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+  }
+
+  /* 5. HR Sheet - Executive Royal Indigo */
+  .btn-drive-action.hr-sheet {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+  }
+  .btn-drive-action.hr-sheet i {
+    color: #2563eb;
+  }
+  .btn-drive-action.hr-sheet:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+  }
+  [data-theme="dark"] .btn-drive-action.hr-sheet {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
   }
 
   /* Modal Enhancements */
@@ -565,27 +670,37 @@
       </div>
 
       <!-- Action Toolbar -->
-      <div class="drive-actions-row">
-        <button class="btn-drive-action" onclick="openJobModal({{ loop.index0 }})" title="Edit Drive">
-          <i class="ph-bold ph-pencil"></i> Edit
-        </button>
-
-        <a href="{{ url_for('export_eligible_students', job_id=job._id) }}" class="btn-drive-action primary" title="Download Recruiter Master Excel">
-          <i class="ph-bold ph-download-simple"></i> HR Sheet
-        </a>
-
-        {% if job.status != 'published' %}
-        <button class="btn-drive-action publish" onclick="publishJobAction('{{ job._id }}')" title="Publish Drive">
-          <i class="ph-bold ph-megaphone"></i> Publish
-        </button>
-        {% endif %}
-
-        <form action="{{ url_for('delete_job', job_id=job._id) }}" method="POST" onsubmit="return confirm('Permanently remove this recruitment drive?');" style="margin: 0;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn-drive-action danger" title="Delete Drive">
-            <i class="ph-bold ph-trash"></i> Delete
+      <div class="drive-actions-wrapper">
+        <!-- Top Tier: Drive Administration -->
+        <div class="drive-actions-row top-tier">
+          <button class="btn-drive-action edit" onclick="openJobModal({{ loop.index0 }})" title="Edit Recruitment Drive Details">
+            <i class="ph-bold ph-pencil-simple"></i> Edit Drive
           </button>
-        </form>
+
+          {% if job.status != 'published' %}
+          <button class="btn-drive-action publish" onclick="publishJobAction('{{ job._id }}')" title="Publish Drive Live">
+            <i class="ph-bold ph-megaphone"></i> Publish
+          </button>
+          {% endif %}
+
+          <form action="{{ url_for('delete_job', job_id=job._id) }}" method="POST" onsubmit="return confirm('Permanently remove this recruitment drive?');" style="margin: 0; display: inline-flex;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-drive-action danger" title="Permanently Delete Drive">
+              <i class="ph-bold ph-trash"></i> Delete
+            </button>
+          </form>
+        </div>
+
+        <!-- Bottom Tier: Excel Reporting & Candidate Shortlists -->
+        <div class="drive-actions-row export-tier">
+          <a href="{{ url_for('export_job_stages_excel', job_id=job._id) }}" class="btn-drive-action stage-excel" title="Download Candidate Stage Progression Excel (.xlsx)">
+            <i class="ph-bold ph-file-xls"></i> Stage Excel
+          </a>
+
+          <a href="{{ url_for('export_eligible_students', job_id=job._id) }}" class="btn-drive-action hr-sheet" title="Download Recruiter Master Shortlist">
+            <i class="ph-bold ph-download-simple"></i> HR Sheet
+          </a>
+        </div>
       </div>
 
     </div>
@@ -637,7 +752,7 @@
               <input type="text" name="location" id="location" placeholder="City" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);" />
             </div>
             <div>
-              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Type</label>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Employment Type</label>
               <select name="employment_type" id="employment_type" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main);">
                 <option value="Full-time">Full-time</option>
                 <option value="Internship">Internship</option>

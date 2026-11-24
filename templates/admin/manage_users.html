@@ -61,6 +61,16 @@
     </div>
   </div>
 
+  <!-- TPO Verification & Anti-Tampering Workflow Guide -->
+  <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: var(--r-md); padding: 0.9rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.85rem;">
+    <i class="ph-bold ph-info" style="color: var(--primary); font-size: 1.35rem; flex-shrink: 0; margin-top: 2px;"></i>
+    <div style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5;">
+      <strong style="color: var(--text-main);">Placement Cell Verification &amp; Security Workflow:</strong><br>
+      &bull; <strong>Account Approval:</strong> Newly registered candidates and coordinators must be approved by Super Admin / Admin before they can log into the portal.<br>
+      &bull; <strong>Verify &amp; Lock (Anti-Tampering):</strong> Once academic marksheets are confirmed, click <em>&ldquo;Verify &amp; Lock&rdquo;</em> to freeze academic scores (CGPA, 10th, 12th). This prevents tampering during active placement drives. Click <em>&ldquo;Allow Edit&rdquo;</em> if a student needs to submit updated university marks.
+    </div>
+  </div>
+
   <!-- Operational Filter Deck & Search -->
   <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -217,11 +227,11 @@
                   {% endif %}
 
                   <!-- Toggle Verification Button -->
-                  <button type="button" class="btn-sm btn-secondary" onclick="toggleVerify('{{ user._id }}')" title="{{ 'Unlock profile' if is_ver else 'Verify & lock marks' }}" style="padding: 0.35rem 0.65rem; font-size: 0.785rem;">
+                  <button type="button" class="btn-sm btn-secondary" onclick="toggleVerify('{{ user._id }}')" title="{{ 'Profile is verified & marks are locked. Click to allow student to update their details' if is_ver else 'Verify marks and lock profile against modifications during recruitment drives' }}" style="padding: 0.35rem 0.65rem; font-size: 0.785rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
                     {% if is_ver %}
-                    <i class="ph-bold ph-lock-key-open"></i> Unlock
+                    <i class="ph-bold ph-lock-key-open" style="color: #d97706;"></i> Allow Edit
                     {% else %}
-                    <i class="ph-bold ph-shield-check"></i> Verify
+                    <i class="ph-bold ph-shield-check" style="color: #2563eb;"></i> Verify &amp; Lock
                     {% endif %}
                   </button>
 

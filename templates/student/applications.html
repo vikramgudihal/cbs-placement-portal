@@ -298,6 +298,18 @@
     font-weight: 800;
   }
 
+  .stepper-node.rejected .stepper-dot {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+  }
+
+  .stepper-node.rejected .stepper-lbl {
+    color: #ef4444;
+    font-weight: 800;
+  }
+
   /* Confirmation Slip (For Interview / GD) */
   .interview-attendance-slip {
     margin-top: 1.25rem;
@@ -431,6 +443,14 @@
     {% set company_name = app.job_info.company_name if app.job_info else 'Recruiter' %}
     {% set color_idx = loop.index0 % 5 %}
 
+    {% set is_rejected = status_val == 'Rejected' %}
+    {% set rej_stage = app.rejection_stage or 'Resume Screening' %}
+    {% set step2_rejected = is_rejected and (rej_stage in ['Resume Screening', 'Screening', 'Online Assessment / Aptitude'] or not app.rejection_stage) %}
+    {% set step2_completed = status_val in ['Shortlisted', 'GD', 'Interview', 'Selected'] or (is_rejected and not step2_rejected) %}
+    {% set step3_rejected = is_rejected and rej_stage in ['Group Discussion (GD)', 'Technical Interview Round 1', 'Technical Interview Round 2', 'HR Interview'] %}
+    {% set step3_completed = status_val in ['GD', 'Interview', 'Selected'] or (is_rejected and rej_stage == 'Final Evaluation') %}
+    {% set step4_rejected = is_rejected and rej_stage == 'Final Evaluation' %}
+
     <div class="application-fluid-card">
       <div class="app-card-head">
         <div class="app-company-meta">
@@ -438,7 +458,7 @@
             {{ company_name[0]|upper }}
           </div>
           <div>
-            <h3 class="app-company-title">
+            <h3 class="app-company-title" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span>{{ company_name }}</span>
             </h3>
             <div class="app-role-subtitle">
@@ -470,7 +490,7 @@
             {% elif status_val == 'Shortlisted' %}
               <i class="ph-bold ph-star"></i> Shortlisted
             {% elif status_val == 'Rejected' %}
-              <i class="ph-bold ph-x-circle"></i> Exited Drive
+              <i class="ph-bold ph-x-circle"></i> Eliminated at {{ rej_stage }}
             {% else %}
               <i class="ph-bold ph-paper-plane-tilt"></i> Application In Review
             {% endif %}
@@ -487,9 +507,11 @@
         </div>
 
         <!-- 2. Shortlisted -->
-        <div class="stepper-node {% if status_val in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}completed{% elif status_val == 'Rejected' %}rejected{% else %}current{% endif %}">
+        <div class="stepper-node {% if step2_rejected %}rejected{% elif step2_completed %}completed{% else %}current{% endif %}">
           <div class="stepper-dot">
-            {% if status_val in ['Shortlisted', 'GD', 'Interview', 'Selected'] %}
+            {% if step2_rejected %}
+              <i class="ph-bold ph-x"></i>
+            {% elif step2_completed %}
               <i class="ph-bold ph-check"></i>
             {% else %}
               2
@@ -499,9 +521,11 @@
         </div>
 
         <!-- 3. Interview / GD -->
-        <div class="stepper-node {% if status_val in ['GD', 'Interview', 'Selected'] %}completed{% elif status_val == 'Shortlisted' %}current{% else %}{% endif %}">
+        <div class="stepper-node {% if step3_rejected %}rejected{% elif step3_completed %}completed{% elif status_val == 'Shortlisted' %}current{% else %}{% endif %}">
           <div class="stepper-dot">
-            {% if status_val in ['GD', 'Interview', 'Selected'] %}
+            {% if step3_rejected %}
+              <i class="ph-bold ph-x"></i>
+            {% elif step3_completed %}
               <i class="ph-bold ph-check"></i>
             {% else %}
               3
@@ -511,9 +535,11 @@
         </div>
 
         <!-- 4. Final Offer -->
-        <div class="stepper-node {% if status_val == 'Selected' %}completed{% else %}{% endif %}">
+        <div class="stepper-node {% if step4_rejected %}rejected{% elif status_val == 'Selected' %}completed{% else %}{% endif %}">
           <div class="stepper-dot">
-            {% if status_val == 'Selected' %}
+            {% if step4_rejected %}
+              <i class="ph-bold ph-x"></i>
+            {% elif status_val == 'Selected' %}
               <i class="ph-bold ph-trophy"></i>
             {% else %}
               4
@@ -522,6 +548,58 @@
           <div class="stepper-lbl">Offer Letter</div>
         </div>
       </div>
+
+      <!-- Constructive Feedback & Elimination Review Card -->
+      {% if is_rejected %}
+      <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.22); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+          <div style="display: flex; align-items: center; gap: 0.45rem; font-weight: 800; color: #dc2626; font-size: 0.92rem;">
+            <i class="ph-bold ph-x-circle" style="font-size: 1.15rem;"></i>
+            <span>Drive Outcome: Eliminated at {{ rej_stage }}</span>
+          </div>
+          {% if app.rejected_at %}.
+          <span style="font-size: 0.75rem; color: var(--text-muted);">
+            Updated on {{ app.rejected_at.strftime('%d %b %Y, %I:%M %p') if app.rejected_at.strftime is defined else app.rejected_at }}
+          </span>
+          {% endif %}
+        </div>
+        {% if app.rejection_reason or app.round_note %}
+        <div style="font-size: 0.85rem; color: var(--text-main); background: var(--surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); margin-top: 0.5rem; line-height: 1.5;">
+          <strong style="color: #991b1b; display: block; margin-bottom: 0.2rem;"><i class="ph-bold ph-chat-circle-dots"></i> Placement Cell / Interview Panel Remarks:</strong>
+          {{ app.rejection_reason or app.round_note }}
+        </div>
+        {% endif %}
+        <div style="margin-top: 0.65rem; font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
+          <i class="ph-bold ph-lightbulb" style="color: #f59e0b;"></i>
+          <span>Student Tip: Review the panel feedback above to strengthen your preparation before upcoming campus recruitment rounds.</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Placement Offer Secured & 48-Hour Exit Action Card -->
+      {% if status_val == 'Selected' %}
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.04)); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 1.15rem 1.25rem; margin-top: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #047857; font-weight: 800; font-size: 0.95rem;">
+              <i class="ph-bold ph-trophy"></i>
+              <span>Official Placement Offer Awarded</span>
+            </div>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+              Congratulations on securing an offer at <strong>{{ company_name }}</strong>! Per placement policy, students have <strong>2 days (48 hours)</strong> to acknowledge their offer.
+            </p>
+          </div>
+          <div>
+            <form action="{{ url_for('student_placement_exit') }}" method="POST" onsubmit="return confirm('Acknowledge offer and conclude active campus drives?');" style="margin: 0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #059669, #10b981); border: none; font-weight: 700; padding: 0.55rem 1.1rem; border-radius: 8px; color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="ph-bold ph-check-circle"></i> Acknowledge Offer & Leave Portal
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
       <!-- Attendance Confirmation Call Slip (For Interview / GD) -->
       {% if status_val in ['Interview', 'GD'] %}

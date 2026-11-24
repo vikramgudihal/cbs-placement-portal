@@ -838,6 +838,67 @@
   </section>
 
   <!-- ============================================================
+       PLACED STUDENT 48-HOUR TRANSITION & VOLUNTARY EXIT BANNER
+       ============================================================ -->
+  {% if student.placement_status == 'Placed_Pending_Exit' %}
+  <div class="glass-card" style="margin: 1.5rem 0 2rem 0; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.05)); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 1.5rem 1.75rem; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 280px;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+          <span style="background: #10b981; color: #fff; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <i class="ph-bold ph-trophy"></i> Placement Offer Secured
+          </span>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #047857; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i class="ph-bold ph-hourglass-high"></i> 48-Hour Transition Window Active
+          </span>
+        </div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.35rem 0;">
+          🎉 Congratulations, {{ student.name }}! Offer from {{ student.placed_company or (placed_offer.company_name if placed_offer else 'Recruiter') }}
+        </h2>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.88rem; line-height: 1.5;">
+          You have been selected for <strong>{{ student.placed_role or (placed_offer.job_role if placed_offer else 'Corporate Associate') }}</strong>. 
+          Per placement policy, candidates have <strong>2 days (48 hours)</strong> to acknowledge their offer and transition out of active drives. 
+          {% if exit_hours_left is not none %}
+          <strong>Time Remaining: {{ exit_hours_left }} hour(s)</strong> before automated transition to Corporate status.
+          {% endif %}
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <form action="{{ url_for('student_placement_exit') }}" method="POST" onsubmit="return confirm('Confirm acceptance of your offer? This will transition your profile out of active campus placement drives.');" style="margin: 0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #059669, #10b981); border: none; padding: 0.75rem 1.4rem; border-radius: 10px; font-weight: 700; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); cursor: pointer;">
+            <i class="ph-bold ph-check-circle"></i> Acknowledge Offer & Leave Portal
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% elif student.placement_status == 'Placed_Archived' %}
+  <div class="glass-card" style="margin: 1.5rem 0 2rem 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(124, 58, 237, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 1.25rem 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.3rem;">
+          <span style="background: #6366f1; color: #fff; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 6px; text-transform: uppercase;">
+            <i class="ph-bold ph-graduation-cap"></i> Placed & Corporate Transitioned
+          </span>
+          <span style="color: #6366f1; font-size: 0.8rem; font-weight: 700;">
+            Alumni / Corporate Associate
+          </span>
+        </div>
+        <p style="margin: 0; color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+          🎓 Offer Accepted: Joined <strong>{{ student.placed_company or 'Corporate' }}</strong> as <strong>{{ student.placed_role or 'Associate' }}</strong>. 
+          Campus placement drives successfully concluded!
+        </p>
+      </div>
+      <span style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border);">
+        <i class="ph-bold ph-check-double" style="color: #10b981;"></i> Exit Concluded
+      </span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ============================================================
        2. FLUID CONNECTED METRICS RIBBON (NO SEPARATE BOXES)
        ============================================================ */
   -->
