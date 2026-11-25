@@ -585,6 +585,8 @@ def login_post():
         if user['role'] == 'student' and not user.get('profile_completed'):
             session['user_id'] = str(user['_id'])
             session['role'] = user['role']
+            session['email'] = user['email']
+            session['name'] = user.get('name') or 'Student Candidate'
             return redirect(url_for('complete_profile'))
         
         session['user_id'] = str(user['_id'])
@@ -727,7 +729,7 @@ def complete_profile():
             projects = request.form.get('projects', '')
             
             # File Upload (GridFS with Strict 5MB PDF Security Validation)
-            resume_file = request.files.get('resume')
+            resume_file = request.files.get('resume') or request.files.get('manual_resume') or request.files.get('backup_resume')
             resume_id = None
             
             if resume_file and resume_file.filename != '':

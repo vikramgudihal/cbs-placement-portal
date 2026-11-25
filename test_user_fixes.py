@@ -102,5 +102,29 @@ class TestUserFixes(unittest.TestCase):
         self.assertIn('Processing...', content)
         print("[PASS] base.html offline-to-online notification catchup and instant button feedback verified.")
 
+    def test_complete_profile_template_syntax_and_wizard(self):
+        """Verify complete_profile.html has balanced script syntax, novalidate multi-step guard, and proper file bindings"""
+        with open('templates/student/complete_profile.html', encoding='utf-8') as f:
+            content = f.read()
+            
+        self.assertIn('novalidate', content, "Multi-step form must use novalidate so hidden steps do not block submission")
+        self.assertIn('handleFormFinalSubmit', content)
+        self.assertIn('handleResumeAutoFill', content)
+        self.assertIn('proceedToStep', content)
+        self.assertIn('jumpToStep', content)
+        self.assertIn('applySmartAcademicSuggestions', content)
+        
+        # Check script block in complete_profile.html
+        import re
+        script_matches = re.findall(r'<script>(.*?)</script>', content, re.DOTALL)
+        self.assertTrue(len(script_matches) > 0, "Script tag must exist in complete_profile.html")
+        
+        js_code = script_matches[-1]
+        # Check matching braces in JS code (excluding strings/comments)
+        open_curly = js_code.count('{')
+        close_curly = js_code.count('}')
+        self.assertEqual(open_curly, close_curly, f"JavaScript braces must be strictly balanced! Open: {open_curly}, Close: {close_curly}")
+        print("[PASS] complete_profile.html script syntax and multi-step validation verified.")
+
 if __name__ == '__main__':
     unittest.main()

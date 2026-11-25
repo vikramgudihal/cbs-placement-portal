@@ -39,7 +39,7 @@
             <label class="btn btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.55rem 1.25rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem;">
               <i class="ph-bold ph-upload-simple"></i>
               <span id="btnUploadResumeText">Upload Resume &amp; Auto-Fill</span>
-              <input type="file" id="resumeAutoFillInput" accept=".pdf" style="display: none;" onchange="handleResumeAutoFill(this)">
+              <input type="file" id="resumeAutoFillInput" name="resume" form="onboardingForm" accept=".pdf" style="display: none;" onchange="handleResumeAutoFill(this)">
             </label>
             <span style="font-size: 0.78rem; color: #64748b;">(PDF only, Max 5MB)</span>
           </div>
@@ -99,11 +99,11 @@
   </div>
 
   <!-- Master Multi-Step Form -->
-  <form id="onboardingForm" action="{{ url_for('complete_profile') }}" method="POST" enctype="multipart/form-data">
+  <form id="onboardingForm" action="{{ url_for('complete_profile') }}" method="POST" enctype="multipart/form-data" novalidate onsubmit="return handleFormFinalSubmit(event)">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <!-- Hidden standard resume input linked to auto-fill -->
-    <input type="file" name="resume" id="actualFormResumeInput" style="display: none;" accept=".pdf">
+    <input type="file" name="backup_resume" id="actualFormResumeInput" style="display: none;" accept=".pdf">
 
     <!-- ══════════════════════════════════════════════════════ -->
     <!-- STEP 1: PERSONAL & UNIVERSITY DETAILS                  -->
@@ -554,7 +554,7 @@
           </div>
           <label class="btn btn-secondary btn-sm" style="cursor: pointer; font-size: 0.8rem; font-weight: 700; border-radius: 8px;">
             <i class="ph-bold ph-arrow-counter-clockwise"></i> Change Resume
-            <input type="file" id="manualResumeInput" accept=".pdf" style="display: none;" onchange="handleManualResumeChange(this)">
+            <input type="file" id="manualResumeInput" name="manual_resume" form="onboardingForm" accept=".pdf" style="display: none;" onchange="handleManualResumeChange(this)">
           </label>
         </div>
       </div>
@@ -670,23 +670,35 @@ function jumpToStep(step) {
 function proceedToStep(nextStep) {
   // Validate current step fields before proceeding
   const currentSection = document.getElementById(`stepSection${currentActiveStep}`);
-  const requiredInputs = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
-  let isValid = true;
-
-  requiredInputs.forEach(input => {
-    if (!input.checkValidity()) {
-      input.reportValidity();
-      isValid = false;
-      return false;
-    }
-  });
-
-  if (isValid) {
-    if (nextStep === 2) {
-      applySmartAcademicSuggestions();
-    }
+  if (!currentSection) {
     jumpToStep(nextStep);
+    return;
   }
+
+  const requiredInputs = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
+  let firstInvalid = null;
+
+  for (const input of requiredInputs) {
+    const val = (input.value || '').trim();
+    if (!val || !input.checkValidity()) {
+      input.classList.add('input-invalid-highlight');
+      if (!firstInvalid) firstInvalid = input;
+    } else {
+      input.classList.remove('input-invalid-highlight');
+    }
+  }
+
+  if (firstInvalid) {
+    firstInvalid.reportValidity();
+    firstInvalid.focus();
+    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  if (nextStep === 2) {
+    applySmartAcademicSuggestions();
+  }
+  jumpToStep(nextStep);
 }
 
 // ── SMART RESUME AUTO-FILL AJAX HANDLER ──────────────────────────
@@ -704,71 +716,139 @@ async function handleResumeAutoFill(input) {
     return;
   }
 
-  // Transfer file to actual hidden form input
-  const actualInput = document.getElementById('actualFormResumeInput');
-  const dataTransfer = new DataTransfer();
-  dataTransfer.items.add(file);
-  actualInput.files = dataTransfer.files;
+  // Safe file sync to backup input
+  try {
+    const actualInput = document.getElementById('actualFormResumeInput');
+    if (actualInput && window.DataTransfer) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      actualInput.files = dt.files;
+    }
+  } catch (syncErr) {
+    console.warn('Backup file sync note:', syncErr);
+  }
 
   // Update status labels
-  document.getElementById('attachedResumeLabel').textContent = file.name;
-  document.getElementById('attachedResumeSub').textContent = `Uploaded ${(file.size / 1024).toFixed(1)} KB (PDF)`;
+  const labelEl = document.getElementById('attachedResumeLabel');
+  const subEl = document.getElementById('attachedResumeSub');
+  if (labelEl) labelEl.textContent = file.name;
+  if (subEl) subEl.textContent = `Uploaded ${(file.size / 1024).toFixed(1)} KB (PDF)`;
 
   // UI state: Show progress
   const loading = document.getElementById('parserLoadingState');
   const successAlert = document.getElementById('parserSuccessAlert');
   const btnText = document.getElementById('btnUploadResumeText');
 
-  loading.style.display = 'flex';
-  successAlert.style.display = 'none';
-  btnText.textContent = 'Parsing Resume...';
+  if (loading) loading.style.display = 'flex';
+  if (successAlert) successAlert.style.display = 'none';
+  if (btnText) btnText.textContent = 'Parsing Resume...';
 
   const formData = new FormData();
   formData.append('resume', file);
 
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  const csrfInput = document.querySelector('input[name="csrf_token"]');
+  const csrfToken = csrfInput ? csrfInput.value : '';
+  if (csrfToken) {
+    formData.append('csrf_token', csrfToken);
+  }
 
   try {
     const response = await fetch('/api/student/parse-resume', {
       method: 'POST',
       headers: {
-        'X-CSRFToken': csrfToken
+        'X-CSRFToken': csrfToken,
+        'X-CSRF-Token': csrfToken
       },
       body: formData
     });
 
     const result = await response.json();
-    loading.style.display = 'none';
-    btnText.textContent = 'Upload New Resume';
+    if (loading) loading.style.display = 'none';
+    if (btnText) btnText.textContent = 'Upload New Resume';
 
     if (result.success && result.data) {
       applyExtractedData(result.data);
-      successAlert.style.display = 'block';
-      document.getElementById('parserSuccessSummary').textContent = 
-        `✨ Auto-filled ${result.extracted_count} fields from ${file.name}!`;
+      if (successAlert) successAlert.style.display = 'block';
+      const sumEl = document.getElementById('parserSuccessSummary');
+      if (sumEl) {
+        sumEl.textContent = `✨ Auto-filled ${result.extracted_count} fields from ${file.name}!`;
+      }
     } else {
       alert(result.error || 'Could not parse text from this PDF. You can still fill the fields manually below.');
     }
   } catch (err) {
-    loading.style.display = 'none';
-    btnText.textContent = 'Upload Resume & Auto-Fill';
+    if (loading) loading.style.display = 'none';
+    if (btnText) btnText.textContent = 'Upload Resume & Auto-Fill';
     console.error('Resume Parse Error:', err);
-    alert('An error occurred during resume parsing. Please fill details manually.');
+    alert('An error occurred during resume parsing. Please fill details manually below.');
   }
 }
 
 function handleManualResumeChange(input) {
   if (input.files && input.files.length > 0) {
     const file = input.files[0];
-    const actualInput = document.getElementById('actualFormResumeInput');
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    actualInput.files = dataTransfer.files;
+    try {
+      const actualInput = document.getElementById('actualFormResumeInput');
+      if (actualInput && window.DataTransfer) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        actualInput.files = dt.files;
+      }
+    } catch (e) {}
 
-    document.getElementById('attachedResumeLabel').textContent = file.name;
-    document.getElementById('attachedResumeSub').textContent = `Attached ${(file.size / 1024).toFixed(1)} KB`;
+    const labelEl = document.getElementById('attachedResumeLabel');
+    const subEl = document.getElementById('attachedResumeSub');
+    if (labelEl) labelEl.textContent = file.name;
+    if (subEl) subEl.textContent = `Attached ${(file.size / 1024).toFixed(1)} KB (PDF)`;
     alert(`Resume updated to: ${file.name}`);
   }
+}
+
+function handleFormFinalSubmit(e) {
+  // Validate Step 1
+  const s1Inputs = document.getElementById('stepSection1').querySelectorAll('input[required], select[required], textarea[required]');
+  for (const input of s1Inputs) {
+    if (!input.value.trim() || !input.checkValidity()) {
+      e.preventDefault();
+      alert('Please fill the required personal details in Step 1 before submitting.');
+      jumpToStep(1);
+      input.reportValidity();
+      input.focus();
+      return false;
+    }
+  }
+
+  // Validate Step 2
+  const s2Inputs = document.getElementById('stepSection2').querySelectorAll('input[required], select[required], textarea[required]');
+  for (const input of s2Inputs) {
+    if (!input.value.trim() || !input.checkValidity()) {
+      e.preventDefault();
+      alert('Please check your academic marks in Step 2 before submitting.');
+      jumpToStep(2);
+      input.reportValidity();
+      input.focus();
+      return false;
+    }
+  }
+
+  // Validate Step 3
+  const s3Inputs = document.getElementById('stepSection3').querySelectorAll('input[required], select[required], textarea[required]');
+  for (const input of s3Inputs) {
+    if (!input.value.trim() || !input.checkValidity()) {
+      e.preventDefault();
+      input.reportValidity();
+      input.focus();
+      return false;
+    }
+  }
+
+  const btn = document.getElementById('btnSubmitProfile');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.8';
+    btn.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> <span>Saving Profile &amp; Entering Portal...</span>`;
+  }
+  return true;
 }
 
 function applyExtractedData(data) {
@@ -891,7 +971,6 @@ function applySmartAcademicSuggestions(data = {}) {
 
   const pgBranch = document.getElementById('field_pg_branch');
   if (pgBranch && !pgBranch.value) pgBranch.value = 'MCA';
-}
 }
 </script>
 {% endblock %}
