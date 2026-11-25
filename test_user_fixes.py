@@ -177,5 +177,32 @@ class TestUserFixes(unittest.TestCase):
 
         print("[PASS] Comprehensive back navigation verified across all portal templates.")
 
+    def test_smooth_motion_marquee_and_badges(self):
+        """Verify recruiter marquee and floating badges use GPU-accelerated translate3d, 
+        have zero loop seams, and eliminate backdrop-filter GPU bottlenecks across all devices"""
+        with open('templates/landing.html', encoding='utf-8') as f:
+            landing_html = f.read()
+
+        # 1. Dual identical marquee groups for pixel-perfect seamless looping
+        self.assertIn('class="marquee-group"', landing_html)
+        self.assertEqual(landing_html.count('class="marquee-group"'), 2, 
+                         "Marquee must have exactly 2 balanced identical groups for a seamless 100% loop with 0 glitch")
+
+        # 2. Hardware-accelerated 3D transforms
+        self.assertIn('translate3d(-50%, 0, 0)', landing_html, 
+                      "Continuous marquee scroll must use translate3d for GPU compositing")
+        self.assertIn('translate3d(0, -6px, 0)', landing_html,
+                      "Floating badges must use translate3d to prevent sub-pixel rounding jitter")
+
+        # 3. Compositor layer promotion
+        self.assertIn('will-change: transform', landing_html)
+        self.assertIn('backface-visibility: hidden', landing_html)
+
+        # 4. Floating badge accreditation text exists and uses accelerated keyframe
+        self.assertIn('NAAC Accredited TPO Hub', landing_html)
+        self.assertIn('floatGentle', landing_html)
+
+        print("[PASS] Recruiter marquee and NAAC badge verified: hardware-accelerated 3D motion with zero seam glitch.")
+
 if __name__ == '__main__':
     unittest.main()

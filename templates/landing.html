@@ -450,17 +450,25 @@
     align-items: center;
     gap: 0.55rem;
     padding: 0.65rem 1.15rem;
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, rgba(226, 232, 240, 0.9));
     border-radius: 9999px;
-    box-shadow: 0 15px 30px -10px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.16);
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--text-main);
     z-index: 2;
-    animation: floatGentle 4.5s ease-in-out infinite;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: floatGentle 5s ease-in-out infinite;
+  }
+
+  [data-theme="dark"] .floating-pill-stat {
+    background: rgba(30, 41, 59, 0.96);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
   }
 
   .floating-pill-stat.top-right {
@@ -472,21 +480,26 @@
   .floating-pill-stat.bottom-left {
     bottom: -12px;
     left: 24px;
-    animation-delay: 2s;
+    animation-delay: 2.5s;
   }
 
   @keyframes floatGentle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
+    0%, 100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -6px, 0);
+    }
   }
 
   /* ============================================================
-     2. INFINITE CONTINUOUS RECRUITER MARQUEE
-     No more 6x2 grid of plain text boxes!
+     2. INFINITE CONTINUOUS RECRUITER MARQUEE (NO GLITCH / NO JUMP)
+     Pure GPU-composited hardware acceleration across all devices
      ============================================================ */
   .marquee-section {
     margin: 3.5rem 0 2rem 0;
     position: relative;
+    contain: layout paint;
   }
 
   .marquee-lead-text {
@@ -503,24 +516,69 @@
     overflow: hidden;
     position: relative;
     padding: 0.75rem 0;
-    mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+    width: 100%;
+    contain: layout paint;
+  }
+
+  /* Hardware-accelerated edge fades */
+  .marquee-track-container::before,
+  .marquee-track-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .marquee-track-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg, #f8fafc) 20%, transparent 100%);
+  }
+
+  .marquee-track-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg, #f8fafc) 20%, transparent 100%);
+  }
+
+  [data-theme="dark"] .marquee-track-container::before {
+    background: linear-gradient(to right, #0b1120 20%, transparent 100%);
+  }
+
+  [data-theme="dark"] .marquee-track-container::after {
+    background: linear-gradient(to left, #0b1120 20%, transparent 100%);
   }
 
   .marquee-row {
     display: flex;
-    gap: 1.25rem;
     width: max-content;
-    animation: continuousScroll 32s linear infinite;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    animation: continuousScroll 34s linear infinite;
   }
 
   .marquee-row:hover {
     animation-play-state: paused;
   }
 
+  .marquee-group {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-right: 1.25rem; /* Matches gap for 100% pixel-perfect seamless loop */
+    flex-shrink: 0;
+  }
+
   @keyframes continuousScroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-50%, 0, 0);
+    }
   }
 
   .recruiter-pill-capsule {
@@ -528,17 +586,22 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1.6rem;
-    background: var(--glass-card);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--glass-border);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
     border-radius: 9999px;
     font-size: 0.92rem;
     font-weight: 700;
     color: var(--text-main);
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
     white-space: nowrap;
-    transition: all 0.25s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .recruiter-pill-capsule {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   }
 
   .recruiter-pill-capsule:hover {
@@ -551,6 +614,15 @@
   .recruiter-pill-capsule i {
     font-size: 1.15rem;
     color: var(--brand-indigo);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-row {
+      animation: none;
+    }
+    .floating-pill-stat {
+      animation: none;
+    }
   }
 
   /* ============================================================
@@ -1285,33 +1357,37 @@
 
       <div class="marquee-track-container">
         <div class="marquee-row">
-          <!-- Marquee Item Set 1 -->
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+          <!-- Marquee Group 1 -->
+          <div class="marquee-group">
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+          </div>
 
-          <!-- Duplicate Set for Seamless Continuous Infinite Scrolling -->
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
-          <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+          <!-- Marquee Group 2 (Exact Duplicate for Seamless Infinite Scrolling) -->
+          <div class="marquee-group" aria-hidden="true">
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-buildings"></i> Deloitte</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-chart-line-up"></i> Tata Consultancy Services</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-code"></i> Infosys</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-briefcase"></i> Amazon</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-bank"></i> HDFC Bank</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-scales"></i> PwC India</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-shield-star"></i> Ernst &amp; Young</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-cpu"></i> Capgemini</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-device-mobile"></i> Wipro</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-credit-card"></i> ICICI Bank</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-tree-structure"></i> LTIMindtree</div>
+            <div class="recruiter-pill-capsule"><i class="ph-fill ph-sparkle"></i> Tech Mahindra</div>
+          </div>
         </div>
       </div>
     </section>
