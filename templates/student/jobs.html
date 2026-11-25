@@ -6,7 +6,7 @@
 <style>
   /* ============================================================
      ENTERPRISE OPPORTUNITIES BOARD (Non-AI Institutional Standard)
-     Clean, professional, high-density feed. No puffy "box box" AI cards.
+     Supports both Grid Card View and Streamlined List View.
      ============================================================ */
 
   .drives-container {
@@ -15,7 +15,7 @@
     padding-bottom: 3rem;
   }
 
-  /* Control Header */
+  /* Control Header Toolbar */
   .drives-toolbar {
     background: #ffffff;
     border: 1px solid var(--border);
@@ -60,7 +60,7 @@
   .drives-filter-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
     flex-wrap: wrap;
   }
 
@@ -74,27 +74,74 @@
     font-weight: 500;
   }
 
-  .view-toggle-btn {
+  /* 2-Option View Switcher */
+  .drives-view-toggle-bar {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
     background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0.2rem;
+    gap: 0.2rem;
+  }
+
+  .view-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
     color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
-  .view-toggle-btn.active {
+  .view-switch-btn.active {
     background: var(--primary);
     color: #ffffff;
-    border-color: var(--primary);
+    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.2);
   }
 
-  /* ── LIST VIEW (Default Enterprise Feed) ───────────────────── */
+  /* ── 1. GRID CARD VIEW ────────────────────────────────────── */
+  .drives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .drive-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.35rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  [data-theme="dark"] .drive-card {
+    background: var(--surface);
+  }
+
+  .drive-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .drive-card.is-locked {
+    background: #fafafa;
+    opacity: 0.82;
+  }
+
+  /* ── 2. LIST VIEW (Streamlined Horizontal Feed) ───────────── */
   .drives-feed {
     display: flex;
     flex-direction: column;
@@ -125,10 +172,6 @@
   .drive-row.is-locked {
     background: #fafafa;
     opacity: 0.82;
-  }
-
-  [data-theme="dark"] .drive-row.is-locked {
-    background: rgba(22, 27, 34, 0.6);
   }
 
   /* Identity Column */
@@ -185,7 +228,7 @@
     color: var(--primary);
   }
 
-  /* Key Metrics Center Column */
+  /* Key Metrics Column */
   .drive-metrics-col {
     display: flex;
     align-items: center;
@@ -271,7 +314,7 @@
     min-width: 180px;
   }
 
-  /* Crisp Enterprise Action Buttons */
+  /* Crisp Action Buttons */
   .btn-apply-corp {
     background: var(--primary);
     color: #ffffff;
@@ -284,7 +327,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    transition: background 0.15s ease;
+    transition: all 0.15s ease;
     text-decoration: none;
     white-space: nowrap;
   }
@@ -340,8 +383,8 @@
 
   .drawer-meta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
     margin-top: 0.75rem;
     padding: 0.75rem;
     background: var(--bg);
@@ -362,6 +405,9 @@
     .drive-actions-col {
       width: 100%;
       justify-content: flex-start;
+    }
+    .drives-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -393,7 +439,7 @@
     </div>
   </div>
 
-  <!-- Operational Filter Toolbar -->
+  <!-- Operational Filter Toolbar with 2-Option View Switcher -->
   <div class="drives-toolbar">
     <div class="drives-search-wrap">
       <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-subtle);"></i>
@@ -407,6 +453,18 @@
     </div>
 
     <div class="drives-filter-group">
+      <!-- 2-Option View Switcher: Grid Card and List -->
+      <div class="drives-view-toggle-bar">
+        <button type="button" id="btnViewGrid" onclick="switchDrivesView('grid')" class="view-switch-btn active" title="Switch to Grid Card View">
+          <i class="ph-bold ph-squares-four"></i>
+          <span>Grid Card</span>
+        </button>
+        <button type="button" id="btnViewList" onclick="switchDrivesView('list')" class="view-switch-btn" title="Switch to List View">
+          <i class="ph-bold ph-list-dashes"></i>
+          <span>List</span>
+        </button>
+      </div>
+
       <select id="eligibilitySelect" class="filter-select" onchange="filterFeed()">
         <option value="all">All Drives ({{ jobs|length }})</option>
         <option value="eligible">✓ Eligible for Me</option>
@@ -420,8 +478,132 @@
     </div>
   </div>
 
-  <!-- Enterprise Opportunities Feed -->
-  <div class="drives-feed" id="drivesFeedList">
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- VIEW 1: GRID CARD VIEW (Default)                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="drives-grid" id="drivesGridView">
+    {% for job in jobs %}
+    {% set is_applied = job._id|string in applied_job_ids_str %}
+    {% set job_min_cgpa = (job.min_cgpa|float) if (job.min_cgpa is defined and job.min_cgpa is not none and job.min_cgpa != '') else 0.0 %}
+    {% set stud_cgpa = (student.cgpa|float) if (student and student.cgpa is defined and student.cgpa is not none and student.cgpa != '') else 0.0 %}
+    {% set is_eligible = stud_cgpa >= job_min_cgpa %}
+    {% set is_dream = (job.package and '10' in job.package) or (job.package and ('1' in job.package or '2' in job.package or '3' in job.package) and 'LPA' in job.package) %}
+
+    <div class="drive-card {% if not is_eligible %}is-locked{% endif %}"
+         data-company="{{ job.company_name | lower }}"
+         data-role="{{ job.role | lower }}"
+         data-location="{{ (job.location or '') | lower }}"
+         data-eligible="{{ 'yes' if is_eligible else 'no' }}"
+         data-applied="{{ 'yes' if is_applied else 'no' }}"
+         data-package="{{ job.package or '' }}"
+         id="grid-drive-{{ job._id }}">
+      
+      <!-- Top: Avatar & Company Info -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="company-avatar">
+              {{ job.company_name[0].upper() }}
+            </div>
+            <div>
+              <div class="company-name-row">
+                <span>{{ job.company_name }}</span>
+                {% if job.external_url %}
+                <a href="{{ job.external_url }}" target="_blank" class="external-icon-link" title="Visit Official Company Portal">
+                  <i class="ph-bold ph-arrow-square-out"></i>
+                </a>
+                {% endif %}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-subtle); display: flex; align-items: center; gap: 0.25rem; margin-top: 2px;">
+                <i class="ph-bold ph-map-pin"></i>
+                <span>{{ job.location or 'Multiple Locations' }}</span>
+              </div>
+            </div>
+          </div>
+
+          {% if is_dream %}
+          <span class="dream-pill">★ Dream Drive</span>
+          {% endif %}
+        </div>
+
+        <h2 class="role-title" style="font-size: 1.15rem; margin-bottom: 0.65rem;">{{ job.role }}</h2>
+
+        <!-- Package & Date Banner inside Card -->
+        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; margin-bottom: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="metric-item-label">Compensation</div>
+            <div class="pkg-highlight" style="font-size: 1.05rem;">{{ job.package or 'Disclosed in Drive' }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="metric-item-label">Drive Schedule</div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-top: 0.1rem;">
+              {{ job.drive_date.strftime('%d %b %Y') if job.drive_date and job.drive_date is not string and job.drive_date.strftime is defined else ((job.drive_date|string)[:10] if job.drive_date else 'Scheduled') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Academic Criteria -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">Benchmark:</span>
+          {% if is_eligible %}
+          <span class="eligibility-pill ok">
+            <i class="ph-bold ph-check"></i> Eligible (Min {{ job.min_cgpa }})
+          </span>
+          {% else %}
+          <span class="eligibility-pill lock">
+            <i class="ph-bold ph-lock"></i> Min {{ job.min_cgpa }} Required
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; border-top: 1px solid var(--border); padding-top: 0.85rem;">
+          {% if is_applied %}
+          <span class="status-chip-applied" style="flex: 1; justify-content: center;">
+            <i class="ph-bold ph-check-circle"></i> Applied
+          </span>
+          {% elif is_eligible %}
+            {% set reqs = job.custom_requirements or {} %}
+            <button type="button" class="btn-apply-corp" style="flex: 1; justify-content: center;" onclick="openApplyModal('{{ job._id }}', '{{ job.company_name|escape }}', '{{ job.role|escape }}', {{ reqs|tojson|forceescape }})">
+              Apply Now <i class="ph-bold ph-arrow-right"></i>
+            </button>
+          {% else %}
+          <span style="flex: 1; text-align: center; font-size: 0.78rem; color: var(--text-subtle); display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;">
+            <i class="ph-bold ph-lock"></i> Criteria Not Met
+          </span>
+          {% endif %}
+
+          <button type="button" class="btn-details-toggle" onclick="toggleDetails('grid-{{ job._id }}')" title="View Job Description">
+            Details <i class="ph-bold ph-caret-down"></i>
+          </button>
+        </div>
+
+        <!-- Collapsible JD Drawer for Grid Card -->
+        <div class="drive-details-drawer" id="drawer-grid-{{ job._id }}">
+          <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Job Description:</div>
+          <p style="margin: 0; line-height: 1.5; font-size: 0.8rem;">
+            {{ job.description or 'Official job brochure issued by recruiter. Contact placement coordinator for details.' }}
+          </p>
+          {% if job.attachment_id %}
+          <div style="margin-top: 0.5rem;">
+            <a href="{{ url_for('file_serving.serve_file', file_id=job.attachment_id) }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+              <i class="ph-bold ph-file-pdf" style="color: var(--danger);"></i> Download JD PDF
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- VIEW 2: STREAMLINED LIST VIEW                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="drives-feed" id="drivesListView" style="display: none;">
     {% for job in jobs %}
     {% set is_applied = job._id|string in applied_job_ids_str %}
     {% set job_min_cgpa = (job.min_cgpa|float) if (job.min_cgpa is defined and job.min_cgpa is not none and job.min_cgpa != '') else 0.0 %}
@@ -436,7 +618,7 @@
          data-eligible="{{ 'yes' if is_eligible else 'no' }}"
          data-applied="{{ 'yes' if is_applied else 'no' }}"
          data-package="{{ job.package or '' }}"
-         id="drive-{{ job._id }}">
+         id="list-drive-{{ job._id }}">
       
       <!-- Left: Monogram & Job Identity -->
       <div class="drive-identity">
@@ -447,7 +629,7 @@
           <div class="company-name-row">
             <span>{{ job.company_name }}</span>
             {% if job.external_url %}
-            <a href="{{ job.external_url }}" target="_blank" class="external-icon-link" title="Visit Official Company Recruitment Portal">
+            <a href="{{ job.external_url }}" target="_blank" class="external-icon-link" title="Visit Official Company Portal">
               <i class="ph-bold ph-arrow-square-out"></i>
             </a>
             {% endif %}
@@ -513,13 +695,13 @@
         </span>
         {% endif %}
 
-        <button type="button" class="btn-details-toggle" onclick="toggleDetails('{{ job._id }}')" title="View Job Description & Brochure">
+        <button type="button" class="btn-details-toggle" onclick="toggleDetails('list-{{ job._id }}')" title="View Job Description & Brochure">
           Details <i class="ph-bold ph-caret-down"></i>
         </button>
       </div>
 
-      <!-- Collapsible JD Drawer -->
-      <div class="drive-details-drawer" id="drawer-{{ job._id }}">
+      <!-- Collapsible JD Drawer for List View -->
+      <div class="drive-details-drawer" id="drawer-list-{{ job._id }}">
         <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Job Description & Eligibility Guidelines</div>
         <p style="margin: 0; line-height: 1.6;">
           {{ job.description or 'Official job brochure issued by recruiter. Contact placement coordinator for detailed round schedules and syllabus.' }}
@@ -551,85 +733,57 @@
         </div>
       </div>
     </div>
-    {% else %}
-    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 4rem 2rem; text-align: center;">
-      <i class="ph-duotone ph-briefcase" style="font-size: 2.5rem; color: var(--text-subtle); margin-bottom: 0.75rem;"></i>
-      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">No Active Placement Drives</h3>
-      <p style="color: var(--text-muted); font-size: 0.875rem;">Check announcements for upcoming campus recruitment schedules.</p>
-    </div>
     {% endfor %}
   </div>
 
+  {% if not jobs %}
+  <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 4rem 2rem; text-align: center; margin-top: 1rem;">
+    <i class="ph-duotone ph-briefcase" style="font-size: 2.5rem; color: var(--text-subtle); margin-bottom: 0.75rem;"></i>
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">No Active Placement Drives</h3>
+    <p style="color: var(--text-muted); font-size: 0.875rem;">Check announcements for upcoming campus recruitment schedules.</p>
+  </div>
+  {% endif %}
+
 </div>
 
-<script>
-function filterFeed() {
-  const query = (document.getElementById('jobSearchInput').value || '').toLowerCase().trim();
-  const filter = document.getElementById('eligibilitySelect').value;
-  const rows = document.querySelectorAll('.drive-row');
-  let count = 0;
-
-  rows.forEach(row => {
-    const company = row.dataset.company || '';
-    const role = row.dataset.role || '';
-    const location = row.dataset.location || '';
-    const isEligible = row.dataset.eligible === 'yes';
-    const isApplied = row.dataset.applied === 'yes';
-    const pkg = row.dataset.package || '';
-
-    // Search query check
-    const matchesSearch = !query || company.includes(query) || role.includes(query) || location.includes(query);
-
-    // Filter check
-    let matchesFilter = true;
-    if (filter === 'eligible') matchesFilter = isEligible;
-    else if (filter === 'applied') matchesFilter = isApplied;
-    else if (filter === 'dream') {
-      matchesFilter = pkg.includes('1') || pkg.includes('2') || pkg.includes('3') || pkg.includes('LPA');
-    }
-
-    if (matchesSearch && matchesFilter) {
-      row.style.display = 'flex';
-      count++;
-    } else {
-      row.style.display = 'none';
-    }
-  });
-
-  const counter = document.getElementById('driveCounter');
-  if (counter) {
-    counter.textContent = `${count} Drive${count !== 1 ? 's' : ''}`;
-  }
-}
-
-function toggleDetails(jobId) {
-  const drawer = document.getElementById('drawer-' + jobId);
-  if (drawer) {
-    const isVisible = drawer.style.display === 'block';
-    drawer.style.display = isVisible ? 'none' : 'block';
-  }
-}
-
-<!-- Custom Requirements Application Modal -->
-<div id="applyCustomModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1.5rem;">
-  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35); position: relative;">
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- CUSTOM REQUIREMENTS APPLICATION MODAL (Full Working)       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="applyCustomModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1.25rem;">
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 1.85rem; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4); position: relative;">
+    
+    <!-- Modal Header -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em;">Drive Application</span>
-        <h2 id="modalDriveTitle" style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin: 0.2rem 0 0 0;">Company Application</h2>
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em;">Placement Application</span>
+        <h2 id="modalDriveTitle" style="font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin: 0.2rem 0 0 0;">Company Application</h2>
       </div>
       <button type="button" onclick="closeApplyModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0.25rem;">
         <i class="ph-bold ph-x"></i>
       </button>
     </div>
 
-    <form id="applyCustomForm" method="POST" action="" enctype="multipart/form-data">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
-      <div style="background: rgba(79, 70, 229, 0.06); border: 1px solid rgba(79, 70, 229, 0.18); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
-        <i class="ph-bold ph-shield-check" style="color: var(--primary);"></i>
-        Submit your verified application for this recruitment drive. You can choose to attach your master profile resume or upload a custom-tailored CV for this role.
+    <!-- Candidate Snapshot: Automatically Linked Details Confirmation -->
+    <div style="background: rgba(30, 64, 175, 0.05); border: 1.5px solid rgba(30, 64, 175, 0.2); border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+        <span style="font-size: 0.78rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">
+          <i class="ph-bold ph-shield-check"></i> Candidate Profile Linked
+        </span>
+        <span class="badge" style="background: #10b981; color: white; font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.45rem; border-radius: 4px;">Verified</span>
       </div>
+      <div style="font-size: 0.84rem; color: var(--text-main); font-weight: 700; line-height: 1.45;">
+        <span>{{ student.name or 'Candidate' }}</span> &bull; 
+        <span style="font-family: monospace;">USN: {{ student.student_id or 'Assigned' }}</span> &bull; 
+        <span>Branch: {{ student.branch or 'MCA' }}</span> &bull; 
+        <span>CGPA: {{ student.cgpa or '0.0' }}</span>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+        Your verified marks and profile details are automatically linked to this application snapshot.
+      </div>
+    </div>
+
+    <form id="applyCustomForm" method="POST" action="" enctype="multipart/form-data" onsubmit="handleApplySubmit(event)">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
       <!-- Resume Choice Section (Tailored vs Master Profile) -->
       <div style="background: var(--bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 1.15rem; margin-bottom: 1.25rem;">
@@ -647,7 +801,7 @@ function toggleDetails(jobId) {
         <div style="display: flex; flex-direction: column; gap: 0.65rem;">
           <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
             <input type="radio" name="resume_choice" id="choice_default_resume" value="default" checked onchange="toggleCustomResumeUpload(false)" style="accent-color: var(--primary); width: 18px; height: 18px;">
-            <span>Submit Master Profile Resume</span>
+            <span>Submit Master Profile Resume (Auto-Selected)</span>
             {% if student and student.resume_file_id %}
             <a href="{{ url_for('file_serving.serve_file', file_id=student.resume_file_id) }}" target="_blank" style="font-size: 0.75rem; color: var(--primary); text-decoration: underline; margin-left: 0.4rem;">(Preview File)</a>
             {% endif %}
@@ -670,28 +824,28 @@ function toggleDetails(jobId) {
         </div>
       </div>
 
-      <!-- GitHub Field -->
+      <!-- GitHub Field (Auto-filled & Manual Edit) -->
       <div id="field_github" style="display: none; margin-bottom: 1rem;">
         <label for="apply_github" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
           <i class="ph-bold ph-github-logo"></i> GitHub Profile URL <span style="color: #ef4444;">*</span>
         </label>
-        <input type="url" name="github_url" id="apply_github" value="{{ student.github_url or '' }}" placeholder="https://github.com/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+        <input type="url" name="github_url" id="apply_github" value="{{ student.github_url or '' }}" placeholder="https://github.com/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.88rem;" />
       </div>
 
-      <!-- LinkedIn Field -->
+      <!-- LinkedIn Field (Auto-filled & Manual Edit) -->
       <div id="field_linkedin" style="display: none; margin-bottom: 1rem;">
         <label for="apply_linkedin" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
           <i class="ph-bold ph-linkedin-logo"></i> LinkedIn Profile URL <span style="color: #ef4444;">*</span>
         </label>
-        <input type="url" name="linkedin_url" id="apply_linkedin" value="{{ student.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+        <input type="url" name="linkedin_url" id="apply_linkedin" value="{{ student.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.88rem;" />
       </div>
 
-      <!-- Relocation Field -->
+      <!-- Relocation Field (Auto-selected & Manual Edit) -->
       <div id="field_relocate" style="display: none; margin-bottom: 1rem;">
         <label for="apply_relocate" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
           <i class="ph-bold ph-airplane-tilt"></i> Willing to Relocate? <span style="color: #ef4444;">*</span>
         </label>
-        <select name="willing_to_relocate" id="apply_relocate" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;">
+        <select name="willing_to_relocate" id="apply_relocate" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.88rem;">
           <option value="Yes" {% if (student.willing_to_relocate or 'Yes') == 'Yes' %}selected{% endif %}>Yes, willing to relocate across India</option>
           <option value="Bangalore Only" {% if student.willing_to_relocate == 'Bangalore Only' %}selected{% endif %}>Bangalore / Hubli-Dharwad Region Only</option>
           <option value="Hybrid / Remote Only" {% if student.willing_to_relocate == 'Hybrid / Remote Only' %}selected{% endif %}>Hybrid / Remote Only</option>
@@ -699,12 +853,12 @@ function toggleDetails(jobId) {
         </select>
       </div>
 
-      <!-- Preferred City Field -->
+      <!-- Preferred City Field (Auto-filled & Manual Edit) -->
       <div id="field_city" style="display: none; margin-bottom: 1rem;">
         <label for="apply_city" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
           <i class="ph-bold ph-map-pin"></i> Preferred Work Location / City <span style="color: #ef4444;">*</span>
         </label>
-        <input type="text" name="preferred_location" id="apply_city" value="{{ student.preferred_location or '' }}" placeholder="e.g. Bangalore, Hyderabad, Pune, Hubli" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.9rem;" />
+        <input type="text" name="preferred_location" id="apply_city" value="{{ student.preferred_location or '' }}" placeholder="e.g. Bangalore, Hyderabad, Pune, Hubli" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-size: 0.88rem;" />
       </div>
 
       <!-- Custom Question Field -->
@@ -712,14 +866,14 @@ function toggleDetails(jobId) {
         <label id="lbl_custom_question" for="apply_custom_answer" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
           <i class="ph-bold ph-chat-centered-text"></i> Recruiter Screening Question <span style="color: #ef4444;">*</span>
         </label>
-        <textarea name="custom_answer" id="apply_custom_answer" rows="3" placeholder="Provide your concise response..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.88rem;"></textarea>
+        <textarea name="custom_answer" id="apply_custom_answer" rows="3" placeholder="Provide your concise response..." class="form-control" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.88rem;"></textarea>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
-        <button type="button" onclick="closeApplyModal()" style="padding: 0.75rem 1.4rem; border-radius: 9999px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+        <button type="button" onclick="closeApplyModal()" style="padding: 0.7rem 1.3rem; border-radius: 9999px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-weight: 700; font-size: 0.85rem; cursor: pointer;">
           Cancel
         </button>
-        <button type="submit" class="btn-apply-corp" style="padding: 0.75rem 1.75rem; font-size: 0.92rem;">
+        <button type="submit" id="btnSubmitApplication" class="btn-apply-corp" style="padding: 0.7rem 1.6rem; font-size: 0.9rem;">
           <span>Confirm &amp; Submit Application</span>
           <i class="ph-bold ph-check"></i>
         </button>
@@ -729,13 +883,104 @@ function toggleDetails(jobId) {
 </div>
 
 <script>
+// ── 1. VIEW SWITCHER (Grid vs List) ─────────────────────────────
+function switchDrivesView(mode) {
+  const gridView = document.getElementById('drivesGridView');
+  const listView = document.getElementById('drivesListView');
+  const btnGrid = document.getElementById('btnViewGrid');
+  const btnList = document.getElementById('btnViewList');
+
+  if (mode === 'grid') {
+    if (gridView) gridView.style.display = 'grid';
+    if (listView) listView.style.display = 'none';
+    if (btnGrid) btnGrid.classList.add('active');
+    if (btnList) btnList.classList.remove('active');
+  } else {
+    if (gridView) gridView.style.display = 'none';
+    if (listView) listView.style.display = 'flex';
+    if (btnList) btnList.classList.add('active');
+    if (btnGrid) btnGrid.classList.remove('active');
+  }
+  localStorage.setItem('cbs_drives_view_pref', mode);
+}
+
+// Restore user view preference on boot
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('cbs_drives_view_pref') || 'grid';
+  switchDrivesView(saved);
+});
+
+// ── 2. INSTANT SEARCH & ELIGIBILITY FILTER ──────────────────────
+function filterFeed() {
+  const query = (document.getElementById('jobSearchInput').value || '').toLowerCase().trim();
+  const filter = document.getElementById('eligibilitySelect').value;
+  const gridCards = document.querySelectorAll('.drive-card');
+  const listRows = document.querySelectorAll('.drive-row');
+  let count = 0;
+
+  function evaluateItem(el, isGrid) {
+    const company = el.dataset.company || '';
+    const role = el.dataset.role || '';
+    const location = el.dataset.location || '';
+    const isEligible = el.dataset.eligible === 'yes';
+    const isApplied = el.dataset.applied === 'yes';
+    const pkg = el.dataset.package || '';
+
+    const matchesSearch = !query || company.includes(query) || role.includes(query) || location.includes(query);
+
+    let matchesFilter = true;
+    if (filter === 'eligible') matchesFilter = isEligible;
+    else if (filter === 'applied') matchesFilter = isApplied;
+    else if (filter === 'dream') {
+      matchesFilter = pkg.includes('1') || pkg.includes('2') || pkg.includes('3') || pkg.includes('LPA');
+    }
+
+    if (matchesSearch && matchesFilter) {
+      el.style.display = isGrid ? 'flex' : 'flex';
+      return true;
+    } else {
+      el.style.display = 'none';
+      return false;
+    }
+  }
+
+  gridCards.forEach(card => {
+    if (evaluateItem(card, true)) count++;
+  });
+
+  listRows.forEach(row => {
+    evaluateItem(row, false);
+  });
+
+  const counter = document.getElementById('driveCounter');
+  if (counter) {
+    counter.textContent = `${count} Drive${count !== 1 ? 's' : ''}`;
+  }
+}
+
+// ── 3. COLLAPSIBLE JD ACCORDION ─────────────────────────────────
+function toggleDetails(drawerKey) {
+  const drawer = document.getElementById('drawer-' + drawerKey);
+  if (drawer) {
+    const isVisible = drawer.style.display === 'block';
+    drawer.style.display = isVisible ? 'none' : 'block';
+  }
+}
+
+// ── 4. APPLICATION MODAL & FAST CLICK HANDLERS ──────────────────
 function openApplyModal(jobId, company, role, reqs) {
   const modal = document.getElementById('applyCustomModal');
   const form = document.getElementById('applyCustomForm');
   const title = document.getElementById('modalDriveTitle');
+  const btnSubmit = document.getElementById('btnSubmitApplication');
 
-  title.textContent = `${role} at ${company}`;
-  form.action = `/student/jobs/${jobId}/apply`;
+  if (title) title.textContent = `${role} at ${company}`;
+  if (form) form.action = `/student/jobs/${jobId}/apply`;
+
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = `<span>Confirm &amp; Submit Application</span> <i class="ph-bold ph-check"></i>`;
+  }
 
   // Reset resume choice to default
   const defaultRadio = document.getElementById('choice_default_resume');
@@ -796,8 +1041,10 @@ function openApplyModal(jobId, company, role, reqs) {
     inputQuestion.required = false;
   }
 
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function closeApplyModal() {
@@ -815,8 +1062,12 @@ function toggleCustomResumeUpload(show) {
   }
 }
 
-function confirmApply(company, role) {
-  return confirm(`Confirm application for ${role} at ${company} using your verified CBS placement profile?`);
+function handleApplySubmit(e) {
+  const btn = document.getElementById('btnSubmitApplication');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> <span>Submitting Application...</span>`;
+  }
 }
 </script>
 {% endblock %}

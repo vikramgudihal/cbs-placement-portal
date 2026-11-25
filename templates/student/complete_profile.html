@@ -682,6 +682,9 @@ function proceedToStep(nextStep) {
   });
 
   if (isValid) {
+    if (nextStep === 2) {
+      applySmartAcademicSuggestions();
+    }
     jumpToStep(nextStep);
   }
 }
@@ -769,21 +772,50 @@ function handleManualResumeChange(input) {
 }
 
 function applyExtractedData(data) {
-  // Mapping extracted keys to field element IDs
+  // Mapping extracted keys to field element IDs across all 3 steps
   const mapping = {
     'name': 'field_name',
     'student_id': 'field_student_id',
     'personal_email': 'field_personal_email',
     'phone': 'field_phone',
     'branch': 'field_branch',
-    'skills': 'field_skills',
-    'cgpa': 'field_ug_score',
+
+    // 10th / SSC
+    'tenth_school': 'field_tenth_school',
+    'tenth_board': 'field_tenth_board',
+    'tenth_year': 'field_tenth_year',
     'tenth_score': 'field_tenth_score',
-    'twelfth_score': 'field_twelfth_score'
+
+    // 12th / PUC
+    'twelfth_school': 'field_twelfth_school',
+    'twelfth_board': 'field_twelfth_board',
+    'twelfth_year': 'field_twelfth_year',
+    'twelfth_score': 'field_twelfth_score',
+    'twelfth_stream': 'field_twelfth_stream',
+
+    // UG
+    'ug_college': 'field_ug_college',
+    'ug_university': 'field_ug_university',
+    'ug_degree': 'field_ug_degree',
+    'ug_branch': 'field_ug_branch',
+    'ug_year': 'field_ug_year',
+    'ug_score': 'field_ug_score',
+
+    // PG
+    'pg_college': 'field_pg_college',
+    'pg_university': 'field_pg_university',
+    'pg_degree': 'field_pg_degree',
+    'pg_branch': 'field_pg_branch',
+    'pg_year': 'field_pg_year',
+    'pg_score': 'field_pg_score',
+
+    // Step 3: Skills & Projects
+    'skills': 'field_skills',
+    'projects': 'field_projects'
   };
 
   for (const [key, elementId] of Object.entries(mapping)) {
-    if (data[key]) {
+    if (data[key] !== undefined && data[key] !== null && String(data[key]).trim() !== '') {
       const field = document.getElementById(elementId);
       const badge = document.getElementById(`badge_${key}`);
 
@@ -795,17 +827,71 @@ function applyExtractedData(data) {
     }
   }
 
-  // Also prefill PG branch / score if MCA/MBA detected
-  if (data['branch'] === 'MCA' || data['branch'] === 'MBA') {
+  // Pre-fill PG branch and score if MCA/MBA detected
+  if (data['branch'] === 'MCA' || data['branch'] === 'MBA' || data['degree'] === 'MCA' || data['degree'] === 'MBA') {
+    const targetBranch = data['branch'] || data['degree'] || 'MCA';
     const pgDeg = document.getElementById('field_pg_degree');
     const pgBranch = document.getElementById('field_pg_branch');
-    if (pgDeg) pgDeg.value = data['branch'];
-    if (pgBranch) pgBranch.value = data['branch'];
+    const pgCollege = document.getElementById('field_pg_college');
+    const pgUniv = document.getElementById('field_pg_university');
+    const pgYear = document.getElementById('field_pg_year');
+
+    if (pgDeg && !pgDeg.value) pgDeg.value = targetBranch;
+    if (pgBranch && !pgBranch.value) pgBranch.value = targetBranch;
+    if (pgCollege && !pgCollege.value) pgCollege.value = 'Chetan Business School';
+    if (pgUniv && !pgUniv.value) pgUniv.value = 'Karnatak University, Dharwad';
+    if (pgYear && !pgYear.value) pgYear.value = '2026';
     if (data['cgpa']) {
       const pgScore = document.getElementById('field_pg_score');
-      if (pgScore) pgScore.value = data['cgpa'];
+      if (pgScore && !pgScore.value) pgScore.value = data['cgpa'];
     }
   }
+
+  // Apply intelligent context suggestions for any empty academic field
+  applySmartAcademicSuggestions(data);
+}
+
+function applySmartAcademicSuggestions(data = {}) {
+  // 10th defaults
+  const tenthBoard = document.getElementById('field_tenth_board');
+  if (tenthBoard && !tenthBoard.value) tenthBoard.value = data.tenth_board || 'State Board';
+
+  // 12th defaults
+  const twelfthBoard = document.getElementById('field_twelfth_board');
+  if (twelfthBoard && !twelfthBoard.value) twelfthBoard.value = data.twelfth_board || 'State PU Board';
+
+  const twelfthStream = document.getElementById('field_twelfth_stream');
+  if (twelfthStream && !twelfthStream.value) twelfthStream.value = data.twelfth_stream || 'Science (PCMB/PCMC)';
+
+  // UG defaults
+  const ugDegree = document.getElementById('field_ug_degree');
+  if (ugDegree && !ugDegree.value) ugDegree.value = data.ug_degree || 'BCA';
+
+  const ugBranch = document.getElementById('field_ug_branch');
+  if (ugBranch && !ugBranch.value) ugBranch.value = data.ug_branch || 'Computer Applications';
+
+  const ugUniv = document.getElementById('field_ug_university');
+  if (ugUniv && !ugUniv.value) ugUniv.value = data.ug_university || 'Karnatak University, Dharwad';
+
+  const ugYear = document.getElementById('field_ug_year');
+  if (ugYear && !ugYear.value) ugYear.value = data.ug_year || '2024';
+
+  // PG defaults for CBS candidates
+  const pgCollege = document.getElementById('field_pg_college');
+  if (pgCollege && !pgCollege.value) pgCollege.value = 'Chetan Business School';
+
+  const pgUniv = document.getElementById('field_pg_university');
+  if (pgUniv && !pgUniv.value) pgUniv.value = 'Karnatak University, Dharwad';
+
+  const pgYear = document.getElementById('field_pg_year');
+  if (pgYear && !pgYear.value) pgYear.value = '2026';
+
+  const pgDeg = document.getElementById('field_pg_degree');
+  if (pgDeg && !pgDeg.value) pgDeg.value = 'MCA';
+
+  const pgBranch = document.getElementById('field_pg_branch');
+  if (pgBranch && !pgBranch.value) pgBranch.value = 'MCA';
+}
 }
 </script>
 {% endblock %}

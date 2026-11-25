@@ -485,10 +485,114 @@
     </div>
 
     <!-- ── SECURITY GUARD ──────────────────────────────────── -->
-    <!-- ── NOTIFICATION POLLING ────────────────────────────── -->
+    <!-- ── NOTIFICATION POLLING & OFFLINE-TO-ONLINE CATCHUP ──── -->
     {% if is_logged_in %}
+    <style>
+      /* While You Were Offline Catchup Notification Card */
+      .offline-catchup-card {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        background: var(--surface, #ffffff);
+        border: 1.5px solid var(--border, #e2e8f0);
+        border-radius: 16px;
+        box-shadow: 0 12px 36px -4px rgba(15, 23, 42, 0.22);
+        z-index: 10000;
+        overflow: hidden;
+        animation: slideInCatchup 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes slideInCatchup {
+        from { transform: translateY(100%) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+      }
+      .catchup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        background: rgba(37, 99, 235, 0.08);
+        border-bottom: 1px solid var(--border, #e2e8f0);
+      }
+      .catchup-title {
+        font-size: 0.84rem;
+        font-weight: 800;
+        color: var(--primary, #1d4ed8);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .catchup-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--text-muted, #64748b);
+        cursor: pointer;
+        line-height: 1;
+        padding: 0.2rem;
+      }
+      .catchup-body {
+        padding: 0.75rem 1rem;
+        max-height: 220px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .catchup-item {
+        padding: 0.6rem 0.75rem;
+        background: var(--bg, #f8fafc);
+        border-radius: 8px;
+        border: 1px solid var(--border, #e2e8f0);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: background 0.15s ease;
+      }
+      .catchup-item:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+      }
+      .catchup-item-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        margin-bottom: 0.15rem;
+      }
+      .catchup-item-msg {
+        font-size: 0.74rem;
+        color: var(--text-muted, #64748b);
+        line-height: 1.35;
+      }
+      .catchup-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.65rem 1rem;
+        background: var(--bg, #f8fafc);
+        border-top: 1px solid var(--border, #e2e8f0);
+      }
+      .btn-catchup-view {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--primary, #1d4ed8);
+        text-decoration: none;
+      }
+      .btn-catchup-mark {
+        background: none;
+        border: none;
+        font-size: 0.75rem;
+        color: var(--text-muted, #64748b);
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    </style>
+
     <script>
       let lastCheckTime = new Date().toISOString();
+      const currentUnreadCount = {{ unread_notifications_count or 0 }};
+
       function checkNewNotifications() {
         fetch('/api/notifications/check?last_check=' + encodeURIComponent(lastCheckTime))
           .then(r => r.json())
@@ -508,7 +612,90 @@
           }).catch(() => {});
       }
       setInterval(checkNewNotifications, 30000);
-      lastCheckTime = new Date().toISOString();
+
+      // ── OFFLINE-TO-ONLINE NOTIFICATION CATCH-UP ──────────────
+      async function triggerOfflineCatchupBanner() {
+        if (currentUnreadCount <= 0) return;
+        if (sessionStorage.getItem('notif_catchup_dismissed')) return;
+
+        try {
+          const resp = await fetch('/api/notifications');
+          const data = await resp.json();
+          if (!data || !data.notifications || data.notifications.length === 0) return;
+
+          const unreadList = data.notifications.filter(n => !n.is_read).slice(0, 3);
+          if (unreadList.length === 0) return;
+
+          // Native Browser Push Alert if permitted (Free & Built-in)
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('CBS Placement Cell', {
+                body: `You have ${currentUnreadCount} new placement notification(s) while you were away.`,
+                icon: '{{ url_for("static", filename="images/logo1.png") }}'
+              });
+            } catch (ne) {}
+          }
+
+          // Build in-app floating catch-up card
+          const container = document.createElement('div');
+          container.id = 'offlineCatchupCard';
+          container.className = 'offline-catchup-card';
+          container.innerHTML = `
+            <div class="catchup-header">
+              <div class="catchup-title">
+                <i class="ph-bold ph-bell-ringing"></i>
+                <span>While You Were Offline (${currentUnreadCount} New)</span>
+              </div>
+              <button onclick="dismissCatchupCard()" class="catchup-close-btn">&times;</button>
+            </div>
+            <div class="catchup-body">
+              ${unreadList.map(n => `
+                <a href="${n.link || '/notifications'}" class="catchup-item">
+                  <div class="catchup-item-title">${n.title || 'New Announcement'}</div>
+                  <div class="catchup-item-msg">${n.message || 'Click to view details'}</div>
+                </a>
+              `).join('')}
+            </div>
+            <div class="catchup-footer">
+              <a href="/notifications" class="btn-catchup-view">View All Updates &rarr;</a>
+              <button onclick="dismissCatchupCard()" class="btn-catchup-mark">Dismiss</button>
+            </div>
+          `;
+          document.body.appendChild(container);
+        } catch (err) {
+          console.warn('Catchup notification error:', err);
+        }
+      }
+
+      function dismissCatchupCard() {
+        const card = document.getElementById('offlineCatchupCard');
+        if (card) {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          setTimeout(() => card.remove(), 250);
+        }
+        sessionStorage.setItem('notif_catchup_dismissed', 'true');
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // Run catch-up alert after a short delay
+        setTimeout(triggerOfflineCatchupBanner, 1000);
+
+        // Instant 0ms visual submit feedback on all form buttons
+        document.querySelectorAll('form').forEach(form => {
+          form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (btn && !btn.disabled) {
+              if (form.checkValidity && !form.checkValidity()) return;
+              btn.style.opacity = '0.78';
+              btn.style.pointerEvents = 'none';
+              if (!btn.innerHTML.includes('ph-spinner')) {
+                btn.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> <span>Processing...</span>`;
+              }
+            }
+          });
+        });
+      });
     </script>
     {% endif %}
 

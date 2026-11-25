@@ -189,12 +189,17 @@ def sync_production_credentials_on_boot():
                     app.logger.info(f"Upgraded password hash for admin: {email}")
 
         # 3. Synchronize default student password for students on legacy default
-        st_cursor = users_collection.find({'role': 'student'})
+        st_cursor = users_collection.find({'role': 'student', 'cred_version': {'$ne': 2}})
         for st in st_cursor:
             if verify_password(st.get('password', ''), 'Student@123'):
                 users_collection.update_one(
                     {'_id': st['_id']},
-                    {'$set': {'password': hash_password('CbsStudent#MCA2026$')}}
+                    {'$set': {'password': hash_password('CbsStudent#MCA2026$'), 'cred_version': 2}}
+                )
+            else:
+                users_collection.update_one(
+                    {'_id': st['_id']},
+                    {'$set': {'cred_version': 2}}
                 )
 
         app.logger.info("Online database credentials synchronized with latest enterprise keys.")
@@ -1279,12 +1284,30 @@ def check_and_process_placed_student_exits():
 
     return transitioned_count
 
+_last_portal_maintenance_time = None
+
+def run_portal_periodic_maintenance():
+    """
+    Throttles periodic portal maintenance tasks (job expiry & placed exits)
+    so they run at most once every 5 minutes rather than firing multiple
+    database updates on every single HTTP GET page load.
+    """
+    global _last_portal_maintenance_time
+    now = datetime.datetime.now()
+    if _last_portal_maintenance_time and (now - _last_portal_maintenance_time).total_seconds() < 300:
+        return
+    _last_portal_maintenance_time = now
+    try:
+        auto_expire_jobs()
+        check_and_process_placed_student_exits()
+    except Exception as e:
+        app.logger.warning(f"Periodic maintenance check warning: {e}")
+
 @app.route('/admin/dashboard')
 @login_required(role='admin')
 def admin_dashboard():
-    # Auto-expire jobs and process placed student exits on dashboard load
-    auto_expire_jobs()
-    check_and_process_placed_student_exits()
+    # Throttled maintenance check on dashboard load
+    run_portal_periodic_maintenance()
     # Check if user is super admin or faculty
     admin_level = session.get('admin_level')
     
@@ -3808,8 +3831,7 @@ def student_profile():
 @app.route('/student/jobs')
 @login_required(role='student')
 def student_jobs():
-    auto_expire_jobs()
-    check_and_process_placed_student_exits()
+    run_portal_periodic_maintenance()
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
     
     now = datetime.datetime.now()
