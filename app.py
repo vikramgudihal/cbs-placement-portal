@@ -66,8 +66,16 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_COOKIE_SECURE=False, # Set to True in production (HTTPS)
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024 # 16 MB max payload defense
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024, # 16 MB max payload defense
+    SEND_FILE_MAX_AGE_DEFAULT=31536000 # 1 Year Static Asset Cache
 )
+
+@app.after_request
+def add_performance_headers(response):
+    if request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response.headers['Connection'] = 'keep-alive'
+    return response
 
 # 5. Production Structured Logging (Rotating file log)
 import logging
@@ -528,8 +536,11 @@ def login_post():
     now = datetime.datetime.now()
     
     import re
-    # 1. Search by exact or case-insensitive email
-    user = users_collection.find_one({'email': {'$regex': f'^{re.escape(email)}$', '$options': 'i'}})
+    # 1. Fast indexed O(1) lookup on normalized email
+    user = users_collection.find_one({'email': email})
+    if not user:
+        # Fallback to case-insensitive regex only if exact lowercase missed
+        user = users_collection.find_one({'email': {'$regex': f'^{re.escape(email)}$', '$options': 'i'}})
     
     # 2. Support common student/admin aliases if not found directly
     if not user:
@@ -3739,9 +3750,8 @@ def export_eligible_students(job_id):
 @app.route('/student/dashboard')
 @login_required(role='student')
 def student_dashboard():
-    # Process auto-exits for placed students & auto-expire jobs
-    auto_expire_jobs()
-    check_and_process_placed_student_exits()
+    # Throttled periodic maintenance (runs at most once every 5 minutes)
+    run_portal_periodic_maintenance()
 
     student = students_collection.find_one({'user_id': ObjectId(session['user_id'])})
     if not student:

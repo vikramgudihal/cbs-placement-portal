@@ -646,10 +646,190 @@
       font-size: 0.76rem;
     }
   }
+  /* New Design Authentication Loading Overlay */
+  .auth-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 1.5rem;
+  }
+
+  .auth-loading-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .auth-loading-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 2.5rem 2.25rem;
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    box-shadow: 0 25px 60px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .auth-loading-overlay.active .auth-loading-card {
+    transform: scale(1) translateY(0);
+  }
+
+  [data-theme="dark"] .auth-loading-card {
+    background: #0f172a;
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7);
+  }
+
+  .loading-crest-pulse {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pulse-orbit-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px dashed rgba(37, 99, 235, 0.45);
+    animation: orbitRotate 8s linear infinite;
+  }
+
+  .loading-crest-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid #2563eb;
+    opacity: 0.35;
+    animation: pingRing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes orbitRotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pingRing {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    80%, 100% { transform: scale(1.35); opacity: 0; }
+  }
+
+  .loading-crest-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: #ffffff;
+    padding: 4px;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-title {
+    font-size: 1.25rem;
+    font-weight: 850;
+    color: var(--text-main, #0f172a);
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .loading-progress-track {
+    width: 100%;
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 1.15rem;
+    position: relative;
+  }
+
+  [data-theme="dark"] .loading-progress-track {
+    background: #1e293b;
+  }
+
+  .loading-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #1e40af, #2563eb, #06b6d4, #10b981);
+    border-radius: 9999px;
+    animation: indeterminateSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes indeterminateSlide {
+    0% { left: -40%; width: 40%; }
+    50% { left: 35%; width: 55%; }
+    100% { left: 105%; width: 35%; }
+  }
+
+  .loading-status-text {
+    font-size: 0.88rem;
+    color: var(--text-muted, #475569);
+    margin-bottom: 1.5rem;
+    min-height: 24px;
+    font-weight: 500;
+  }
+
+  .loading-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+  }
+
+  [data-theme="dark"] .loading-security-badge {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- ============================================================
+     NEW DESIGN AUTHENTICATION LOADING OVERLAY
+     High-Trust, Multi-Stage Feedback during Login
+     ============================================================ -->
+<div id="authLoadingOverlay" class="auth-loading-overlay">
+  <div class="auth-loading-card">
+    <div class="loading-crest-pulse">
+      <div class="pulse-orbit-ring"></div>
+      <img src="{{ url_for('static', filename='images/logo1_cropped.png') }}" alt="CBS Crest" class="loading-crest-img" onerror="this.src='{{ url_for('static', filename='images/logo1.png') }}'"/>
+    </div>
+    <h3 class="loading-title">Authenticating Session</h3>
+    <div class="loading-progress-track">
+      <div class="loading-progress-bar"></div>
+    </div>
+    <p id="loadingStatusText" class="loading-status-text">Validating security credentials with CBS 3i-Cell...</p>
+    <div class="loading-security-badge">
+      <i class="ph-bold ph-shield-check"></i>
+      <span>256-Bit TLS Encrypted Placement Access</span>
+    </div>
+  </div>
+</div>
+
 <div class="auth-ambient-canvas">
   <div class="auth-split-card">
 
@@ -809,10 +989,10 @@
             <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot Password?</a>
           </div>
 
-          <!-- Submit Button -->
-          <button type="submit" class="btn-auth-submit">
-            <span>Sign In to Portal</span>
-            <i class="ph-bold ph-arrow-right"></i>
+          <!-- Submit Button with Instant Loading State -->
+          <button type="submit" class="btn-auth-submit" id="btnAuthSubmit">
+            <span class="btn-text">Sign In to Portal</span>
+            <i class="ph-bold ph-arrow-right btn-icon"></i>
           </button>
         </form>
       </div>
@@ -850,6 +1030,40 @@
       field.type = 'password';
       icon.className = 'ph ph-eye';
     }
+  }
+
+  // Instant Loading State & Animated Multi-Stage Feedback
+  const loginForm = document.getElementById('loginForm');
+  const btnAuth = document.getElementById('btnAuthSubmit');
+  const overlay = document.getElementById('authLoadingOverlay');
+  const statusTxt = document.getElementById('loadingStatusText');
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+      if (loginForm.checkValidity && !loginForm.checkValidity()) return;
+      
+      // 1. Instant button feedback
+      if (btnAuth) {
+        btnAuth.disabled = true;
+        btnAuth.style.opacity = '0.85';
+        btnAuth.innerHTML = `<span class="btn-spinner"></span> <span>Signing In...</span>`;
+      }
+
+      // 2. Multi-Stage Loading Overlay
+      if (overlay) {
+        overlay.classList.add('active');
+        const stages = [
+          "Validating security credentials with CBS 3i-Cell...",
+          "Checking candidate permissions & role access...",
+          "Opening placement command console..."
+        ];
+        let idx = 0;
+        setInterval(() => {
+          idx = (idx + 1) % stages.length;
+          if (statusTxt) statusTxt.textContent = stages[idx];
+        }, 800);
+      }
+    });
   }
 </script>
 {% endblock %}
