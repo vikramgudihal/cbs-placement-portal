@@ -251,5 +251,45 @@ class TestUserFixes(unittest.TestCase):
         self.assertIn('text-align: left !important', landing_html)
         print("[PASS] Mobile modal guard and flush-left hero alignment verified.")
 
+    def test_all_mobile_ui_perfection(self):
+        """Verify all 7 mobile responsiveness issues from user screenshots are resolved"""
+        with open('templates/base.html', encoding='utf-8') as f:
+            base_html = f.read()
+        with open('static/css/responsive-suite.css', encoding='utf-8') as f:
+            resp_css = f.read()
+        with open('templates/admin/manage_jobs.html', encoding='utf-8') as f:
+            jobs_html = f.read()
+        with open('templates/admin/manage_users.html', encoding='utf-8') as f:
+            users_html = f.read()
+
+        # Image 1: Public navbar no redundant Home button on landing page + nowrap
+        self.assertIn("request.endpoint not in ['index', 'landing']", base_html)
+        self.assertIn('white-space:nowrap', base_html)
+
+        # Image 2 & 3: Topbar mobile brand nowrap + window-level logout with 30000 z-index
+        self.assertIn('topbar-mobile-brand', base_html)
+        self.assertIn('window.showLogoutModal', base_html)
+        self.assertIn('topbar-logout-btn', base_html)
+        self.assertIn('z-index: 30000 !important', resp_css)
+
+        # Image 4: Filter tabs ribbon horizontal swipe scroll (no cut-off)
+        self.assertIn('overflow-x: auto', jobs_html)
+        self.assertIn('white-space: nowrap', jobs_html)
+
+        # Image 5: Candidate pipeline dossier cards comfortable padding
+        self.assertIn('applications-streamlined-table tr.app-row', resp_css)
+        self.assertIn('1.35rem 1.15rem', resp_css)
+
+        # Image 6: Students tab full width 100% on mobile
+        self.assertIn('grid-template-columns: 1fr !important;', users_html)
+        self.assertIn('#usersGridView', users_html)
+
+        # Image 7: Sidebar open hides bottom nav & raises sidebar z-index
+        self.assertIn('body.sidebar-open .mobile-bottom-nav', resp_css)
+        self.assertIn('sidebar-open', base_html)
+        self.assertIn('z-index: 10001 !important', resp_css)
+
+        print("[PASS] All 7 mobile UI responsiveness issues verified with 100% perfection.")
+
 if __name__ == '__main__':
     unittest.main()

@@ -501,7 +501,7 @@
 .user-row:hover {
   background: var(--surface-hover);
 }
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .user-view-toggle-bar {
     width: 100% !important;
     display: flex !important;
@@ -513,8 +513,15 @@
     padding: 0.55rem 0.75rem !important;
     font-size: 0.85rem !important;
   }
-  .users-grid-container {
+  .users-grid-container,
+  #usersGridView {
     grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+  .user-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 </style>
