@@ -320,13 +320,25 @@ img, video, iframe, canvas {
 
 /* ── 6. MODALS & POPUPS FLUIDITY ───────────────────────────── */
 @media (max-width: 768px) {
-  #superAdminAlertModal,
-  .modal-overlay,
-  .modal-backdrop {
+  #superAdminAlertModal.active,
+  #superAdminAlertModal.show,
+  #superAdminAlertModal[style*="display: flex"],
+  #superAdminAlertModal[style*="display: block"],
+  .modal-overlay.active,
+  .modal-overlay.show,
+  .modal-overlay[style*="display: flex"],
+  .modal-overlay[style*="display: block"],
+  .modal-backdrop.active,
+  .modal-backdrop.show {
     padding: 0.75rem !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+  }
+
+  .modal-overlay:not(.active):not(.show):not([style*="display: flex"]):not([style*="display: block"]),
+  #logoutModal:not(.active) {
+    display: none !important;
   }
 
   #superAdminAlertModal > div,

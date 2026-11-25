@@ -1388,7 +1388,8 @@ a {
   font-size: 1.25rem;
   color: var(--text-muted);
   max-width: 600px;
-  margin: 0 auto 2.5rem;
+  margin: 0 0 2.5rem 0;
+  text-align: left;
 }
 
 .floating-cards {

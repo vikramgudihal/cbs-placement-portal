@@ -229,5 +229,27 @@ class TestUserFixes(unittest.TestCase):
 
         print("[PASS] CBS official crest banner and closed-app Web Push Service Worker listeners verified.")
 
+    def test_mobile_modal_guard_and_hero_alignment(self):
+        """Verify modal-overlay is not unconditionally displayed on mobile, and hero-subtitle is aligned flush-left"""
+        with open('static/css/responsive-suite.css', encoding='utf-8') as f:
+            resp_css = f.read()
+
+        # Modal must NOT be unconditionally displayed on mobile screens
+        self.assertNotIn('.modal-overlay {\n    padding: 0.75rem !important;\n    display: flex !important;', resp_css)
+        self.assertIn('.modal-overlay.active', resp_css)
+        self.assertIn('#logoutModal:not(.active)', resp_css)
+
+        # Base.html logout modal must have inline display: none default guard
+        with open('templates/base.html', encoding='utf-8') as f:
+            base_html = f.read()
+        self.assertIn('id="logoutModal" class="modal-overlay" style="display: none;"', base_html)
+
+        # Landing hero-subtitle must be flush left with margin-left: 0 and text-align: left
+        with open('templates/landing.html', encoding='utf-8') as f:
+            landing_html = f.read()
+        self.assertIn('margin-left: 0 !important', landing_html)
+        self.assertIn('text-align: left !important', landing_html)
+        print("[PASS] Mobile modal guard and flush-left hero alignment verified.")
+
 if __name__ == '__main__':
     unittest.main()
