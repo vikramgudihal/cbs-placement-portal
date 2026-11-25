@@ -126,5 +126,56 @@ class TestUserFixes(unittest.TestCase):
         self.assertEqual(open_curly, close_curly, f"JavaScript braces must be strictly balanced! Open: {open_curly}, Close: {close_curly}")
         print("[PASS] complete_profile.html script syntax and multi-step validation verified.")
 
+    def test_back_navigation_across_portal(self):
+        """Verify universal and page-level back buttons are present and correctly wired across all views"""
+        # 1. Base template topbar & auth nav
+        with open('templates/base.html', encoding='utf-8') as f:
+            base_html = f.read()
+        self.assertIn('universalTopbarBackBtn', base_html)
+        self.assertIn('handleUniversalBack', base_html)
+        self.assertIn('topbar-back-btn', base_html)
+
+        # 2. Notifications page
+        with open('templates/notifications.html', encoding='utf-8') as f:
+            notif_html = f.read()
+        self.assertIn('handleUniversalBack', notif_html)
+        self.assertIn('btn-back', notif_html)
+
+        # 3. Student Announcements / Town Hall
+        with open('templates/student/announcements.html', encoding='utf-8') as f:
+            ann_html = f.read()
+        self.assertIn('student_dashboard', ann_html)
+        self.assertIn('btn-back', ann_html)
+
+        # 4. Auth pages: Login, Signup, Reset Password
+        with open('templates/login.html', encoding='utf-8') as f:
+            login_html = f.read()
+        self.assertIn('btn-back', login_html)
+
+        with open('templates/signup.html', encoding='utf-8') as f:
+            signup_html = f.read()
+        self.assertIn('btn-back', signup_html)
+
+        with open('templates/reset_password.html', encoding='utf-8') as f:
+            reset_html = f.read()
+        self.assertIn('btn-back', reset_html)
+
+        # 5. Error templates: 429 & 500
+        with open('templates/errors/429.html', encoding='utf-8') as f:
+            e429_html = f.read()
+        self.assertIn('history.back()', e429_html)
+
+        with open('templates/errors/500.html', encoding='utf-8') as f:
+            e500_html = f.read()
+        self.assertIn('history.back()', e500_html)
+
+        # 6. Complete profile backwards step unblocking
+        with open('templates/student/complete_profile.html', encoding='utf-8') as f:
+            profile_html = f.read()
+        self.assertIn('if (nextStep < currentActiveStep)', profile_html)
+        self.assertIn('Back to Profile', profile_html)
+
+        print("[PASS] Comprehensive back navigation verified across all portal templates.")
+
 if __name__ == '__main__':
     unittest.main()

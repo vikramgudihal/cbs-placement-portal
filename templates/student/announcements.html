@@ -585,17 +585,22 @@
         <p>Official announcements, assessment invitations, corporate recruitments, and schedule updates direct from the Training &amp; Placement Office.</p>
       </div>
 
-      <div class="th-stats-cluster">
-        <div class="th-stat-pill">
-          <i class="ph-bold ph-newspaper"></i>
-          <span>{{ announcements|length }} Active Circulars</span>
+      <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <a href="{{ url_for('student_dashboard') }}" class="btn-back" style="background: rgba(255, 255, 255, 0.12); color: #ffffff; border-color: rgba(255, 255, 255, 0.25); text-decoration: none;">
+          <i class="ph-bold ph-arrow-left"></i> Dashboard
+        </a>
+        <div class="th-stats-cluster">
+          <div class="th-stat-pill">
+            <i class="ph-bold ph-newspaper"></i>
+            <span>{{ announcements|length }} Active Circulars</span>
+          </div>
+          {% if urgent_count > 0 %}
+          <div class="th-stat-pill urgent">
+            <i class="ph-bold ph-warning-circle"></i>
+            <span>{{ urgent_count }} Priority Action Required</span>
+          </div>
+          {% endif %}
         </div>
-        {% if urgent_count > 0 %}
-        <div class="th-stat-pill urgent">
-          <i class="ph-bold ph-warning-circle"></i>
-          <span>{{ urgent_count }} Priority Action Required</span>
-        </div>
-        {% endif %}
       </div>
     </div>
   </section>

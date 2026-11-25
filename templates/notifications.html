@@ -3,8 +3,13 @@
 
 {% block content %}
 <div class="section-card glass-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h2><i class="ph-bold ph-bell" style="color: var(--primary); margin-right: 0.5rem;"></i> Notifications</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <a href="javascript:handleUniversalBack()" class="btn-back">
+                <i class="ph-bold ph-arrow-left"></i> Back
+            </a>
+            <h2 style="margin: 0;"><i class="ph-bold ph-bell" style="color: var(--primary); margin-right: 0.5rem;"></i> Notifications</h2>
+        </div>
         
         <form action="{{ url_for('mark_all_read') }}" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

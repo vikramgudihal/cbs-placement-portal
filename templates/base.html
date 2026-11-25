@@ -94,6 +94,7 @@
         </span>
       </a>
       <div style="display:flex; align-items:center; gap:0.75rem;">
+        <a href="/" class="btn-back" style="font-size:0.85rem; padding:0.35rem 0.75rem;"><i class="ph-bold ph-arrow-left"></i> Home</a>
         <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm" style="font-size:0.85rem;">Login</a>
         <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm" style="font-size:0.85rem;">Sign Up</a>
       </div>
@@ -285,6 +286,19 @@
           <i class="ph-bold ph-list"></i>
         </button>
         {% endif %}
+
+        <!-- Universal Back Navigation Button -->
+        <button
+          type="button"
+          class="topbar-back-btn"
+          id="universalTopbarBackBtn"
+          onclick="handleUniversalBack()"
+          title="Back to previous page"
+          aria-label="Back to previous page"
+        >
+          <i class="ph-bold ph-arrow-left"></i>
+          <span class="desktop-only">Back</span>
+        </button>
 
         <!-- Page title (injected by JS) -->
         <div style="display: flex; align-items: center; gap: 0.65rem;">
@@ -778,6 +792,29 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/static/js/sw.js').catch(() => {});
         });
+      }
+
+      // ── Universal Back Navigation ───────────────────────────
+      function handleUniversalBack() {
+        try {
+          if (typeof currentActiveStep !== 'undefined' && typeof proceedToStep === 'function' && currentActiveStep > 1) {
+            proceedToStep(currentActiveStep - 1);
+            return;
+          }
+          if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host) && !document.referrer.endsWith(window.location.pathname)) {
+            window.history.back();
+            return;
+          }
+        } catch (e) {
+          console.warn('Navigation fallback triggered:', e);
+        }
+        {% if session.get('role') == 'admin' %}
+          window.location.href = "{{ url_for('admin_dashboard') }}";
+        {% elif session.get('role') == 'student' %}
+          window.location.href = "{{ url_for('student_dashboard') }}";
+        {% else %}
+          window.location.href = "{{ url_for('home') }}";
+        {% endif %}
       }
 
       // ── Notification permission ─────────────────────────────

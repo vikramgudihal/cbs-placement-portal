@@ -3,6 +3,12 @@
 {% block content %}
 <div class="onboarding-card-wrapper" style="width: 100%; max-width: 880px; margin: 1.5rem auto 3rem auto;">
   
+  <div style="display: flex; justify-content: flex-start; margin-bottom: 1rem;">
+    <a href="{{ url_for('student_profile') }}" class="btn-back">
+      <i class="ph-bold ph-arrow-left"></i> Back to Profile
+    </a>
+  </div>
+
   <!-- Header Welcome Banner -->
   <div class="onboarding-header-banner" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 20px; padding: 2rem 2.25rem; color: white; margin-bottom: 1.75rem; box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.3); position: relative; overflow: hidden;">
     <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.12; font-size: 9rem; pointer-events: none;">
@@ -636,6 +642,10 @@
 let currentActiveStep = 1;
 
 function jumpToStep(step) {
+  if (step > currentActiveStep) {
+    proceedToStep(step);
+    return;
+  }
   currentActiveStep = step;
   document.getElementById('stepSection1').style.display = (step === 1) ? 'block' : 'none';
   document.getElementById('stepSection2').style.display = (step === 2) ? 'block' : 'none';
@@ -668,7 +678,13 @@ function jumpToStep(step) {
 }
 
 function proceedToStep(nextStep) {
-  // Validate current step fields before proceeding
+  // If moving backwards, skip forward validation so the candidate is never blocked!
+  if (nextStep < currentActiveStep) {
+    jumpToStep(nextStep);
+    return;
+  }
+
+  // Validate current step fields before proceeding forward
   const currentSection = document.getElementById(`stepSection${currentActiveStep}`);
   if (!currentSection) {
     jumpToStep(nextStep);
