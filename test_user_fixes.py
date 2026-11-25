@@ -207,12 +207,13 @@ class TestUserFixes(unittest.TestCase):
 
     def test_cbs_official_banner_and_closed_app_push_service(self):
         """Verify official CBS banner in landing hero and service worker closed-app push notification listeners"""
-        # 1. Landing page official institution crest
+        # 1. Landing page official institutional master header
         with open('templates/landing.html', encoding='utf-8') as f:
             landing_html = f.read()
-        self.assertIn('hero-institution-badge', landing_html)
-        self.assertIn('cbs_official_banner.png', landing_html)
-        self.assertTrue(os.path.exists('static/images/cbs_official_banner.png'))
+        self.assertIn('institutional-master-banner', landing_html)
+        self.assertIn('CHETAN BUSINESS SCHOOL', landing_html)
+        self.assertIn('AICTE Approved', landing_html)
+        self.assertTrue(os.path.exists('static/images/logo1.png'))
 
         # 2. Service Worker closed-app push notification listener
         with open('static/js/sw.js', encoding='utf-8') as f:
