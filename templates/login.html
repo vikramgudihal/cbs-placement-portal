@@ -389,6 +389,15 @@
     box-shadow: 0 16px 32px -5px rgba(79, 70, 229, 0.55);
   }
 
+  .btn-auth-submit i {
+    font-size: 1.15rem;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-auth-submit:hover i {
+    transform: translateX(4px);
+  }
+
   /* Instant Demo Access Strip */
   .demo-access-cluster {
     margin-top: 1.75rem;
@@ -992,7 +1001,7 @@
           <!-- Submit Button with Instant Loading State -->
           <button type="submit" class="btn-auth-submit" id="btnAuthSubmit">
             <span class="btn-text">Sign In to Portal</span>
-            <i class="ph-bold ph-arrow-right btn-icon"></i>
+            <i class="ph-bold ph-arrow-right"></i>
           </button>
         </form>
       </div>
