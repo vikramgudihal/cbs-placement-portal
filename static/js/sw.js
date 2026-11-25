@@ -67,3 +67,60 @@ self.addEventListener('fetch', (event) => {
         );
     }
 });
+
+
+// ── Web Push Event Listener (Receives notifications when app/tab is closed) ──
+self.addEventListener('push', (event) => {
+    let payload = {
+        title: 'CBS Placement Cell (3i-cell)',
+        body: 'New verified placement circular or opportunity released.',
+        icon: '/static/images/logo1.png',
+        badge: '/static/images/logo1.png',
+        url: '/'
+    };
+
+    if (event.data) {
+        try {
+            payload = Object.assign(payload, event.data.json());
+        } catch (e) {
+            payload.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: payload.body,
+        icon: payload.icon || '/static/images/logo1.png',
+        badge: payload.badge || '/static/images/logo1.png',
+        vibrate: [100, 50, 100],
+        data: {
+            url: payload.url || '/'
+        },
+        actions: [
+            { action: 'explore', title: 'View Details' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// ── Notification Click Handler (Opens relevant destination on user click) ────
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url && client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.navigate(targetUrl);
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});

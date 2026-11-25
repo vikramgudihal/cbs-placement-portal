@@ -1,4 +1,5 @@
 import io
+import os
 import unittest
 import PyPDF2
 from utils.resume_parser import parse_resume
@@ -203,6 +204,29 @@ class TestUserFixes(unittest.TestCase):
         self.assertIn('floatGentle', landing_html)
 
         print("[PASS] Recruiter marquee and NAAC badge verified: hardware-accelerated 3D motion with zero seam glitch.")
+
+    def test_cbs_official_banner_and_closed_app_push_service(self):
+        """Verify official CBS banner in landing hero and service worker closed-app push notification listeners"""
+        # 1. Landing page official institution crest
+        with open('templates/landing.html', encoding='utf-8') as f:
+            landing_html = f.read()
+        self.assertIn('hero-institution-badge', landing_html)
+        self.assertIn('cbs_official_banner.png', landing_html)
+        self.assertTrue(os.path.exists('static/images/cbs_official_banner.png'))
+
+        # 2. Service Worker closed-app push notification listener
+        with open('static/js/sw.js', encoding='utf-8') as f:
+            sw_js = f.read()
+        self.assertIn("self.addEventListener('push'", sw_js)
+        self.assertIn("self.addEventListener('notificationclick'", sw_js)
+        self.assertIn("showNotification", sw_js)
+
+        # 3. Base template push notification permission requester
+        with open('templates/base.html', encoding='utf-8') as f:
+            base_html = f.read()
+        self.assertIn('requestNotificationPermission', base_html)
+
+        print("[PASS] CBS official crest banner and closed-app Web Push Service Worker listeners verified.")
 
 if __name__ == '__main__':
     unittest.main()

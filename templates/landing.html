@@ -79,6 +79,50 @@
     z-index: 1;
   }
 
+  /* Official Institution Crest Box (Chetan Business School) */
+  .hero-institution-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 16px;
+    padding: 0.5rem 1.15rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.85);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    max-width: fit-content;
+  }
+
+  .hero-institution-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.16);
+  }
+
+  .hero-institution-img {
+    height: 48px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  [data-theme="dark"] .hero-institution-badge {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+  }
+
+  @media (max-width: 640px) {
+    .hero-institution-badge {
+      padding: 0.4rem 0.85rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+    .hero-institution-img {
+      height: 38px;
+    }
+  }
+
   /* Frosted Glass Pill Badge */
   .hero-chip {
     display: inline-flex;
@@ -1185,6 +1229,15 @@
 
       <!-- Hero Left: Narrative & Dynamic Typography -->
       <div class="hero-content">
+        <!-- Official Institutional Crest Banner -->
+        <div class="hero-institution-badge">
+          <img 
+            src="{{ url_for('static', filename='images/cbs_official_banner.png') }}" 
+            alt="Chetan Business School - Institute of Management, IT and Research" 
+            class="hero-institution-img"
+          />
+        </div>
+
         <div class="hero-chip">
           <span class="pulse-indicator"></span>
           <span>Official Campus Placement Gateway &bull; CBS 3i-Cell</span>
