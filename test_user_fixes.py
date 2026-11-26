@@ -505,6 +505,9 @@ class TestUserFixes(unittest.TestCase):
             apps_html = f.read()
         self.assertIn('pipeline-table-shell', apps_html)
         self.assertIn('padding: 1.3rem 1.2rem !important', apps_html)
+        self.assertIn('padding: 1.4rem 1.65rem !important', apps_html)
+        self.assertIn('padding-left: 1.35rem !important', apps_html)
+        self.assertIn('padding-right: 1.35rem !important', apps_html)
 
         # Ensure upload_profile_photo route is registered cleanly
         rule_paths = [r.rule for r in app.url_map.iter_rules()]

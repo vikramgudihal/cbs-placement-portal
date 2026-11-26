@@ -338,7 +338,47 @@
       color: #ffffff !important;
     }
 
-    /* Zero-Horizontal-Scroll Streamlined Pipeline Table */
+    /* Zero-Horizontal-Scroll Streamlined Pipeline Table + 4-Sided Outer Padding */
+    @media (min-width: 861px) {
+      .pipeline-table-shell {
+        padding: 1.4rem 1.65rem !important;
+        margin-bottom: 1.75rem !important;
+        border-radius: 20px !important;
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+      }
+
+      .pipeline-table-shell .data-table-container {
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 14px;
+        overflow-x: auto;
+        background: var(--surface, #ffffff);
+      }
+
+      .applications-streamlined-table th {
+        padding: 1rem 1.15rem !important;
+      }
+
+      .applications-streamlined-table td {
+        padding: 1rem 1.15rem !important;
+      }
+
+      .applications-streamlined-table th:first-child,
+      .applications-streamlined-table td:first-child {
+        padding-left: 1.35rem !important;
+        padding-right: 0.75rem !important;
+      }
+
+      .applications-streamlined-table th:last-child,
+      .applications-streamlined-table td:last-child {
+        padding-right: 1.35rem !important;
+      }
+
+      .applications-streamlined-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+    }
+
     .applications-streamlined-table {
       width: 100% !important;
       border-collapse: collapse;
@@ -348,7 +388,7 @@
     .applications-streamlined-table th {
       background: #f8fafc;
       border-bottom: 2px solid var(--border);
-      padding: 0.75rem 0.85rem;
+      padding: 0.9rem 1rem;
       font-size: 0.78rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -357,7 +397,7 @@
     }
 
     .applications-streamlined-table td {
-      padding: 0.75rem 0.85rem;
+      padding: 0.9rem 1rem;
       border-bottom: 1px solid var(--border);
       font-size: 0.85rem;
     }
@@ -570,6 +610,9 @@
         overflow: visible !important;
       }
       .pipeline-table-shell .data-table-container {
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
         padding: 0 !important;
         overflow: visible !important;
       }

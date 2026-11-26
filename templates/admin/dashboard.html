@@ -391,9 +391,20 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 20px;
+    padding: 0.25rem 0.35rem 1.25rem;
     overflow: hidden;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-sm);
+  }
+
+  .fluid-card-container .table-responsive-container {
+    padding: 0.75rem 1.4rem 0.35rem;
+  }
+
+  .fluid-card-container .tpo-table {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
   }
 
   [data-theme="dark"] .fluid-card-container {
@@ -580,6 +591,17 @@
   }
 
   @media (max-width: 768px) {
+    .fluid-card-container {
+      padding: 0 0 0.75rem;
+    }
+    .fluid-card-container .table-responsive-container {
+      padding: 0.65rem 0.85rem 0;
+    }
+    .fluid-card-container .tpo-table {
+      border: none;
+      border-radius: 0;
+      overflow: visible;
+    }
     .tpo-table thead {
       display: none !important;
     }
