@@ -4,8 +4,8 @@
   <!-- Header / Navigation -->
   <div class="details-header">
     <div class="header-left">
-      <a href="{{ url_for('manage_users') }}" class="btn-back">
-        <i class="ph-bold ph-arrow-left"></i> Back to Users
+      <a href="{{ url_for('manage_users') if admin_level in ['super_admin', 'admin'] else url_for('all_students_list') }}" class="btn-back">
+        <i class="ph-bold ph-arrow-left"></i> Back to Students
       </a>
       <div class="header-info">
         <h1>{{ student.name }}</h1>

@@ -81,12 +81,14 @@
         <a href="{{ url_for('all_students_list') }}" class="btn-portal-primary">
           <i class="ph-bold ph-users"></i> All Students List
         </a>
+        {% if admin_level == 'super_admin' %}
         <a href="{{ url_for('manage_admins') }}" class="btn-portal-glass">
           <i class="ph-bold ph-user-gear"></i> Manage Admins
         </a>
         <a href="{{ url_for('view_login_history') }}" class="btn-portal-glass">
           <i class="ph-bold ph-clock-counter-clockwise"></i> Audit Logs
         </a>
+        {% endif %}
         <a href="{{ url_for('admin_dashboard') }}" class="btn-portal-glass">
           <i class="ph-bold ph-arrow-left"></i> Dashboard
         </a>

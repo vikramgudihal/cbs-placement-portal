@@ -115,6 +115,8 @@
     {% set is_auth_page = request.endpoint in ['login', 'signup', 'login_post', 'signup_post', 'forgot_password', 'reset_password'] %}
     {% set is_logged_in = session.get('user_id') %}
     {% set user_role    = session.get('role') %}
+    {% set admin_level  = admin_level if admin_level is defined and admin_level else session.get('admin_level') %}
+    {% set role_display_label = ('Super Admin' if admin_level == 'super_admin' else ('Faculty Coordinator' if admin_level == 'faculty' else 'Admin')) if user_role == 'admin' else ((user_role or 'User') | capitalize) %}
     {% set is_onboarding = (request.endpoint == 'complete_profile') %}
 
     {% if not (is_logged_in and not is_auth_page) %}
@@ -207,14 +209,23 @@
           <span>Forms</span>
         </a>
 
-        <span class="sidebar-section-label">Users</span>
+        <span class="sidebar-section-label">Users &amp; Governance</span>
+        <a
+          href="{{ url_for('all_students_list') }}"
+          class="sidebar-item {% if request.endpoint in ['all_students_list', 'view_student_details'] %}active{% endif %}"
+        >
+          <i class="ph-fill ph-student"></i>
+          <span>All Students</span>
+        </a>
+        {% if admin_level in ['super_admin', 'admin'] %}
         <a
           href="{{ url_for('manage_users') }}"
           class="sidebar-item {% if request.endpoint == 'manage_users' %}active{% endif %}"
         >
           <i class="ph-fill ph-users"></i>
-          <span>Students</span>
+          <span>User Approvals</span>
         </a>
+        {% endif %}
         {% if admin_level == 'super_admin' %}
         <a
           href="{{ url_for('manage_admins') }}"
@@ -223,7 +234,6 @@
           <i class="ph-fill ph-user-gear"></i>
           <span>Admins</span>
         </a>
-        {% endif %}
         <a
           href="{{ url_for('view_password_requests') }}"
           class="sidebar-item {% if request.endpoint == 'view_password_requests' %}active{% endif %}"
@@ -231,6 +241,21 @@
           <i class="ph-fill ph-lock-key"></i>
           <span>Password Reqs</span>
         </a>
+        <a
+          href="{{ url_for('students_activity') }}"
+          class="sidebar-item {% if request.endpoint == 'students_activity' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-activity"></i>
+          <span>Student Activity</span>
+        </a>
+        <a
+          href="{{ url_for('view_login_history') }}"
+          class="sidebar-item {% if request.endpoint == 'view_login_history' %}active{% endif %}"
+        >
+          <i class="ph-fill ph-clock-counter-clockwise"></i>
+          <span>Login Audit</span>
+        </a>
+        {% endif %}
 
         {% else %}
         <!-- STUDENT NAVIGATION -->
@@ -305,7 +330,7 @@
           </div>
           <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ session.get('name', 'User') }}</div>
-            <div class="sidebar-user-role">{{ user_role | capitalize }}</div>
+            <div class="sidebar-user-role">{{ role_display_label }}</div>
           </div>
           <button class="sidebar-logout-btn" title="Logout" aria-label="Logout">
             <i class="ph-bold ph-sign-out"></i>
@@ -467,7 +492,7 @@
           <span>Forms</span>
         </a>
         <a
-          href="{{ url_for('manage_users') }}"
+          href="{{ url_for('manage_users') if admin_level in ['super_admin', 'admin'] else url_for('all_students_list') }}"
           class="mobile-nav-item {% if request.endpoint in ['manage_users', 'all_students_list', 'view_student_details'] %}active{% endif %}"
         >
           <i class="{% if request.endpoint in ['manage_users', 'all_students_list', 'view_student_details'] %}ph-fill{% else %}ph{% endif %} ph-users"></i>

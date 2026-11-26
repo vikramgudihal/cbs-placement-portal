@@ -809,7 +809,7 @@
       <div class="command-title-block">
         <div class="tpo-kicker-chip">
           <span class="tpo-pulse-dot"></span>
-          <span>Chetan Business School &bull; TPO Master Command Desk</span>
+          <span>Chetan Business School &bull; {% if admin_level == 'super_admin' %}Super Admin Command Desk{% elif admin_level == 'faculty' %}Faculty Placement Coordinator Desk{% else %}TPO Admin Command Desk{% endif %}</span>
         </div>
         <h1 class="command-heading">Recruitment Operations Console</h1>
         <p class="command-subtitle">
@@ -950,8 +950,8 @@
         </div>
       </a>
 
-      <!-- 5. Marks Lock Verification -->
-      <a href="{{ url_for('manage_users') }}" class="automation-tool-card">
+      <!-- 5. Marks Lock Verification / Student Audit -->
+      <a href="{{ url_for('manage_users') if admin_level in ['super_admin', 'admin'] else url_for('all_students_list') }}" class="automation-tool-card">
         <div class="card-top-row">
           <div class="tool-icon-disc" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
             <i class="ph-bold ph-shield-check"></i>
@@ -1140,8 +1140,8 @@
           <i class="ph-duotone ph-clock-counter-clockwise" style="color: var(--tpo-indigo);"></i>
           <span>Live Candidate Activity Stream</span>
         </div>
-        <a href="{{ url_for('students_activity') }}" style="font-size: 0.8rem; font-weight: 700; color: var(--tpo-indigo); text-decoration: none;">
-          Full Log &rarr;
+        <a href="{{ url_for('students_activity') if admin_level == 'super_admin' else url_for('all_students_list') }}" style="font-size: 0.8rem; font-weight: 700; color: var(--tpo-indigo); text-decoration: none;">
+          {{ 'Full Log' if admin_level == 'super_admin' else 'Students' }} &rarr;
         </a>
       </div>
 

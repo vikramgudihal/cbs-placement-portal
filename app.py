@@ -46,7 +46,11 @@ ASSET_VERSION = compute_asset_version()
 
 @app.context_processor
 def inject_asset_version():
-    return dict(asset_version=ASSET_VERSION, is_vercel=IS_VERCEL)
+    return dict(
+        asset_version=ASSET_VERSION,
+        is_vercel=IS_VERCEL,
+        admin_level=session.get('admin_level')
+    )
 
 def resolve_upload_folder(is_vercel=None):
     """Use OS temp directory (/tmp on Vercel) when running serverless or on read-only FS."""
@@ -1379,9 +1383,9 @@ def cleanup_files():
 @app.route('/admin/student/<user_id>')
 @login_required(role='admin')
 def view_student_details(user_id):
-    # Only super admins or authorized faculty should view full details
+    # Only super admins, admins, or faculty should view full details
     admin_level = session.get('admin_level')
-    if admin_level not in ['super_admin', 'faculty']:
+    if admin_level not in ['super_admin', 'admin', 'faculty']:
         flash("Unauthorized access", "error")
         return redirect(url_for('admin_dashboard'))
 
@@ -1639,9 +1643,9 @@ def admin_dashboard():
 @app.route('/admin/jobs/add', methods=['POST'])
 @login_required(role='admin')
 def add_job():
-    # Check if user has permission (super_admin or faculty)
+    # Check if user has permission (super_admin, admin, or faculty)
     admin_level = session.get('admin_level')
-    if admin_level not in ['super_admin', 'faculty']:
+    if admin_level not in ['super_admin', 'admin', 'faculty']:
         flash("You don't have permission to post jobs", "error")
         return redirect(url_for('admin_dashboard'))
     
@@ -1788,8 +1792,8 @@ def add_job():
 @login_required(role='admin')
 def manage_users():
     admin_level = session.get('admin_level')
-    if admin_level != 'super_admin':
-        flash("Only Super Admins can manage users", "error")
+    if admin_level not in ['super_admin', 'admin']:
+        flash("Only Administrators can manage users", "error")
         return redirect(url_for('admin_dashboard'))
     
     # Get all users with their login history
@@ -2086,7 +2090,7 @@ def batch_approve_students():
 def toggle_verify_student(user_id):
     """TPO Anti-Tampering Engine: Officially verify and freeze or unlock student academic credentials."""
     admin_level = session.get('admin_level')
-    if admin_level not in ['super_admin', 'faculty']:
+    if admin_level not in ['super_admin', 'admin', 'faculty']:
         flash("Unauthorized access", "error")
         return redirect(url_for('admin_dashboard'))
         
@@ -2160,9 +2164,9 @@ def change_admin_level(admin_id):
         flash("Only Super Admins can change admin levels", "error")
         return redirect(url_for('admin_dashboard'))
     
-    new_level = request.form.get('level')  # 'super_admin' or 'faculty'
+    new_level = request.form.get('level')  # 'super_admin', 'admin', or 'faculty'
     
-    if new_level not in ['super_admin', 'faculty']:
+    if new_level not in ['super_admin', 'admin', 'faculty']:
         flash("Invalid admin level", "error")
         return redirect(url_for('manage_admins'))
     
@@ -2348,7 +2352,7 @@ def publish_job(job_id):
             return redirect(url_for('manage_jobs'))
         
         # Check authorization
-        if str(job.get('created_by_id')) != session.get('user_id') and session.get('admin_level') not in ['super_admin', 'faculty']:
+        if str(job.get('created_by_id')) != session.get('user_id') and session.get('admin_level') not in ['super_admin', 'admin', 'faculty']:
             flash("You don't have permission to publish this job", "error")
             return redirect(url_for('manage_jobs'))
         
@@ -3291,14 +3295,41 @@ def _export_stages_excel_handler(job_id=None):
 
     return generate_stage_progression_excel(apps_raw, job_info=current_job, title_suffix=title_suffix)
 
+def enrich_application_timestamps(apps):
+    """Attach sortable epoch timestamps and human date+time strings (newest first support)."""
+    for app_doc in apps:
+        raw_dt = app_doc.get('applied_at')
+        dt_obj = None
+        if isinstance(raw_dt, datetime.datetime):
+            dt_obj = raw_dt
+        elif isinstance(raw_dt, str) and raw_dt.strip():
+            try:
+                dt_obj = datetime.datetime.fromisoformat(raw_dt.strip().replace('Z', '+00:00'))
+            except Exception:
+                dt_obj = None
+        if dt_obj is None and isinstance(app_doc.get('_id'), ObjectId):
+            dt_obj = app_doc['_id'].generation_time
+
+        if dt_obj is not None:
+            # Normalize naive vs aware datetimes safely for epoch sorting
+            naive_dt = dt_obj.replace(tzinfo=None) if dt_obj.tzinfo else dt_obj
+            app_doc['applied_ts'] = naive_dt.timestamp()
+            app_doc['applied_display'] = naive_dt.strftime('%d %b %Y, %I:%M %p')
+        else:
+            app_doc['applied_ts'] = 0.0
+            app_doc['applied_display'] = 'Recent'
+    return apps
+
+
 @app.route('/admin/applications')
 @login_required(role='admin')
 def view_applications():
     # Throttled periodic exit maintenance before viewing
     run_portal_periodic_maintenance()
-    # Aggregate to get student and job details
-    # Add multiple application detection
+    # Aggregate to get student and job details (sorted newest applicant first)
     pipeline = [
+        {'$addFields': {'_sort_ts': {'$ifNull': ['$applied_at', {'$toDate': '$_id'}]}}},
+        {'$sort': {'_sort_ts': -1, '_id': -1}},
         {
             '$lookup': {
                 'from': 'students',
@@ -3354,8 +3385,10 @@ def view_applications():
         elif isinstance(app['user_info'], list):
              app['user_info'] = {'email': app.get('student_email', 'N/A')}
     
-    # Calculate multiple applications per student across all drives
+    # Calculate multiple applications per student across all drives & enrich exact date+time
     applications = _enrich_multiple_applications(applications)
+    applications = enrich_application_timestamps(applications)
+    applications.sort(key=lambda a: a.get('applied_ts', 0.0), reverse=True)
     
     return render_template('admin/applications.html', applications=applications)
 
@@ -3415,8 +3448,8 @@ def _enrich_multiple_applications(apps):
 @app.route('/admin/applications/job/<job_id>')
 @login_required(role='admin')
 def view_job_applications(job_id):
-    """Super Admin/Faculty: View applicants for a specific job"""
-    if session.get('admin_level') not in ['super_admin', 'faculty']:
+    """Super Admin/Admin/Faculty: View applicants for a specific job"""
+    if session.get('admin_level') not in ['super_admin', 'admin', 'faculty']:
         flash("Unauthorized access", "error")
         return redirect(url_for('admin_dashboard'))
     
@@ -3425,9 +3458,11 @@ def view_job_applications(job_id):
         flash("Job not found", "error")
         return redirect(url_for('manage_jobs'))
     
-    # Get applications for this job
+    # Get applications for this job (sorted newest applicant first)
     pipeline = [
         {'$match': {'job_id': ObjectId(job_id)}},
+        {'$addFields': {'_sort_ts': {'$ifNull': ['$applied_at', {'$toDate': '$_id'}]}}},
+        {'$sort': {'_sort_ts': -1, '_id': -1}},
         {
             '$lookup': {
                 'from': 'students',
@@ -3445,8 +3480,7 @@ def view_job_applications(job_id):
             }
         },
         {'$unwind': {'path': '$student_info', 'preserveNullAndEmptyArrays': True}},
-        {'$unwind': {'path': '$user_info', 'preserveNullAndEmptyArrays': True}},
-        {'$sort': {'applied_at': -1}}
+        {'$unwind': {'path': '$user_info', 'preserveNullAndEmptyArrays': True}}
     ]
     
     applications = list(applications_collection.aggregate(pipeline))
@@ -3475,8 +3509,10 @@ def view_job_applications(job_id):
                 'role': (job.get('role') if job else None) or app.get('job_role', 'Role')
             }
     
-    # Calculate multiple applications flag and enrich with full history
+    # Calculate multiple applications flag, history & exact date+time
     applications = _enrich_multiple_applications(applications)
+    applications = enrich_application_timestamps(applications)
+    applications.sort(key=lambda a: a.get('applied_ts', 0.0), reverse=True)
     
     return render_template('admin/applications.html', applications=applications, current_job=job)
 
@@ -3484,9 +3520,8 @@ def view_job_applications(job_id):
 @app.route('/admin/export/applications/job/<job_id>')
 @login_required(role='admin')
 def export_job_applications(job_id):
-    """Super Admin/Faculty: Export applicants for a specific job"""
-    # Allow Faculty to export too
-    if session.get('admin_level') not in ['super_admin', 'faculty']:
+    """Super Admin/Admin/Faculty: Export applicants for a specific job"""
+    if session.get('admin_level') not in ['super_admin', 'admin', 'faculty']:
         flash("Unauthorized access", "error")
         return redirect(url_for('admin_dashboard'))
     

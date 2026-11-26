@@ -621,5 +621,83 @@ class TestUserFixes(unittest.TestCase):
         self.assertIsNone(anns[2]['attachment_type'])
         print("[PASS] Vercel compatibility, CDN routing, gzip, ETag 304, and batch attachment lookup verified.")
 
+    def test_pipeline_responsive_sorting_and_role_controls(self):
+        """Verify pipeline no-clip layout, newest-first date+time sorting, medium Corporate Exit button, and Super Admin/Admin/Faculty controls."""
+        import datetime
+        from bson import ObjectId
+        import app as app_mod
+
+        # 1. Pipeline template checks (sort dropdown, time chip, fixed desktop layout, compact action controls, tablet breakpoint)
+        with open('templates/admin/applications.html', encoding='utf-8') as f:
+            apps_html = f.read()
+        self.assertIn('id="sortOrder"', apps_html)
+        self.assertIn('Newest First (Date &amp; Time)', apps_html)
+        self.assertIn('app-time-chip', apps_html)
+        self.assertIn('table-layout: fixed !important', apps_html)
+        self.assertIn('max-width: 196px', apps_html)
+        self.assertIn('min-height: 36px', apps_html)
+        self.assertIn('@media (max-width: 1100px)', apps_html)
+        self.assertIn('applySortAndFilters()', apps_html)
+
+        # 2. Timestamp helper orders newest date+time first cleanly
+        t_old = datetime.datetime(2026, 11, 20, 9, 15)
+        t_new = datetime.datetime(2026, 11, 26, 23, 30)
+        sample = [
+            {'_id': ObjectId(), 'applied_at': t_old},
+            {'_id': ObjectId(), 'applied_at': t_new},
+        ]
+        app_mod.enrich_application_timestamps(sample)
+        sample.sort(key=lambda a: a['applied_ts'], reverse=True)
+        self.assertGreater(sample[0]['applied_ts'], sample[1]['applied_ts'])
+        self.assertIn('26 Nov 2026, 11:30 PM', sample[0]['applied_display'])
+
+        # 3. Role controls across Super Admin, Admin, and Faculty Coordinator
+        admin_doc = app_mod.users_collection.find_one({'email': 'arunkumarrajput@gmail.com'})
+        self.assertIsNotNone(admin_doc)
+
+        # Faculty view: sidebar shows Faculty Coordinator + All Students, hides Super-Admin-only governance items
+        faculty_client = app_mod.app.test_client()
+        with faculty_client.session_transaction() as sess:
+            sess['user_id'] = str(ObjectId())
+            sess['role'] = 'admin'
+            sess['admin_level'] = 'faculty'
+            sess['name'] = 'Prof. Bhargav'
+        f_dash = faculty_client.get('/admin/dashboard')
+        self.assertEqual(f_dash.status_code, 200)
+        self.assertIn(b'Faculty Coordinator', f_dash.data)
+        self.assertIn(b'Faculty Placement Coordinator Desk', f_dash.data)
+        self.assertIn(b'All Students', f_dash.data)
+        self.assertNotIn(b'/admin/security/requests', f_dash.data)
+        self.assertNotIn(b'/admin/manage-admins', f_dash.data)
+
+        f_pipe = faculty_client.get('/admin/applications')
+        self.assertEqual(f_pipe.status_code, 200)
+        self.assertIn(b'Newest First (Date &amp; Time)', f_pipe.data)
+
+        # Plain Admin view: can open manage_users, sees Admin label, cannot open manage_admins
+        plain_client = app_mod.app.test_client()
+        with plain_client.session_transaction() as sess:
+            sess['user_id'] = str(ObjectId())
+            sess['role'] = 'admin'
+            sess['admin_level'] = 'admin'
+            sess['name'] = 'Office Admin'
+        a_users = plain_client.get('/admin/manage-users')
+        self.assertEqual(a_users.status_code, 200)
+        self.assertNotIn(b'/admin/manage-admins', a_users.data)
+
+        # Super Admin view: sees Admins & Governance sidebar links even on subpages like /admin/applications
+        sa_client = app_mod.app.test_client()
+        with sa_client.session_transaction() as sess:
+            sess['user_id'] = str(admin_doc['_id'])
+            sess['role'] = 'admin'
+            sess['admin_level'] = 'super_admin'
+            sess['name'] = 'Arunkumar Rajput'
+        sa_pipe = sa_client.get('/admin/applications')
+        self.assertEqual(sa_pipe.status_code, 200)
+        self.assertIn(b'/admin/manage-admins', sa_pipe.data)
+        self.assertIn(b'/admin/security/requests', sa_pipe.data)
+        self.assertIn(b'Super Admin', sa_pipe.data)
+        print("[PASS] Pipeline responsive layout, newest-first date/time sorting, medium exit CTA, and role controls verified.")
+
 if __name__ == '__main__':
     unittest.main()

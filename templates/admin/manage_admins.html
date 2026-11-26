@@ -42,6 +42,8 @@ block content %}
           <td>
             {% if admin.admin_level == "super_admin" %}<span class="badge-super"
               >Super Admin</span
+            >{% elif admin.admin_level == "admin" %}<span class="badge-admin"
+              >Admin</span
             >{% else %}<span class="badge-faculty">Faculty</span>{% endif %}
           </td>
           <td>
@@ -93,6 +95,8 @@ block content %}
           <td>
             {% if admin.admin_level == "super_admin" %}<span class="badge-super"
               >Super Admin</span
+            >{% elif admin.admin_level == "admin" %}<span class="badge-admin"
+              >Admin</span
             >{% else %}<span class="badge-faculty">Faculty</span>{% endif %}
           </td>
           <td>
@@ -110,8 +114,11 @@ block content %}
                 <option value="super_admin" {% if admin.admin_level == "super_admin" %}selected{% endif %}>
                   Super Admin
                 </option>
+                <option value="admin" {% if admin.admin_level == "admin" %}selected{% endif %}>
+                  Admin
+                </option>
                 <option value="faculty" {% if admin.admin_level == "faculty" %}selected{% endif %}>
-                  Faculty
+                  Faculty Coordinator
                 </option>
               </select>
               <button type="submit" class="btn btn-edit">Update</button>
@@ -132,6 +139,14 @@ block content %}
     font-size: 0.85rem;
     font-weight: 600;
   }
+  .badge-admin {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
   .badge-faculty {
     background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
@@ -141,11 +156,12 @@ block content %}
     font-weight: 600;
   }
   .select-level {
-    padding: 0.5rem;
+    padding: 0.45rem 0.65rem;
     border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-secondary);
-    color: white;
+    border: 1px solid var(--border, #cbd5e1);
+    background: var(--surface, #ffffff);
+    color: var(--text-main, #0f172a);
+    font-weight: 600;
   }
 </style>
 {% endblock %}
