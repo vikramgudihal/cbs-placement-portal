@@ -394,5 +394,48 @@ class TestUserFixes(unittest.TestCase):
 
         print("[PASS] All mobile UI, navbar, back navigation, logout modal, and CSS balance checks verified.")
 
+    def test_student_admin_mobile_responsiveness_and_overflow_guards(self):
+        """Verify student dashboard, profile, subpages, admin/faculty views, and mobile navbars prevent horizontal overflow"""
+        with open('static/css/responsive-suite.css', encoding='utf-8') as f:
+            resp_css = f.read()
+        with open('static/css/dashboard-responsive.css', encoding='utf-8') as f:
+            dash_resp_css = f.read()
+        with open('templates/base.html', encoding='utf-8') as f:
+            base_html = f.read()
+        with open('templates/student/dashboard.html', encoding='utf-8') as f:
+            stu_dash = f.read()
+        with open('templates/student/profile.html', encoding='utf-8') as f:
+            stu_prof = f.read()
+
+        # Global shell overflow containment & non-breaking tablet/mobile nav
+        self.assertIn('.app-shell,\n.app-main,\n.app-content', resp_css)
+        self.assertIn('min-width: 0 !important;', resp_css)
+        self.assertNotIn('@media (min-width: 769px) {\n  .mobile-bottom-nav', dash_resp_css)
+        self.assertNotIn('font-size: -8.4rem;', dash_resp_css)
+        self.assertIn('topbar-title-group', base_html)
+
+        # Student Dashboard & Profile responsiveness guards
+        self.assertIn('minmax(0, 1fr) 360px', stu_dash)
+        self.assertIn('overflow-wrap: anywhere', stu_dash)
+        self.assertIn('profile-studio-grid > div', stu_prof)
+        self.assertIn('flex-wrap: wrap', stu_prof)
+        self.assertIn('overflow-wrap: anywhere', stu_prof)
+        self.assertIn('@media (max-width: 640px)', stu_prof)
+
+        # Verify minmax(min(...)) responsive tracks across student & admin card grids
+        for tpl_path in [
+            'templates/student/jobs.html',
+            'templates/student/forms_list.html',
+            'templates/admin/manage_jobs.html',
+            'templates/admin/manage_announcements.html',
+            'templates/admin/manage_forms.html',
+            'templates/admin/manage_users.html',
+        ]:
+            with open(tpl_path, encoding='utf-8') as tf:
+                content = tf.read()
+            self.assertIn('minmax(min(', content, f"Missing viewport-safe minmax(min(...)) in {tpl_path}")
+
+        print("[PASS] Student/Profile/Admin mobile overflow guards and navbar alignment verified.")
+
 if __name__ == '__main__':
     unittest.main()

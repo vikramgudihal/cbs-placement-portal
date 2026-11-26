@@ -348,11 +348,24 @@
   }
 
   @media (max-width: 768px) {
+    .forms-mgmt-banner {
+      padding: 1.35rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
+    }
     .banner-actions {
       width: 100%;
     }
     .banner-actions a {
       width: 100%;
+      justify-content: center;
+    }
+    .view-mode-pill-group {
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-view-toggle {
+      flex: 1;
       justify-content: center;
     }
   }
@@ -492,7 +505,7 @@
        ============================================================ -->
   <div id="formsGridView" style="display: none;">
     {% if forms and forms|length > 0 %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 1.25rem;">
       {% for form in forms %}
       <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.35rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.1rem; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
         <div>

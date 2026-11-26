@@ -383,17 +383,44 @@
 
   /* Responsive Rules */
   @media (max-width: 640px) {
+    .applications-stream-wrap {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     .pipeline-header-banner {
-      padding: 1.75rem 1.25rem;
+      padding: 1.35rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
     }
     .application-fluid-card {
-      padding: 1.25rem 1.15rem;
+      padding: 1.15rem 0.95rem;
+      border-radius: 16px;
+      max-width: 100%;
+      overflow: hidden;
+      overflow-wrap: anywhere;
     }
     .pipeline-action-buttons {
       width: 100%;
+      flex-direction: column;
     }
     .pipeline-action-buttons a {
       width: 100%;
+      justify-content: center;
+    }
+    .interview-attendance-slip {
+      padding: 1rem 0.85rem;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .interview-attendance-slip > div:last-child {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .btn-slip-attend,
+    .btn-slip-decline {
+      flex: 1 1 130px;
       justify-content: center;
     }
   }

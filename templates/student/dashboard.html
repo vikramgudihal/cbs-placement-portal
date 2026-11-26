@@ -60,6 +60,15 @@
     display: flex;
     align-items: center;
     gap: 1.25rem;
+    flex-wrap: wrap;
+    min-width: 0;
+    flex: 1 1 260px;
+  }
+
+  .candidate-title-block {
+    min-width: 0;
+    flex: 1 1 200px;
+    max-width: 100%;
   }
 
   .candidate-avatar-disc {
@@ -131,6 +140,9 @@
     padding: 0.2rem 0.65rem;
     border-radius: 8px;
     font-weight: 600;
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
   }
 
   .hero-action-buttons {
@@ -260,11 +272,23 @@
   /* ============================================================
      3. TWO-COLUMN SPLIT DASHBOARD LAYOUT
      ============================================================ */
+  .candidate-hub-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
   .candidate-hub-grid {
     display: grid;
-    grid-template-columns: 1fr 360px;
+    grid-template-columns: minmax(0, 1fr) 360px;
     gap: 1.75rem;
     align-items: start;
+  }
+
+  .candidate-hub-grid > div {
+    min-width: 0;
+    max-width: 100%;
   }
 
   /* Common Fluid Card Shell */
@@ -276,6 +300,10 @@
     margin-bottom: 1.75rem;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
   }
 
   [data-theme="dark"] .fluid-dash-card {
@@ -609,12 +637,15 @@
   .radar-meta-pill {
     display: inline-flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.4rem;
     padding: 0.35rem 0.8rem;
     border-radius: 8px;
     font-size: 0.8rem;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .radar-meta-pill.role {
@@ -949,21 +980,29 @@
     .candidate-hub-container {
       max-width: 100% !important;
       overflow-x: hidden !important;
-      padding-left: 0.35rem !important;
-      padding-right: 0.35rem !important;
+      padding-left: 0.15rem !important;
+      padding-right: 0.15rem !important;
     }
     .candidate-hero-banner {
-      padding: 1.5rem 1rem !important;
+      padding: 1.35rem 1rem !important;
       border-radius: 18px !important;
       margin-bottom: 1.25rem !important;
     }
     .candidate-metric-ribbon {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: repeat(2, 1fr) !important;
       padding: 1rem !important;
-      gap: 1rem !important;
+      gap: 0.9rem !important;
+    }
+    .candidate-metric-col {
+      padding: 0.35rem 0.25rem !important;
+      border-right: none !important;
+    }
+    .cand-metric-number {
+      font-size: 1.65rem !important;
     }
     .hero-action-buttons {
       width: 100% !important;
+      flex-direction: column !important;
     }
     .hero-action-buttons a {
       width: 100% !important;
@@ -972,15 +1011,17 @@
     .quick-pill-actions {
       grid-template-columns: repeat(2, 1fr) !important;
     }
-    .fluid-dash-card {
-      padding: 1.15rem 0.95rem !important;
+    .fluid-dash-card,
+    .action-required-radar {
+      padding: 1.1rem 0.95rem !important;
       border-radius: 16px !important;
       max-width: 100% !important;
       overflow: hidden !important;
       box-sizing: border-box !important;
       margin-bottom: 1.25rem !important;
     }
-    .card-fluid-header {
+    .card-fluid-header,
+    .radar-header {
       flex-wrap: wrap !important;
       gap: 0.5rem !important;
     }
@@ -1005,16 +1046,25 @@
       gap: 0.75rem !important;
       padding: 0.85rem !important;
     }
+    .matched-drive-row .drive-main-col {
+      min-width: 0 !important;
+    }
+    .drive-meta-tags {
+      flex-wrap: wrap !important;
+    }
     .matched-drive-row .drive-cta-col {
       width: 100% !important;
       justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      gap: 0.5rem !important;
     }
-    .matched-drive-row .btn {
+    .matched-drive-row .btn,
+    .matched-drive-row .btn-drive-apply {
       flex: 1 !important;
       justify-content: center !important;
     }
     .radar-item-card {
-      padding: 1.15rem 1rem !important;
+      padding: 1rem 0.9rem !important;
       border-radius: 14px !important;
     }
     .radar-item-top {
@@ -1032,8 +1082,14 @@
     }
     .btn-accept-call, .btn-decline-call {
       width: 100% !important;
-      min-height: 48px !important;
+      min-height: 46px !important;
       justify-content: center !important;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .candidate-metric-ribbon {
+      grid-template-columns: 1fr !important;
     }
   }
 </style>
@@ -1100,7 +1156,7 @@
   {% if student.placement_status == 'Placed_Pending_Exit' %}
   <div class="glass-card" style="margin: 1.5rem 0 2rem 0; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.05)); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 1.5rem 1.75rem; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 280px;">
+      <div style="flex: 1 1 240px; min-width: 0;">
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
           <span style="background: #10b981; color: #fff; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.35rem;">
             <i class="ph-bold ph-trophy"></i> Placement Offer Secured

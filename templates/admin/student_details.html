@@ -440,8 +440,13 @@
   /* Grid Layout */
   .details-grid {
     display: grid;
-    grid-template-columns: 350px 1fr;
+    grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
     gap: 1.5rem;
+  }
+
+  .details-grid > div {
+    min-width: 0;
+    max-width: 100%;
   }
 
   /* Card Styles */
@@ -454,6 +459,10 @@
     border-radius: 20px;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     transition: all 0.3s ease;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
   }
 
   .details-card:hover {

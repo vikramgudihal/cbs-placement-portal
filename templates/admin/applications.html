@@ -80,7 +80,7 @@
 <div class="card" style="margin-bottom: 1.25rem;">
   <div class="card-body" style="padding: 1rem 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
     <!-- Live Search -->
-    <div style="position: relative; flex: 1; min-width: 220px;">
+    <div style="position: relative; flex: 1 1 200px; min-width: 0;">
       <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem;"></i>
       <input
         type="text"
@@ -92,7 +92,7 @@
     </div>
 
     <!-- Status Filter -->
-    <select id="statusFilter" class="form-control" style="width: auto; min-width: 160px; padding: 0.55rem 0.85rem; font-size: 0.85rem;" onchange="applyFilters()">
+    <select id="statusFilter" class="form-control" style="flex: 1 1 140px; min-width: 0; max-width: 100%; padding: 0.55rem 0.85rem; font-size: 0.85rem;" onchange="applyFilters()">
       <option value="">All Stages ({{ applications|length }})</option>
       <option value="Applied">Applied</option>
       <option value="Shortlisted">Shortlisted</option>
@@ -108,7 +108,7 @@
     </select>
 
     <!-- Branch Filter -->
-    <select id="branchFilter" class="form-control" style="width: auto; min-width: 140px; padding: 0.55rem 0.85rem; font-size: 0.85rem;" onchange="applyFilters()">
+    <select id="branchFilter" class="form-control" style="flex: 1 1 120px; min-width: 0; max-width: 100%; padding: 0.55rem 0.85rem; font-size: 0.85rem;" onchange="applyFilters()">
       <option value="">All Branches</option>
       <option value="CSE">CSE</option>
       <option value="ECE">ECE</option>
@@ -542,6 +542,22 @@
 
     /* Responsive Mobile & Tablet Card Layout (<= 860px) */
     @media (max-width: 860px) {
+      .pipeline-mgmt-banner {
+        padding: 1.25rem 1rem !important;
+        border-radius: 16px !important;
+      }
+      .pipeline-mgmt-banner .banner-actions {
+        width: 100% !important;
+      }
+      .btn-pipeline-action, .btn-hdr-action {
+        flex: 1 1 calc(50% - 0.35rem);
+        justify-content: center;
+        white-space: normal;
+        text-align: center;
+      }
+      #batchRejectionReasonInput {
+        width: 100% !important;
+      }
       .applications-streamlined-table thead {
         display: none !important;
       }

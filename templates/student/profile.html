@@ -15,8 +15,11 @@
   }
 
   .profile-studio-wrap {
+    width: 100%;
     max-width: 1180px;
     margin: 1.5rem auto 4rem auto;
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   /* ============================================================
@@ -58,6 +61,14 @@
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex-wrap: wrap;
+    min-width: 0;
+    flex: 1 1 300px;
+  }
+
+  .candidate-title-block {
+    min-width: 0;
+    flex: 1 1 200px;
   }
 
   .candidate-avatar-large {
@@ -186,6 +197,11 @@
     align-items: start;
   }
 
+  .profile-studio-grid > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .studio-section-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -194,6 +210,10 @@
     margin-bottom: 2rem;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
   }
 
   [data-theme="dark"] .studio-section-card {
@@ -277,15 +297,18 @@
 
   .academic-score-capsule {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.35rem 0.85rem;
+    gap: 0.35rem 0.65rem;
+    padding: 0.45rem 0.85rem;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 0.82rem;
     color: var(--text-main);
     font-weight: 600;
+    max-width: 100%;
+    line-height: 1.4;
   }
 
   /* Skills & Projects */
@@ -406,6 +429,9 @@
   .meta-detail-row {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
     padding: 0.75rem 0;
     border-bottom: 1px solid var(--border);
     font-size: 0.86rem;
@@ -418,21 +444,90 @@
   .meta-detail-lbl {
     color: var(--text-muted);
     font-weight: 600;
+    flex-shrink: 0;
   }
 
   .meta-detail-val {
     color: var(--text-main);
     font-weight: 700;
     text-align: right;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   /* Responsive Rules */
   @media (max-width: 960px) {
     .profile-studio-grid {
       grid-template-columns: 1fr;
+      gap: 1.25rem;
     }
     .profile-banner-card {
       padding: 1.75rem 1.5rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .profile-studio-wrap {
+      margin: 0.5rem auto 2.5rem auto;
+    }
+    .profile-banner-card {
+      padding: 1.35rem 1.05rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
+    }
+    .profile-banner-inner {
+      gap: 1.15rem;
+    }
+    .candidate-core-meta {
+      gap: 1rem;
+    }
+    .candidate-avatar-large {
+      width: 60px;
+      height: 60px;
+      font-size: 1.55rem;
+      border-radius: 16px;
+    }
+    .candidate-title-block h1 {
+      font-size: 1.35rem;
+      line-height: 1.25;
+    }
+    .profile-header-actions {
+      width: 100%;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .btn-prof-action {
+      width: 100%;
+      justify-content: center;
+      padding: 0.68rem 1rem;
+    }
+    .studio-section-card {
+      padding: 1.2rem 1rem;
+      border-radius: 16px;
+      margin-bottom: 1.15rem;
+    }
+    .studio-card-head {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .academic-stepper-list {
+      padding-left: 1.35rem;
+    }
+    .academic-step-node-dot {
+      left: -1.78rem;
+      width: 14px;
+      height: 14px;
+    }
+    .meta-detail-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+    }
+    .meta-detail-val {
+      text-align: left;
+      width: 100%;
     }
   }
 </style>
@@ -452,9 +547,9 @@
         </div>
         <div class="candidate-title-block">
           <h1>{{ student.name or 'Student Name' }}</h1>
-          <div class="candidate-id-badge" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <div class="candidate-id-badge" style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; max-width: 100%;">
             <i class="ph-bold ph-identification-card"></i> 
-            <span style="letter-spacing: 0.05em; font-family: monospace; font-weight: 700;">{{ student.student_id or 'P02DR25S126001' }}</span>
+            <span style="letter-spacing: 0.05em; font-family: monospace; font-weight: 700; word-break: break-all;">{{ student.student_id or 'P02DR25S126001' }}</span>
             <button type="button" onclick="openEditRollModal()" title="Edit University Roll / Registration Number" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: inherit; cursor: pointer; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.25rem;">
               <i class="ph-bold ph-pencil-simple"></i> Edit
             </button>

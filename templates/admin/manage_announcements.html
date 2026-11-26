@@ -128,6 +128,17 @@
     gap: 0.35rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-sm);
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-tabs-ribbon::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-filter-btn {
+    flex-shrink: 0;
   }
 
   [data-theme="dark"] .filter-tabs-ribbon {
@@ -156,7 +167,7 @@
   /* 3. Modern Announcements Grid */
   .modern-items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
     gap: 1.75rem;
   }
 
@@ -172,6 +183,10 @@
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
   }
 
   [data-theme="dark"] .notice-hub-card {
@@ -361,6 +376,32 @@
   @media (max-width: 768px) {
     .modern-items-grid {
       grid-template-columns: 1fr;
+    }
+    .townhall-banner {
+      padding: 1.35rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
+    }
+    .banner-actions {
+      width: 100%;
+    }
+    .banner-actions .btn-banner-primary,
+    .banner-actions .btn-banner-glass {
+      width: 100%;
+      justify-content: center;
+    }
+    .notice-hub-card {
+      padding: 1.15rem 1rem;
+      border-radius: 16px;
+    }
+    .notice-actions-row,
+    .notice-meta-footer {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .modal-modern-card {
+      padding: 1.25rem 1rem;
+      border-radius: 16px;
     }
   }
 </style>

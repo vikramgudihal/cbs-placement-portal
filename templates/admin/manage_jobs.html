@@ -167,7 +167,7 @@
   /* 3. Modern Drives Grid */
   .modern-drives-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
     gap: 1.75rem;
   }
 
@@ -183,6 +183,10 @@
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
   }
 
   [data-theme="dark"] .drive-hub-card {
@@ -513,6 +517,39 @@
   @media (max-width: 768px) {
     .modern-drives-grid {
       grid-template-columns: 1fr;
+    }
+    .drives-mgmt-banner {
+      padding: 1.35rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
+    }
+    .drive-hub-card {
+      padding: 1.15rem 1rem;
+      border-radius: 16px;
+    }
+    .drive-dates-meta {
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .modal-modern-card {
+      padding: 1.25rem 1rem;
+      border-radius: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .drive-actions-row.export-tier {
+      grid-template-columns: 1fr;
+    }
+    .drive-actions-row.top-tier {
+      flex-wrap: wrap;
+    }
+    .btn-drive-action {
+      white-space: normal;
+      text-align: center;
+      height: auto;
+      min-height: 38px;
+      padding: 0.45rem 0.65rem;
     }
   }
 </style>

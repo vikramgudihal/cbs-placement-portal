@@ -347,7 +347,7 @@
         </button>
 
         <!-- Page title (hidden on mobile so it does not consume flex gap) -->
-        <div class="{% if not is_onboarding %}desktop-only{% endif %}" style="display: flex; align-items: center; gap: 0.65rem;">
+        <div class="{% if not is_onboarding %}desktop-only {% endif %}topbar-title-group">
           <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
           {% if is_onboarding %}
           <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px;">
@@ -357,9 +357,9 @@
         </div>
 
         <!-- Mobile Header Brand -->
-        <a href="/" class="topbar-mobile-brand mobile-only" style="text-decoration: none; align-items: center; gap: 0.45rem; white-space: nowrap; flex-shrink: 0;">
-          <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo" style="height: 26px; border-radius: 4px; flex-shrink: 0;" onerror="this.style.display='none'">
-          <span style="font-weight: 800; font-size: 0.92rem; color: var(--text-main); white-space: nowrap;">CBS <span style="background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">3i-cell</span></span>
+        <a href="/" class="topbar-mobile-brand mobile-only">
+          <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="CBS Logo" onerror="this.style.display='none'">
+          <span class="topbar-brand-text">CBS <span class="topbar-brand-accent">3i-cell</span></span>
         </a>
 
         <div class="topbar-right">
@@ -386,7 +386,6 @@
             class="btn btn-secondary btn-sm topbar-logout-btn"
             title="Logout"
             aria-label="Logout"
-            style="font-size: 0.8rem; padding: 0.35rem 0.75rem; white-space: nowrap;"
           >
             <i class="ph-bold ph-sign-out"></i>
             <span class="desktop-logout-text">Logout</span>

@@ -24,21 +24,16 @@
 
 @media (max-width: 768px) {
   .logo {
-    font-size: 1.1rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0;
-    font-size: -8.4rem;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: #0004b8;
     letter-spacing: -0.02em;
-    align-content: center;
-    flex-wrap: nowrap;
-    flex-direction: row;
-    justify-content: center;
   }
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -273,7 +268,7 @@
   }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .mobile-bottom-nav {
     display: none !important;
   }

@@ -165,7 +165,7 @@
         </div>
 
         <!-- Instant Live Search -->
-        <div style="position: relative; min-width: 250px; flex: 1; max-width: 380px;">
+        <div style="position: relative; min-width: 0; width: 100%; flex: 1 1 200px; max-width: 380px;">
           <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-subtle);"></i>
           <input type="text" id="userLiveSearch" placeholder="Search by name, roll no, email, branch..." 
                  onkeyup="filterUserTable()"
@@ -211,7 +211,7 @@
     {% endif %}
 
     <!-- 1. Grid Card View (Executive Mobile & Desktop Responsive) -->
-    <div id="usersGridView" class="users-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.15rem; margin-bottom: 1.5rem;">
+    <div id="usersGridView" class="users-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 1.15rem; margin-bottom: 1.5rem;">
       {% for user in users %}
       {% set st = user.student_info if user.student_info else {} %}
       {% set is_appr = user.is_approved %}

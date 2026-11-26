@@ -17,9 +17,12 @@
   }
 
   .student-forms-wrap {
+    width: 100%;
     max-width: 1200px;
     margin: 1.5rem auto 4rem auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem;
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   /* 1. Ambient Banner */
@@ -105,7 +108,7 @@
   /* Metric Counter Ribbon */
   .forms-stats-ribbon {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     gap: 1rem;
     margin-top: 1.75rem;
     padding-top: 1.5rem;
@@ -171,6 +174,15 @@
     box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
     border: 1px solid #e2e8f0;
     gap: 0.25rem;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .segmented-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tab-btn {
@@ -185,6 +197,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
     transition: all 0.2s ease;
   }
 
@@ -213,8 +226,9 @@
 
   .search-box-wrap {
     position: relative;
-    min-width: 260px;
-    flex-grow: 1;
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 220px;
     max-width: 360px;
   }
 
@@ -277,7 +291,7 @@
   /* 4. Fluid Card Grid */
   .forms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     gap: 1.5rem;
   }
 
@@ -544,7 +558,7 @@
 
   .answers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 1rem;
   }
 
@@ -606,6 +620,57 @@
     max-width: 440px;
     margin: 0 auto;
     line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .student-forms-wrap {
+      margin: 0.5rem auto 3rem auto;
+      padding: 0 0.25rem;
+    }
+    .forms-hero-banner {
+      padding: 1.35rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 1.25rem;
+    }
+    .banner-left h1 {
+      font-size: 1.35rem;
+    }
+    .banner-actions,
+    .btn-banner-glass {
+      width: 100%;
+      justify-content: center;
+    }
+    .forms-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .segmented-tabs {
+      width: 100%;
+    }
+    .search-box-wrap {
+      max-width: 100%;
+    }
+    .form-card {
+      padding: 1.2rem 1rem;
+      border-radius: 16px;
+    }
+    .response-header {
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+    .response-actions-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .response-drawer {
+      padding: 1rem;
+    }
+    .forms-empty-state {
+      padding: 2.25rem 1rem;
+      border-radius: 18px;
+    }
   }
 </style>
 {% endblock %}
