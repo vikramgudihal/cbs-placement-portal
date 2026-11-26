@@ -699,11 +699,8 @@
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    animation: continuousScroll 34s linear infinite;
-  }
-
-  .marquee-row:hover {
-    animation-play-state: paused;
+    animation: continuousScroll 34s linear infinite !important;
+    animation-play-state: running !important;
   }
 
   .marquee-group {
@@ -760,10 +757,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .marquee-row {
-      animation: none;
-    }
-    .floating-pill-stat {
-      animation: none;
+      animation: continuousScroll 34s linear infinite !important;
+      animation-play-state: running !important;
     }
   }
 

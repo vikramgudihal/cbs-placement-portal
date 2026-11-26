@@ -273,6 +273,12 @@ class TestUserFixes(unittest.TestCase):
         self.assertIn('NAAC Accredited TPO Hub', landing_html)
         self.assertIn('floatGentle', landing_html)
 
+        # 5. Marquee must keep scrolling even when Windows/laptop sets prefers-reduced-motion: reduce
+        self.assertIn('animation-play-state: running !important', landing_html)
+        with open('static/css/app-layout.css', encoding='utf-8') as f:
+            app_css = f.read()
+        self.assertIn('*:not(.marquee-row):not(.floating-pill-stat)', app_css)
+
         print("[PASS] Recruiter marquee and NAAC badge verified: hardware-accelerated 3D motion with zero seam glitch.")
 
     def test_cbs_official_banner_and_closed_app_push_service(self):
