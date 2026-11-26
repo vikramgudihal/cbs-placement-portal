@@ -42,11 +42,11 @@
           </p>
           
           <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-            <label class="btn btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.55rem 1.25rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem;">
+            <button type="button" onclick="openResumePicker('resumeAutoFillInput')" class="btn btn-primary" style="font-size: 0.85rem; font-weight: 700; padding: 0.6rem 1.25rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; min-height: 44px; touch-action: manipulation;">
               <i class="ph-bold ph-upload-simple"></i>
               <span id="btnUploadResumeText">Upload Resume &amp; Auto-Fill</span>
-              <input type="file" id="resumeAutoFillInput" name="resume" form="onboardingForm" accept=".pdf" style="display: none;" onchange="handleResumeAutoFill(this)">
-            </label>
+            </button>
+            <input type="file" id="resumeAutoFillInput" name="resume" form="onboardingForm" accept=".pdf,application/pdf" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; z-index: -1;" onchange="handleResumeAutoFill(this)">
             <span style="font-size: 0.78rem; color: #64748b;">(PDF only, Max 5MB)</span>
           </div>
         </div>
@@ -66,6 +66,15 @@
         <span id="parserSuccessSummary">Successfully auto-filled from your Resume!</span>
       </div>
       <span>All extracted fields are highlighted below with a green badge. You can freely edit or fill any remaining details manually.</span>
+    </div>
+
+    <!-- Live Parser Error / Warning Alert -->
+    <div id="parserErrorAlert" style="display: none; margin-top: 1.25rem; padding: 0.85rem 1rem; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; color: #991b1b; font-size: 0.85rem; line-height: 1.45;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 800; font-size: 0.9rem; margin-bottom: 0.2rem;">
+        <i class="ph-bold ph-warning-circle" style="color: #dc2626; font-size: 1.15rem;"></i>
+        <span id="parserErrorTitle">Resume Extraction Notice</span>
+      </div>
+      <span id="parserErrorMessage">Could not parse details from this file. You can fill the form manually below.</span>
     </div>
   </div>
 
@@ -187,11 +196,13 @@
             type="tel"
             id="field_phone"
             name="phone"
+            inputmode="numeric"
             required
             placeholder="10-digit primary mobile"
             pattern="[0-9]{10}"
             class="form-control"
             value="{{ student.phone if student and student.phone else '' }}"
+            oninput="this.value = normalizeIndianPhone(this.value)"
           />
         </div>
 
@@ -201,10 +212,12 @@
             type="tel"
             id="field_alt_phone"
             name="alt_phone"
+            inputmode="numeric"
             placeholder="Parent / Secondary mobile (Optional)"
             pattern="[0-9]{10}"
             class="form-control"
             value="{{ student.alt_phone if student and student.alt_phone else '' }}"
+            oninput="this.value = normalizeIndianPhone(this.value)"
           />
         </div>
 
@@ -261,8 +274,10 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
-        <button type="button" class="btn btn-primary" onclick="proceedToStep(2)" style="padding: 0.65rem 1.75rem; font-weight: 800; font-size: 0.92rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.45rem;">
+      <div id="stepValidationError1" class="step-validation-banner" style="display: none;"></div>
+
+      <div class="wizard-step-actions" style="display: flex; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+        <button type="button" class="btn btn-primary" onclick="proceedToStep(2)" style="padding: 0.7rem 1.75rem; font-weight: 800; font-size: 0.92rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 44px; touch-action: manipulation;">
           <span>Next: Academic Scores</span>
           <i class="ph-bold ph-arrow-right"></i>
         </button>
@@ -436,11 +451,13 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
-        <button type="button" class="btn btn-secondary" onclick="jumpToStep(1)" style="padding: 0.65rem 1.4rem; font-weight: 700; border-radius: 12px;">
+      <div id="stepValidationError2" class="step-validation-banner" style="display: none;"></div>
+
+      <div class="wizard-step-actions" style="display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+        <button type="button" class="btn btn-secondary" onclick="jumpToStep(1)" style="padding: 0.7rem 1.4rem; font-weight: 700; border-radius: 12px; min-height: 44px; touch-action: manipulation;">
           <i class="ph-bold ph-arrow-left"></i> Back to Step 1
         </button>
-        <button type="button" class="btn btn-primary" onclick="proceedToStep(3)" style="padding: 0.65rem 1.75rem; font-weight: 800; font-size: 0.92rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.45rem;">
+        <button type="button" class="btn btn-primary" onclick="proceedToStep(3)" style="padding: 0.7rem 1.75rem; font-weight: 800; font-size: 0.92rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 44px; touch-action: manipulation;">
           <span>Next: Skills &amp; Review</span>
           <i class="ph-bold ph-arrow-right"></i>
         </button>
@@ -497,10 +514,12 @@
             type="text"
             id="field_aadhaar"
             name="aadhaar"
+            inputmode="numeric"
             class="form-control"
             placeholder="12-digit UID"
             pattern="[0-9]{12}"
             value="{{ student.aadhaar if student and student.aadhaar else '' }}"
+            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 12)"
           />
         </div>
         <div class="input-group">
@@ -558,16 +577,18 @@
               </div>
             </div>
           </div>
-          <label class="btn btn-secondary btn-sm" style="cursor: pointer; font-size: 0.8rem; font-weight: 700; border-radius: 8px;">
+          <button type="button" onclick="openResumePicker('manualResumeInput')" class="btn btn-secondary btn-sm" style="cursor: pointer; font-size: 0.8rem; font-weight: 700; border-radius: 8px; min-height: 40px; touch-action: manipulation;">
             <i class="ph-bold ph-arrow-counter-clockwise"></i> Change Resume
-            <input type="file" id="manualResumeInput" name="manual_resume" form="onboardingForm" accept=".pdf" style="display: none;" onchange="handleManualResumeChange(this)">
-          </label>
+          </button>
+          <input type="file" id="manualResumeInput" name="manual_resume" form="onboardingForm" accept=".pdf,application/pdf" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; z-index: -1;" onchange="handleManualResumeChange(this)">
         </div>
       </div>
 
+      <div id="stepValidationError3" class="step-validation-banner" style="display: none;"></div>
+
       <!-- Form Submission Controls -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-        <button type="button" class="btn btn-secondary" onclick="jumpToStep(2)" style="padding: 0.75rem 1.4rem; font-weight: 700; border-radius: 12px;">
+      <div class="wizard-step-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+        <button type="button" class="btn btn-secondary" onclick="jumpToStep(2)" style="padding: 0.75rem 1.4rem; font-weight: 700; border-radius: 12px; min-height: 44px; touch-action: manipulation;">
           <i class="ph-bold ph-arrow-left"></i> Back to Step 2
         </button>
 
@@ -575,7 +596,7 @@
           type="submit"
           class="btn btn-primary"
           id="btnSubmitProfile"
-          style="padding: 0.85rem 2.25rem; font-size: 1.05rem; font-weight: 900; border-radius: 14px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35); display: inline-flex; align-items: center; gap: 0.55rem;"
+          style="padding: 0.85rem 2.25rem; font-size: 1.05rem; font-weight: 900; border-radius: 14px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35); display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem; min-height: 48px; touch-action: manipulation;"
         >
           <span>Complete Profile &amp; Enter Portal</span>
           <i class="ph-bold ph-paper-plane-right"></i>
@@ -607,6 +628,27 @@
   transition: all 0.3s ease;
 }
 
+.input-invalid-highlight {
+  border: 2px solid #dc2626 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16) !important;
+}
+
+.step-validation-banner {
+  margin-top: 1.15rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #991b1b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
 @keyframes pulseGreen {
   0% { transform: scale(0.95); opacity: 0.6; }
   50% { transform: scale(1.04); opacity: 1; }
@@ -630,16 +672,123 @@
     grid-template-columns: 1fr !important;
   }
   .onboarding-header-banner {
-    padding: 1.5rem 1.25rem !important;
+    padding: 1.35rem 1.1rem !important;
+  }
+  .smart-autofill-box {
+    padding: 1.15rem 1rem !important;
+  }
+  .stepper-header-box {
+    padding: 0.85rem 0.75rem !important;
+  }
+  .stepper-step > div > div:first-child {
+    font-size: 0.74rem !important;
   }
   .wizard-step-section {
-    padding: 1.25rem 1rem !important;
+    padding: 1.15rem 0.95rem !important;
+  }
+  .wizard-step-actions {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+  }
+  .wizard-step-actions button,
+  .wizard-step-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
   }
 }
 </style>
 
 <script>
 let currentActiveStep = 1;
+
+function openResumePicker(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  try { input.value = ''; } catch (e) {}
+  input.click();
+}
+
+function normalizeIndianPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (digits.length > 10) {
+    if (digits.startsWith('91') && digits.length === 12) {
+      digits = digits.slice(2);
+    } else if (digits.startsWith('0') && digits.length === 11) {
+      digits = digits.slice(1);
+    } else {
+      digits = digits.slice(-10);
+    }
+  }
+  return digits.slice(0, 10);
+}
+
+function getFriendlyFieldLabel(input) {
+  const grp = input.closest('.input-group');
+  if (grp) {
+    const lbl = grp.querySelector('label');
+    if (lbl) {
+      return lbl.textContent.replace(/Auto-filled|\*/g, '').trim();
+    }
+  }
+  return input.getAttribute('placeholder') || input.name || 'Required field';
+}
+
+function validateStepFields(stepNum) {
+  const section = document.getElementById('stepSection' + stepNum);
+  const banner = document.getElementById('stepValidationError' + stepNum);
+  if (!section) return true;
+
+  // Auto-normalize phone & aadhaar inputs before checkValidity so formatting never blocks user
+  const phoneEl = section.querySelector('#field_phone');
+  if (phoneEl && phoneEl.value) phoneEl.value = normalizeIndianPhone(phoneEl.value);
+  const altPhoneEl = section.querySelector('#field_alt_phone');
+  if (altPhoneEl && altPhoneEl.value) altPhoneEl.value = normalizeIndianPhone(altPhoneEl.value);
+
+  const requiredInputs = section.querySelectorAll('input[required], select[required], textarea[required]');
+  const invalidLabels = [];
+  let firstInvalid = null;
+
+  for (const input of requiredInputs) {
+    const val = (input.value || '').trim();
+    if (!val || !input.checkValidity()) {
+      input.classList.add('input-invalid-highlight');
+      invalidLabels.push(getFriendlyFieldLabel(input));
+      if (!firstInvalid) firstInvalid = input;
+    } else {
+      input.classList.remove('input-invalid-highlight');
+    }
+  }
+
+  // Also check non-required patterned inputs only when non-empty
+  const optionalPatternInputs = section.querySelectorAll('input[pattern]:not([required])');
+  for (const input of optionalPatternInputs) {
+    const val = (input.value || '').trim();
+    if (val && !input.checkValidity()) {
+      input.classList.add('input-invalid-highlight');
+      invalidLabels.push(getFriendlyFieldLabel(input));
+      if (!firstInvalid) firstInvalid = input;
+    } else {
+      input.classList.remove('input-invalid-highlight');
+    }
+  }
+
+  if (firstInvalid) {
+    if (banner) {
+      banner.innerHTML = '<i class="ph-bold ph-warning-circle" style="font-size:1.15rem;flex-shrink:0;margin-top:2px;"></i><span>Please complete valid detail(s) for: <strong>' + invalidLabels.join(', ') + '</strong></span>';
+      banner.style.display = 'flex';
+    }
+    try {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) {
+      firstInvalid.scrollIntoView(true);
+    }
+    try { firstInvalid.focus({ preventScroll: true }); } catch (e) { firstInvalid.focus(); }
+    return false;
+  }
+
+  if (banner) banner.style.display = 'none';
+  return true;
+}
 
 function jumpToStep(step) {
   if (step > currentActiveStep) {
@@ -653,12 +802,14 @@ function jumpToStep(step) {
 
   // Update indicators
   for (let i = 1; i <= 3; i++) {
-    const indicator = document.getElementById(`stepIndicator${i}`);
+    const indicator = document.getElementById('stepIndicator' + i);
+    if (!indicator) continue;
     const num = indicator.querySelector('.step-num');
     if (i < step) {
       indicator.style.opacity = '1';
       num.style.background = '#10b981';
       num.style.borderColor = '#10b981';
+      num.style.color = 'white';
       num.innerHTML = '<i class="ph-bold ph-check"></i>';
     } else if (i === step) {
       indicator.style.opacity = '1';
@@ -674,7 +825,15 @@ function jumpToStep(step) {
       num.textContent = i;
     }
   }
-  window.scrollTo({ top: 120, behavior: 'smooth' });
+
+  // Smooth scroll directly to the stepper header so mobile users see the top of the step immediately
+  const stepperBox = document.querySelector('.stepper-header-box');
+  if (stepperBox) {
+    const y = Math.max(0, stepperBox.getBoundingClientRect().top + window.scrollY - 72);
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  } else {
+    window.scrollTo(0, 0);
+  }
 }
 
 function proceedToStep(nextStep) {
@@ -684,55 +843,116 @@ function proceedToStep(nextStep) {
     return;
   }
 
-  // Validate current step fields before proceeding forward
-  const currentSection = document.getElementById(`stepSection${currentActiveStep}`);
-  if (!currentSection) {
-    jumpToStep(nextStep);
-    return;
-  }
-
-  const requiredInputs = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
-  let firstInvalid = null;
-
-  for (const input of requiredInputs) {
-    const val = (input.value || '').trim();
-    if (!val || !input.checkValidity()) {
-      input.classList.add('input-invalid-highlight');
-      if (!firstInvalid) firstInvalid = input;
-    } else {
-      input.classList.remove('input-invalid-highlight');
+  // Validate current step fields (and intermediate step if jumping directly from 1 -> 3)
+  for (let s = currentActiveStep; s < nextStep; s++) {
+    if (!validateStepFields(s)) {
+      if (s !== currentActiveStep) {
+        currentActiveStep = s;
+        document.getElementById('stepSection1').style.display = (s === 1) ? 'block' : 'none';
+        document.getElementById('stepSection2').style.display = (s === 2) ? 'block' : 'none';
+        document.getElementById('stepSection3').style.display = (s === 3) ? 'block' : 'none';
+      }
+      return;
+    }
+    if (s === 1) {
+      applySmartAcademicSuggestions();
     }
   }
 
-  if (firstInvalid) {
-    firstInvalid.reportValidity();
-    firstInvalid.focus();
-    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
+  currentActiveStep = nextStep;
+  document.getElementById('stepSection1').style.display = (nextStep === 1) ? 'block' : 'none';
+  document.getElementById('stepSection2').style.display = (nextStep === 2) ? 'block' : 'none';
+  document.getElementById('stepSection3').style.display = (nextStep === 3) ? 'block' : 'none';
+
+  for (let i = 1; i <= 3; i++) {
+    const indicator = document.getElementById('stepIndicator' + i);
+    if (!indicator) continue;
+    const num = indicator.querySelector('.step-num');
+    if (i < nextStep) {
+      indicator.style.opacity = '1';
+      num.style.background = '#10b981';
+      num.style.borderColor = '#10b981';
+      num.style.color = 'white';
+      num.innerHTML = '<i class="ph-bold ph-check"></i>';
+    } else if (i === nextStep) {
+      indicator.style.opacity = '1';
+      num.style.background = 'var(--primary)';
+      num.style.borderColor = 'var(--primary)';
+      num.style.color = 'white';
+      num.textContent = i;
+    } else {
+      indicator.style.opacity = '0.55';
+      num.style.background = 'var(--bg)';
+      num.style.borderColor = 'var(--border)';
+      num.style.color = 'var(--text-muted)';
+      num.textContent = i;
+    }
   }
 
-  if (nextStep === 2) {
-    applySmartAcademicSuggestions();
+  const stepperBox = document.querySelector('.stepper-header-box');
+  if (stepperBox) {
+    const y = Math.max(0, stepperBox.getBoundingClientRect().top + window.scrollY - 72);
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  } else {
+    window.scrollTo(0, 0);
   }
-  jumpToStep(nextStep);
 }
+
+// Clear red highlights automatically as student edits any field
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('onboardingForm');
+  if (!form) return;
+  const clearHighlight = function(e) {
+    if (e.target && e.target.classList) {
+      e.target.classList.remove('input-invalid-highlight');
+    }
+    const sec = e.target.closest ? e.target.closest('.wizard-step-section') : null;
+    if (sec) {
+      const b = sec.querySelector('.step-validation-banner');
+      if (b) b.style.display = 'none';
+    }
+  };
+  form.addEventListener('input', clearHighlight);
+  form.addEventListener('change', clearHighlight);
+});
 
 // ── SMART RESUME AUTO-FILL AJAX HANDLER ──────────────────────────
 async function handleResumeAutoFill(input) {
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
 
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    alert('Please select a PDF format resume.');
+  const loading = document.getElementById('parserLoadingState');
+  const successAlert = document.getElementById('parserSuccessAlert');
+  const errorAlert = document.getElementById('parserErrorAlert');
+  const errorTitle = document.getElementById('parserErrorTitle');
+  const errorMsg = document.getElementById('parserErrorMessage');
+  const btnText = document.getElementById('btnUploadResumeText');
+
+  const isPdfType = (file.type || '').toLowerCase() === 'application/pdf';
+  const isPdfName = (file.name || '').toLowerCase().endsWith('.pdf');
+  if (!isPdfName && !isPdfType) {
+    if (errorAlert) {
+      if (errorTitle) errorTitle.textContent = 'Unsupported File Format';
+      if (errorMsg) errorMsg.textContent = 'Please select a PDF format resume (.pdf).';
+      errorAlert.style.display = 'block';
+    } else {
+      alert('Please select a PDF format resume.');
+    }
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    alert('File size exceeds the 5MB limit.');
+    if (errorAlert) {
+      if (errorTitle) errorTitle.textContent = 'File Too Large';
+      if (errorMsg) errorMsg.textContent = 'File size exceeds the 5MB limit. Please compress your PDF and retry.';
+      errorAlert.style.display = 'block';
+    } else {
+      alert('File size exceeds the 5MB limit.');
+    }
     return;
   }
 
-  // Safe file sync to backup input
+  // Safe file sync to backup input inside form
   try {
     const actualInput = document.getElementById('actualFormResumeInput');
     if (actualInput && window.DataTransfer) {
@@ -744,23 +964,19 @@ async function handleResumeAutoFill(input) {
     console.warn('Backup file sync note:', syncErr);
   }
 
-  // Update status labels
+  // Update status labels immediately
   const labelEl = document.getElementById('attachedResumeLabel');
   const subEl = document.getElementById('attachedResumeSub');
-  if (labelEl) labelEl.textContent = file.name;
-  if (subEl) subEl.textContent = `Uploaded ${(file.size / 1024).toFixed(1)} KB (PDF)`;
-
-  // UI state: Show progress
-  const loading = document.getElementById('parserLoadingState');
-  const successAlert = document.getElementById('parserSuccessAlert');
-  const btnText = document.getElementById('btnUploadResumeText');
+  if (labelEl) labelEl.textContent = file.name || 'resume.pdf';
+  if (subEl) subEl.textContent = 'Uploading & verifying ' + (file.size / 1024).toFixed(1) + ' KB (PDF)...';
 
   if (loading) loading.style.display = 'flex';
   if (successAlert) successAlert.style.display = 'none';
-  if (btnText) btnText.textContent = 'Parsing Resume...';
+  if (errorAlert) errorAlert.style.display = 'none';
+  if (btnText) btnText.textContent = 'Uploading & Parsing...';
 
   const formData = new FormData();
-  formData.append('resume', file);
+  formData.append('resume', file, (file.name && file.name.toLowerCase().endsWith('.pdf')) ? file.name : 'resume.pdf');
 
   const csrfInput = document.querySelector('input[name="csrf_token"]');
   const csrfToken = csrfInput ? csrfInput.value : '';
@@ -771,6 +987,7 @@ async function handleResumeAutoFill(input) {
   try {
     const response = await fetch('/api/student/parse-resume', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-CSRFToken': csrfToken,
         'X-CSRF-Token': csrfToken
@@ -778,31 +995,65 @@ async function handleResumeAutoFill(input) {
       body: formData
     });
 
-    const result = await response.json();
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    let result = null;
+    if (contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const txt = await response.text();
+      if (response.status === 429) {
+        result = { success: false, error: 'Too many rapid upload requests. Please wait a moment and try again.' };
+      } else if (response.redirected || txt.includes('Welcome Back')) {
+        result = { success: false, error: 'Your session timed out. Please refresh the page and try again.' };
+      } else {
+        result = { success: false, error: 'Server returned an unexpected response (HTTP ' + response.status + ').' };
+      }
+    }
+
     if (loading) loading.style.display = 'none';
     if (btnText) btnText.textContent = 'Upload New Resume';
 
-    if (result.success && result.data) {
+    if (result && result.resume_saved && subEl) {
+      subEl.textContent = 'Saved & Verified (' + (file.size / 1024).toFixed(1) + ' KB PDF)';
+    } else if (subEl) {
+      subEl.textContent = 'Attached ' + (file.size / 1024).toFixed(1) + ' KB (PDF)';
+    }
+
+    if (result && result.success && result.data) {
       applyExtractedData(result.data);
       if (successAlert) successAlert.style.display = 'block';
       const sumEl = document.getElementById('parserSuccessSummary');
       if (sumEl) {
-        sumEl.textContent = `✨ Auto-filled ${result.extracted_count} fields from ${file.name}!`;
+        sumEl.textContent = 'Auto-filled ' + result.extracted_count + ' fields from ' + (file.name || 'resume.pdf') + '!';
       }
     } else {
-      alert(result.error || 'Could not parse text from this PDF. You can still fill the fields manually below.');
+      if (errorAlert) {
+        if (errorTitle) errorTitle.textContent = (result && result.resume_saved) ? 'PDF Saved (Auto-Read Limited)' : 'Could Not Parse PDF';
+        if (errorMsg) errorMsg.textContent = (result && result.error) || 'Could not extract readable text from this PDF. Your PDF is still attached — please complete any remaining fields manually below.';
+        errorAlert.style.display = 'block';
+      }
     }
   } catch (err) {
     if (loading) loading.style.display = 'none';
     if (btnText) btnText.textContent = 'Upload Resume & Auto-Fill';
     console.error('Resume Parse Error:', err);
-    alert('An error occurred during resume parsing. Please fill details manually below.');
+    if (subEl) subEl.textContent = 'Attached locally ' + (file.size / 1024).toFixed(1) + ' KB (PDF)';
+    if (errorAlert) {
+      if (errorTitle) errorTitle.textContent = 'Network / Upload Issue';
+      if (errorMsg) errorMsg.textContent = 'Could not reach auto-fill service cleanly. Your file is attached locally — please fill your details below and continue.';
+      errorAlert.style.display = 'block';
+    }
   }
 }
 
 function handleManualResumeChange(input) {
   if (input.files && input.files.length > 0) {
     const file = input.files[0];
+    const isPdf = (file.name || '').toLowerCase().endsWith('.pdf') || (file.type || '').toLowerCase() === 'application/pdf';
+    if (!isPdf) {
+      alert('Please select a PDF format resume.');
+      return;
+    }
     try {
       const actualInput = document.getElementById('actualFormResumeInput');
       if (actualInput && window.DataTransfer) {
@@ -815,59 +1066,65 @@ function handleManualResumeChange(input) {
     const labelEl = document.getElementById('attachedResumeLabel');
     const subEl = document.getElementById('attachedResumeSub');
     if (labelEl) labelEl.textContent = file.name;
-    if (subEl) subEl.textContent = `Attached ${(file.size / 1024).toFixed(1)} KB (PDF)`;
-    alert(`Resume updated to: ${file.name}`);
+    if (subEl) subEl.textContent = 'Attached ' + (file.size / 1024).toFixed(1) + ' KB (PDF)';
   }
 }
 
 function handleFormFinalSubmit(e) {
   // Validate Step 1
-  const s1Inputs = document.getElementById('stepSection1').querySelectorAll('input[required], select[required], textarea[required]');
-  for (const input of s1Inputs) {
-    if (!input.value.trim() || !input.checkValidity()) {
-      e.preventDefault();
-      alert('Please fill the required personal details in Step 1 before submitting.');
-      jumpToStep(1);
-      input.reportValidity();
-      input.focus();
-      return false;
-    }
+  if (!validateStepFields(1)) {
+    e.preventDefault();
+    jumpToStep(1);
+    validateStepFields(1);
+    return false;
   }
 
   // Validate Step 2
-  const s2Inputs = document.getElementById('stepSection2').querySelectorAll('input[required], select[required], textarea[required]');
-  for (const input of s2Inputs) {
-    if (!input.value.trim() || !input.checkValidity()) {
-      e.preventDefault();
-      alert('Please check your academic marks in Step 2 before submitting.');
-      jumpToStep(2);
-      input.reportValidity();
-      input.focus();
-      return false;
-    }
+  if (!validateStepFields(2)) {
+    e.preventDefault();
+    jumpToStep(2);
+    validateStepFields(2);
+    return false;
   }
 
   // Validate Step 3
-  const s3Inputs = document.getElementById('stepSection3').querySelectorAll('input[required], select[required], textarea[required]');
-  for (const input of s3Inputs) {
-    if (!input.value.trim() || !input.checkValidity()) {
-      e.preventDefault();
-      input.reportValidity();
-      input.focus();
-      return false;
-    }
+  if (!validateStepFields(3)) {
+    e.preventDefault();
+    return false;
   }
 
   const btn = document.getElementById('btnSubmitProfile');
   if (btn) {
     btn.disabled = true;
     btn.style.opacity = '0.8';
-    btn.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> <span>Saving Profile &amp; Entering Portal...</span>`;
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> <span>Saving Profile &amp; Entering Portal...</span>';
   }
   return true;
 }
 
+function setSelectOrInputValue(field, rawVal) {
+  if (!field) return;
+  const valStr = String(rawVal).trim();
+  if (field.tagName === 'SELECT') {
+    const lowerTarget = valStr.toLowerCase();
+    for (let i = 0; i < field.options.length; i++) {
+      const opt = field.options[i];
+      if (opt.value.toLowerCase() === lowerTarget || opt.text.toLowerCase() === lowerTarget) {
+        field.value = opt.value;
+        return;
+      }
+    }
+  } else {
+    field.value = valStr;
+  }
+}
+
 function applyExtractedData(data) {
+  // Normalize phone prior to setting input value so pattern="[0-9]{10}" validates cleanly
+  if (data.phone) {
+    data.phone = normalizeIndianPhone(data.phone);
+  }
+
   // Mapping extracted keys to field element IDs across all 3 steps
   const mapping = {
     'name': 'field_name',
@@ -913,10 +1170,11 @@ function applyExtractedData(data) {
   for (const [key, elementId] of Object.entries(mapping)) {
     if (data[key] !== undefined && data[key] !== null && String(data[key]).trim() !== '') {
       const field = document.getElementById(elementId);
-      const badge = document.getElementById(`badge_${key}`);
+      const badge = document.getElementById('badge_' + key);
 
       if (field) {
-        field.value = data[key];
+        setSelectOrInputValue(field, data[key]);
+        field.classList.remove('input-invalid-highlight');
         field.classList.add('autofilled-glow');
         if (badge) badge.style.display = 'inline-flex';
       }
@@ -932,7 +1190,7 @@ function applyExtractedData(data) {
     const pgUniv = document.getElementById('field_pg_university');
     const pgYear = document.getElementById('field_pg_year');
 
-    if (pgDeg && !pgDeg.value) pgDeg.value = targetBranch;
+    if (pgDeg && !pgDeg.value) setSelectOrInputValue(pgDeg, targetBranch);
     if (pgBranch && !pgBranch.value) pgBranch.value = targetBranch;
     if (pgCollege && !pgCollege.value) pgCollege.value = 'Chetan Business School';
     if (pgUniv && !pgUniv.value) pgUniv.value = 'Karnatak University, Dharwad';
@@ -948,6 +1206,9 @@ function applyExtractedData(data) {
 }
 
 function applySmartAcademicSuggestions(data = {}) {
+  const step1BranchVal = (document.getElementById('field_branch') ? document.getElementById('field_branch').value : '').trim().toUpperCase();
+  const inferredPg = data.pg_degree || (step1BranchVal.includes('MBA') ? 'MBA' : 'MCA');
+
   // 10th defaults
   const tenthBoard = document.getElementById('field_tenth_board');
   if (tenthBoard && !tenthBoard.value) tenthBoard.value = data.tenth_board || 'State Board';
@@ -957,14 +1218,16 @@ function applySmartAcademicSuggestions(data = {}) {
   if (twelfthBoard && !twelfthBoard.value) twelfthBoard.value = data.twelfth_board || 'State PU Board';
 
   const twelfthStream = document.getElementById('field_twelfth_stream');
-  if (twelfthStream && !twelfthStream.value) twelfthStream.value = data.twelfth_stream || 'Science (PCMB/PCMC)';
+  if (twelfthStream && !twelfthStream.value) {
+    twelfthStream.value = data.twelfth_stream || (inferredPg === 'MBA' ? 'Commerce' : 'Science (PCMB/PCMC)');
+  }
 
   // UG defaults
   const ugDegree = document.getElementById('field_ug_degree');
-  if (ugDegree && !ugDegree.value) ugDegree.value = data.ug_degree || 'BCA';
+  if (ugDegree && !ugDegree.value) ugDegree.value = data.ug_degree || (inferredPg === 'MBA' ? 'B.Com' : 'BCA');
 
   const ugBranch = document.getElementById('field_ug_branch');
-  if (ugBranch && !ugBranch.value) ugBranch.value = data.ug_branch || 'Computer Applications';
+  if (ugBranch && !ugBranch.value) ugBranch.value = data.ug_branch || (inferredPg === 'MBA' ? 'Commerce & Finance' : 'Computer Applications');
 
   const ugUniv = document.getElementById('field_ug_university');
   if (ugUniv && !ugUniv.value) ugUniv.value = data.ug_university || 'Karnatak University, Dharwad';
@@ -983,10 +1246,10 @@ function applySmartAcademicSuggestions(data = {}) {
   if (pgYear && !pgYear.value) pgYear.value = '2026';
 
   const pgDeg = document.getElementById('field_pg_degree');
-  if (pgDeg && !pgDeg.value) pgDeg.value = 'MCA';
+  if (pgDeg && !pgDeg.value) setSelectOrInputValue(pgDeg, inferredPg);
 
   const pgBranch = document.getElementById('field_pg_branch');
-  if (pgBranch && !pgBranch.value) pgBranch.value = 'MCA';
+  if (pgBranch && !pgBranch.value) pgBranch.value = inferredPg;
 }
 </script>
 {% endblock %}

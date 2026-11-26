@@ -233,11 +233,21 @@ def validate_and_store_resume(file_obj, user_id):
     if not file_obj or not file_obj.filename:
         return False, "No file selected. Please select a valid PDF resume to upload."
     
-    filename = secure_filename(file_obj.filename)
+    raw_name = file_obj.filename or ''
+    filename = secure_filename(raw_name)
+    mimetype = getattr(file_obj, 'mimetype', '') or ''
     if not filename.lower().endswith('.pdf'):
-        return False, "Security Violation: Only authentic PDF (.pdf) documents are accepted for placement resumes."
+        if '.' not in raw_name and mimetype == 'application/pdf':
+            filename = (filename or 'resume') + '.pdf'
+        else:
+            return False, "Security Violation: Only authentic PDF (.pdf) documents are accepted for placement resumes."
     
     file_bytes = file_obj.read()
+    if hasattr(file_obj, 'seek'):
+        try:
+            file_obj.seek(0)
+        except Exception:
+            pass
     if len(file_bytes) == 0:
         return False, "The uploaded file is empty. Please upload a valid PDF document."
     
@@ -245,8 +255,8 @@ def validate_and_store_resume(file_obj, user_id):
         mb_size = round(len(file_bytes) / (1024 * 1024), 2)
         return False, f"File size too large ({mb_size}MB). The maximum allowed resume file size is 5MB."
     
-    # Check PDF magic bytes (%PDF-)
-    if not file_bytes.startswith(b'%PDF-'):
+    # Check PDF magic bytes (%PDF-) within header window (allows UTF-8 BOM / whitespace)
+    if b'%PDF-' not in file_bytes[:1024]:
         return False, "File integrity violation: The file does not have a genuine PDF signature (%PDF-). Disguised binaries or malicious scripts are blocked."
     
     try:
@@ -824,39 +834,70 @@ def complete_profile():
 
 @app.route('/api/student/parse-resume', methods=['POST'])
 @login_required(role='student')
-@limiter.limit("15 per minute")
+@limiter.limit("30 per minute")
 def api_parse_resume():
     """
     Secure Smart Resume/CV Parser Endpoint:
-    Accepts candidate PDF, extracts text, and returns structured data
-    for 1-click form auto-filling.
+    Accepts candidate PDF, validates and stores it cleanly, extracts text,
+    and returns structured data for 1-click form auto-filling.
     """
     try:
         from utils.resume_parser import parse_resume
         import io
 
         file = request.files.get('resume')
-        if not file or file.filename == '':
+        if not file or not file.filename:
             return {"success": False, "error": "No resume file selected."}, 400
 
-        # Validate file extension
-        filename = (file.filename or '').lower()
+        # Validate file extension (also tolerate extensionless Android PDF provider MIME)
+        raw_name = file.filename or ''
+        filename = raw_name.lower()
+        mimetype = getattr(file, 'mimetype', '') or ''
+        safe_name = secure_filename(raw_name) or 'resume.pdf'
         if not filename.endswith('.pdf'):
-            return {"success": False, "error": "Only PDF resumes are supported for auto-fill."}, 400
+            if '.' not in raw_name and mimetype == 'application/pdf':
+                if not safe_name.lower().endswith('.pdf'):
+                    safe_name += '.pdf'
+            else:
+                return {"success": False, "error": "Only PDF resumes are supported for auto-fill."}, 400
 
         # Read content for validation & parsing
         content = file.read()
-        file.seek(0)
+        try:
+            file.seek(0)
+        except Exception:
+            pass
+
+        if len(content) == 0:
+            return {"success": False, "error": "The selected PDF file appears empty."}, 400
 
         # 5MB size limit
         if len(content) > 5 * 1024 * 1024:
             return {"success": False, "error": "File size exceeds 5MB security limit."}, 400
 
         # Magic byte validation
-        if not content.startswith(b'%PDF-'):
+        if b'%PDF-' not in content[:1024]:
             return {"success": False, "error": "Corrupted or non-standard PDF file header detected."}, 400
 
+        # Persist verified PDF immediately so mobile browsers cannot lose the file across wizard steps
+        resume_saved = False
+        try:
+            store_stream = io.BytesIO(content)
+            store_stream.filename = safe_name
+            store_stream.mimetype = 'application/pdf'
+            ok_store, res_id = validate_and_store_resume(store_stream, session['user_id'])
+            if ok_store:
+                students_collection.update_one(
+                    {'user_id': ObjectId(session['user_id'])},
+                    {'$set': {'resume_file_id': res_id}}
+                )
+                resume_saved = True
+        except Exception as save_err:
+            app.logger.warning(f"Draft resume persist note: {save_err}")
+
         parsed = parse_resume(io.BytesIO(content))
+        parsed["resume_saved"] = resume_saved
+        parsed["saved_filename"] = safe_name
         if not parsed.get("success"):
             return parsed, 400
 

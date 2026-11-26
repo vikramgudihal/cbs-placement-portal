@@ -69,6 +69,76 @@ class TestUserFixes(unittest.TestCase):
             self.assertIn('MongoDB', data.get('skills', ''))
             print("[PASS] Resume parser accurately extracts 10th, 12th, UG, PG, and skills.")
 
+    def test_mobile_onboarding_autofill_and_next_step(self):
+        """Verify multi-line PDF extraction, school extraction, BOM PDF parsing, and onboarding wizard validation UI"""
+        from unittest.mock import patch
+        multiline_resume = """
+        RIYA V NAVADE
+        +91 98765 43210 | riya.navade@gmail.com | P02DR25S126065
+
+        EDUCATION
+        MCA - Chetan Business School, Karnatak University
+        2026 | CGPA: 8.80
+
+        BCA - KLES College of BCA
+        Karnataka University Dharwad | 2024 | 8.2 CGPA
+
+        PUC / Class 12
+        KLE Independent PU College
+        State PU Board | 2021 | 86.4% | Science PCMC
+
+        SSLC / Class X
+        Chinmaya English Medium School
+        State Board | 2019 | 91.2%
+
+        TECHNICAL SKILLS
+        C++, Node.js, Python, SQL
+        """
+        with patch('utils.resume_parser.extract_text_from_pdf', return_value=multiline_resume):
+            res = parse_resume(io.BytesIO(b"%PDF-1.4 dummy"))
+            self.assertTrue(res['success'])
+            d = res['data']
+            self.assertEqual(d.get('phone'), '9876543210')
+            self.assertIn('91.2', d.get('tenth_score', ''))
+            self.assertIn('Chinmaya', d.get('tenth_school', ''))
+            self.assertIn('86.4', d.get('twelfth_score', ''))
+            self.assertIn('KLE Independent PU College', d.get('twelfth_school', ''))
+            self.assertIn('KLES College of BCA', d.get('ug_college', ''))
+            self.assertIn('C++', d.get('skills', ''))
+            self.assertIn('Node.js', d.get('skills', ''))
+
+        with open('templates/student/complete_profile.html', encoding='utf-8') as f:
+            cp_html = f.read()
+        for sym in [
+            'openResumePicker', 'normalizeIndianPhone', 'validateStepFields',
+            'input-invalid-highlight', 'stepValidationError1', 'stepValidationError2',
+            'parserErrorAlert', 'accept=".pdf,application/pdf"'
+        ]:
+            self.assertIn(sym, cp_html)
+
+        # Verify BOM-prefixed genuine PDF passes api_parse_resume validation & persistence
+        from app import app, users_collection
+        app.config['TESTING'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+        user = users_collection.find_one({'email': 'vikram.patel.mca@gmail.com'})
+        if user:
+            client = app.test_client()
+            with client.session_transaction() as sess:
+                sess['user_id'] = str(user['_id'])
+                sess['role'] = 'student'
+            with patch('utils.resume_parser.extract_text_from_pdf', return_value=multiline_resume):
+                bom_pdf = io.BytesIO(b"\xef\xbb\xbf%PDF-1.4\n%%EOF")
+                api_resp = client.post('/api/student/parse-resume', data={
+                    'resume': (bom_pdf, 'riya_mobile_cv.pdf')
+                })
+                self.assertEqual(api_resp.status_code, 200)
+                payload = api_resp.get_json()
+                self.assertTrue(payload.get('success'))
+                self.assertTrue(payload.get('resume_saved'))
+                self.assertEqual(payload['data'].get('tenth_score'), '91.2')
+
+        print("[PASS] Multi-line resume extraction, BOM PDF persistence, and onboarding wizard validation verified.")
+
     def test_jobs_template_structure(self):
         """Verify jobs.html contains both Grid and List views and no broken unclosed scripts"""
         with open('templates/student/jobs.html', encoding='utf-8') as f:
