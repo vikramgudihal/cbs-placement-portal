@@ -2581,10 +2581,6 @@ select.custom-input-field {
   background: var(--bg-secondary);
   color: #040552 !important;
 }
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
 
 .close-prompt-btn:hover {
   background: rgba(0, 0, 0, 0.05);

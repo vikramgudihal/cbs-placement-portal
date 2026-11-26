@@ -1,23 +1,49 @@
 function showLogoutModal(event) {
-  if (event) event.preventDefault();
-  document.getElementById("logoutModal").style.display = "flex";
+  if (event) {
+    try { event.preventDefault(); event.stopPropagation(); } catch (_) {}
+  }
+  if (typeof closeSidebar === "function") {
+    try { closeSidebar(); } catch (_) {}
+  }
+  const modal = document.getElementById("logoutModal");
+  if (modal) {
+    modal.classList.add("active");
+    modal.style.setProperty("display", "flex", "important");
+    modal.style.setProperty("z-index", "30000", "important");
+    modal.style.setProperty("visibility", "visible", "important");
+    modal.style.setProperty("opacity", "1", "important");
+    document.body.style.overflow = "hidden";
+  } else {
+    if (confirm("Are you sure you want to log out of your session?")) {
+      window.location.href = "/logout";
+    }
+  }
 }
 
 function closeLogoutModal() {
-  document.getElementById("logoutModal").style.display = "none";
+  const modal = document.getElementById("logoutModal");
+  if (modal) {
+    modal.style.setProperty("display", "none", "important");
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
 }
 
 function confirmLogout() {
   window.location.href = "/logout";
 }
 
-// Close modal when clicking outside
-window.onclick = function (event) {
+window.showLogoutModal = showLogoutModal;
+window.closeLogoutModal = closeLogoutModal;
+window.confirmLogout = confirmLogout;
+
+// Close modal when clicking outside (non-clobbering listener)
+window.addEventListener("click", function (event) {
   const modal = document.getElementById("logoutModal");
-  if (event.target == modal) {
+  if (modal && event.target === modal) {
     closeLogoutModal();
   }
-};
+});
 // Notification System
 function toggleNotifs(event) {
   if (event) event.stopPropagation();

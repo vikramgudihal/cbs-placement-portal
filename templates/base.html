@@ -64,8 +64,8 @@
       })();
     </script>
 
-    <script src="{{ url_for('static', filename='js/offline-notifications.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/offline-notifications.js') }}?v={{ range(1,9999)|random }}" defer></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(1,9999)|random }}" defer></script>
 
     {% block head %}{% endblock %}
     {% block extra_css %}{% endblock %}
@@ -133,13 +133,13 @@
           style="height:34px; border-radius:6px; flex-shrink:0;"
           onerror="this.style.display='none'"
         />
-        <span style="font-size:1.15rem; font-weight:800; color:var(--text-main); white-space:nowrap;">
+        <span class="auth-brand-title" style="font-size:1.15rem; font-weight:800; color:var(--text-main); white-space:nowrap;">
           CBS <span style="background:var(--grad-primary); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">3i-cell</span>
         </span>
       </a>
-      <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
-        {% if request.endpoint not in ['index', 'landing'] %}
-        <a href="/" class="btn-back" style="font-size:0.85rem; padding:0.35rem 0.75rem; white-space:nowrap;"><i class="ph-bold ph-arrow-left"></i> Home</a>
+      <div style="display:flex; align-items:center; gap:0.45rem; flex-shrink:0;">
+        {% if request.endpoint not in ['home', 'index', 'landing'] %}
+        <a href="/" class="btn-back auth-nav-back" style="font-size:0.85rem; padding:0.35rem 0.75rem; white-space:nowrap;"><i class="ph-bold ph-arrow-left"></i> Home</a>
         {% endif %}
         <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm" style="font-size:0.85rem; padding:0.35rem 0.75rem; white-space:nowrap;">Login</a>
         <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm" style="font-size:0.85rem; padding:0.35rem 0.75rem; white-space:nowrap;">Sign Up</a>
@@ -338,7 +338,7 @@
           type="button"
           class="topbar-back-btn"
           id="universalTopbarBackBtn"
-          onclick="handleUniversalBack()"
+          onclick="handleUniversalBack(event)"
           title="Back to previous page"
           aria-label="Back to previous page"
         >
@@ -346,8 +346,8 @@
           <span class="desktop-only">Back</span>
         </button>
 
-        <!-- Page title (injected by JS) -->
-        <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <!-- Page title (hidden on mobile so it does not consume flex gap) -->
+        <div class="{% if not is_onboarding %}desktop-only{% endif %}" style="display: flex; align-items: center; gap: 0.65rem;">
           <span class="topbar-title desktop-only">{% block page_title %}CBS 3i-cell{% endblock %}</span>
           {% if is_onboarding %}
           <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px;">
@@ -888,9 +888,12 @@
       });
 
       // Close modal on backdrop click
-      document.getElementById('logoutModal')?.addEventListener('click', function(e) {
-        if (e.target === this) closeLogoutModal();
-      });
+      const _logoutModalEl = document.getElementById('logoutModal');
+      if (_logoutModalEl) {
+        _logoutModalEl.addEventListener('click', function(e) {
+          if (e.target === this) closeLogoutModal();
+        });
+      }
 
       // ── PWA Install ─────────────────────────────────────────
       window.deferredPrompt = null;
@@ -933,28 +936,98 @@
         });
       }
 
-      // ── Universal Back Navigation ───────────────────────────
-      function handleUniversalBack() {
+      // ── In-App Navigation Stack Tracker + Universal Back ────
+      (function trackAppNavigationHistory() {
         try {
+          const curPath = window.location.pathname + window.location.search;
+          const ignoredPrefixes = ['/login', '/signup', '/logout', '/forgot-password', '/reset-password'];
+          const isAuth = ignoredPrefixes.some(p => window.location.pathname.startsWith(p));
+          if (isAuth) return;
+
+          let stack = [];
+          try { stack = JSON.parse(sessionStorage.getItem('cbs_nav_history') || '[]'); } catch (_) { stack = []; }
+          if (!Array.isArray(stack)) stack = [];
+
+          if (stack.length === 0 || stack[stack.length - 1] !== curPath) {
+            stack.push(curPath);
+            if (stack.length > 20) stack = stack.slice(-20);
+            sessionStorage.setItem('cbs_nav_history', JSON.stringify(stack));
+          }
+        } catch (_) {}
+      })();
+
+      function showMobileNavToast(msg) {
+        try {
+          const existing = document.getElementById('cbsNavToast');
+          if (existing) existing.remove();
+          const toast = document.createElement('div');
+          toast.id = 'cbsNavToast';
+          toast.textContent = msg;
+          toast.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.92);color:#fff;padding:0.55rem 1rem;border-radius:9999px;font-size:0.8rem;font-weight:600;z-index:35000;box-shadow:0 8px 20px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;';
+          document.body.appendChild(toast);
+          setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2000);
+        } catch (_) {}
+      }
+
+      window.handleUniversalBack = function(e) {
+        if (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch (_) {}
+        }
+        try {
+          // 1. Multi-step profile wizard support
           if (typeof currentActiveStep !== 'undefined' && typeof proceedToStep === 'function' && currentActiveStep > 1) {
             proceedToStep(currentActiveStep - 1);
             return;
           }
-          if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host) && !document.referrer.endsWith(window.location.pathname)) {
-            window.history.back();
-            return;
+
+          // 2. Check our reliable in-app navigation stack (avoids /login bounce & empty referrer traps)
+          const curPath = window.location.pathname + window.location.search;
+          const ignoredPrefixes = ['/login', '/signup', '/logout', '/forgot-password', '/reset-password'];
+          let stack = [];
+          try { stack = JSON.parse(sessionStorage.getItem('cbs_nav_history') || '[]'); } catch (_) { stack = []; }
+          if (Array.isArray(stack) && stack.length > 1) {
+            // Pop current entry and walk back to a distinct previous in-app URL
+            while (stack.length > 0 && stack[stack.length - 1] === curPath) {
+              stack.pop();
+            }
+            while (stack.length > 0 && ignoredPrefixes.some(p => stack[stack.length - 1].startsWith(p))) {
+              stack.pop();
+            }
+            if (stack.length > 0) {
+              const prevUrl = stack[stack.length - 1];
+              sessionStorage.setItem('cbs_nav_history', JSON.stringify(stack));
+              window.location.href = prevUrl;
+              return;
+            }
           }
-        } catch (e) {
-          console.warn('Navigation fallback triggered:', e);
+
+          // 3. Same-origin referrer fallback (ignoring auth routes)
+          if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+            const refPath = new URL(document.referrer).pathname;
+            const isAuthRef = ignoredPrefixes.some(p => refPath.startsWith(p));
+            if (!isAuthRef && refPath !== window.location.pathname) {
+              window.history.back();
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Navigation fallback triggered:', err);
         }
+
+        // 4. Role dashboard fallback (if not already on home dashboard; otherwise notify cleanly)
+        let targetHome = "{{ url_for('home') }}";
         {% if session.get('role') == 'admin' %}
-          window.location.href = "{{ url_for('admin_dashboard') }}";
+          targetHome = "{{ url_for('admin_dashboard') }}";
         {% elif session.get('role') == 'student' %}
-          window.location.href = "{{ url_for('student_dashboard') }}";
-        {% else %}
-          window.location.href = "{{ url_for('home') }}";
+          targetHome = "{{ url_for('student_dashboard') }}";
         {% endif %}
-      }
+
+        if (window.location.pathname === targetHome) {
+          showMobileNavToast('Already on main dashboard');
+          return;
+        }
+        window.location.href = targetHome;
+      };
 
       // ── Notification permission (Built-in Web Push) ───────
       async function requestNotificationPermission() {

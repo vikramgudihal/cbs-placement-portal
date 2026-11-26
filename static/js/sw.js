@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cbs-3icell-v3';
+const CACHE_NAME = 'cbs-3icell-v4';
 const STATIC_ASSETS = [
     '/',
     '/static/css/style.css',
@@ -57,6 +57,18 @@ self.addEventListener('fetch', (event) => {
                             return response || caches.match('/offline');
                         });
                 })
+        );
+    } else if (event.request.url.includes('/static/css/') || event.request.url.includes('/static/js/')) {
+        event.respondWith(
+            fetch(event.request)
+                .then((networkResp) => {
+                    if (networkResp && networkResp.status === 200) {
+                        const copy = networkResp.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+                    }
+                    return networkResp;
+                })
+                .catch(() => caches.match(event.request))
         );
     } else {
         event.respondWith(

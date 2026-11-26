@@ -262,15 +262,37 @@ class TestUserFixes(unittest.TestCase):
         with open('templates/admin/manage_users.html', encoding='utf-8') as f:
             users_html = f.read()
 
-        # Image 1: Public navbar no redundant Home button on landing page + nowrap
-        self.assertIn("request.endpoint not in ['index', 'landing']", base_html)
+        # Image 1: Public navbar no redundant Home button on landing page ('home') + nowrap
+        self.assertIn("request.endpoint not in ['home', 'index', 'landing']", base_html)
+        self.assertIn('auth-nav-back', base_html)
+        self.assertIn('.btn-back:not(.auth-nav-back)', resp_css)
         self.assertIn('white-space:nowrap', base_html)
 
-        # Image 2 & 3: Topbar mobile brand nowrap + window-level logout with 30000 z-index
+        # Image 2 & 3: Topbar mobile brand nowrap + window-level logout synced with main.js & 30000 z-index
         self.assertIn('topbar-mobile-brand', base_html)
         self.assertIn('window.showLogoutModal', base_html)
         self.assertIn('topbar-logout-btn', base_html)
         self.assertIn('z-index: 30000 !important', resp_css)
+        with open('static/js/main.js', encoding='utf-8') as f:
+            main_js = f.read()
+        self.assertIn('modal.classList.add("active")', main_js)
+        self.assertIn('setProperty("display", "flex", "important")', main_js)
+
+        # Universal Back Navigation History Stack (no /login bounce loop on mobile)
+        self.assertIn('cbs_nav_history', base_html)
+        self.assertIn('window.handleUniversalBack', base_html)
+
+        # Service worker network-first for static CSS/JS & bumped cache version
+        with open('static/js/sw.js', encoding='utf-8') as f:
+            sw_js = f.read()
+        self.assertNotIn("cbs-3icell-v3", sw_js)
+
+        # Verify zero brace mismatches across all CSS stylesheets
+        import glob
+        for css_path in glob.glob('static/css/*.css'):
+            with open(css_path, encoding='utf-8') as cf:
+                css_text = cf.read()
+            self.assertEqual(css_text.count('{'), css_text.count('}'), f"Unbalanced CSS braces in {css_path}")
 
         # Image 4: Filter tabs ribbon horizontal swipe scroll (no cut-off)
         self.assertIn('overflow-x: auto', jobs_html)
@@ -289,7 +311,18 @@ class TestUserFixes(unittest.TestCase):
         self.assertIn('sidebar-open', base_html)
         self.assertIn('z-index: 10001 !important', resp_css)
 
-        print("[PASS] All 7 mobile UI responsiveness issues verified with 100% perfection.")
+        # Verify landing page HTML actually omits redundant navbar Home link & serves Login/Sign Up
+        from app import app
+        client = app.test_client()
+        resp = client.get('/')
+        self.assertEqual(resp.status_code, 200)
+        landing_rendered = resp.get_data(as_text=True)
+        nav_section = landing_rendered.split('<nav class="auth-navbar-bar"')[1].split('</nav>')[0]
+        self.assertNotIn('class="btn-back auth-nav-back"', nav_section)
+        self.assertIn('Login', nav_section)
+        self.assertIn('Sign Up', nav_section)
+
+        print("[PASS] All mobile UI, navbar, back navigation, logout modal, and CSS balance checks verified.")
 
 if __name__ == '__main__':
     unittest.main()
