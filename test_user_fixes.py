@@ -532,5 +532,91 @@ class TestUserFixes(unittest.TestCase):
             self.assertIn('?v=20261126', content)
         print("[PASS] Updated campus photo framing verified across home hero, login, and signup.")
 
+    def test_vercel_readiness_and_speed_optimizations(self):
+        """Verify Vercel config, read-only FS fallbacks, asset caching, gzip, ETag 304, and batch attachment lookup."""
+        import json
+        import gzip
+        import types
+        from bson import ObjectId
+        from unittest.mock import MagicMock, patch
+        import app as app_mod
+
+        # 1. vercel.json routes static assets to CDN + SW no-cache + dynamic routes to app.py
+        with open('vercel.json', encoding='utf-8') as vf:
+            vconf = json.load(vf)
+        uses = [b.get('use') for b in vconf.get('builds', [])]
+        self.assertIn('@vercel/static', uses)
+        self.assertIn('@vercel/python', uses)
+        dests = [r.get('dest') for r in vconf.get('routes', [])]
+        self.assertIn('/static/$1', dests)
+        self.assertIn('app.py', dests)
+
+        # 2. Read-only serverless fallbacks for uploads and logger
+        tmp_uploads = app_mod.resolve_upload_folder(is_vercel=True)
+        self.assertIn('cbs_uploads', tmp_uploads)
+        dummy_app = types.SimpleNamespace(logger=app_mod.logging.getLogger('vercel_fallback_test'))
+        dummy_app.logger.handlers.clear()
+        mode_stream = app_mod.configure_portal_logging(dummy_app, is_vercel=True)
+        self.assertEqual(mode_stream, 'stream')
+
+        # 3. Deterministic asset_version, zero jsDelivr redundancy, zero mouseover prefetch
+        with open('templates/base.html', encoding='utf-8') as bf:
+            base_html = bf.read()
+        self.assertNotIn('range(1,9999)|random', base_html)
+        self.assertNotIn('cdn.jsdelivr.net', base_html)
+        self.assertNotIn("document.addEventListener('mouseover'", base_html)
+        self.assertIn('?v={{ asset_version }}', base_html)
+
+        with open('static/js/sw.js', encoding='utf-8') as swf:
+            sw_js = swf.read()
+        self.assertIn('/static/css/app-layout.css', sw_js)
+        self.assertIn('/static/vendor/phosphor/regular/style.css', sw_js)
+        self.assertNotIn('cdn.jsdelivr.net', sw_js)
+
+        # 4. Response gzip compression when client sends Accept-Encoding: gzip
+        client = app_mod.app.test_client()
+        plain_res = client.get('/')
+        self.assertEqual(plain_res.status_code, 200)
+        self.assertNotIn('Content-Encoding', plain_res.headers)
+
+        gz_res = client.get('/', headers={'Accept-Encoding': 'gzip'})
+        self.assertEqual(gz_res.status_code, 200)
+        self.assertEqual(gz_res.headers.get('Content-Encoding'), 'gzip')
+        self.assertIn('Accept-Encoding', gz_res.headers.get('Vary', ''))
+        self.assertIn(b'CBS', gzip.decompress(gz_res.data))
+
+        # 5. GridFS inline file serving sets immutable Cache-Control & honors If-None-Match 304
+        oid = str(ObjectId())
+        fake_file = MagicMock()
+        fake_file.filename = 'avatar.png'
+        fake_file.content_type = 'image/png'
+        fake_file.read.return_value = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+        fake_fs = MagicMock()
+        fake_fs.get.return_value = fake_file
+        with patch('routes.file_serving.get_fs', return_value=fake_fs):
+            r_img = client.get(f'/files/view/{oid}')
+            self.assertEqual(r_img.status_code, 200)
+            self.assertIn('immutable', r_img.headers.get('Cache-Control', ''))
+            etag = r_img.headers.get('ETag')
+            self.assertTrue(etag)
+            r_304 = client.get(f'/files/view/{oid}', headers={'If-None-Match': etag})
+            self.assertEqual(r_304.status_code, 304)
+
+        # 6. Batch announcement attachment enrichment issues a single fs.files query
+        oid1, oid2 = ObjectId(), ObjectId()
+        anns = [{'attachment_id': oid1}, {'attachment_id': oid2}, {}]
+        mock_col = MagicMock()
+        mock_col.find.return_value = [
+            {'_id': oid1, 'filename': 'circular.pdf', 'length': 20480},
+            {'_id': oid2, 'filename': 'banner.png', 'length': 10240},
+        ]
+        with patch.object(app_mod, 'db', {'fs.files': mock_col}):
+            app_mod.enrich_announcements_attachments(anns)
+        self.assertEqual(mock_col.find.call_count, 1)
+        self.assertEqual(anns[0]['attachment_type'], 'pdf')
+        self.assertEqual(anns[1]['attachment_type'], 'image')
+        self.assertIsNone(anns[2]['attachment_type'])
+        print("[PASS] Vercel compatibility, CDN routing, gzip, ETag 304, and batch attachment lookup verified.")
+
 if __name__ == '__main__':
     unittest.main()

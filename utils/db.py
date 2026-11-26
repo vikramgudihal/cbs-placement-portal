@@ -15,7 +15,7 @@ def get_client():
         _client = MongoClient(
             MONGO_URI,
             maxPoolSize=50,
-            minPoolSize=5,
+            minPoolSize=0 if (os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')) else 5,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
             socketTimeoutMS=10000,

@@ -1,12 +1,31 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
     "version": 2,
     "builds": [
+        {
+            "src": "static/**",
+            "use": "@vercel/static"
+        },
         {
             "src": "app.py",
             "use": "@vercel/python"
         }
     ],
     "routes": [
+        {
+            "src": "/static/js/sw\\.js",
+            "dest": "/static/js/sw.js",
+            "headers": {
+                "Cache-Control": "no-cache, max-age=0, must-revalidate"
+            }
+        },
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1",
+            "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable"
+            }
+        },
         {
             "src": "/(.*)",
             "dest": "app.py"

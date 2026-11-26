@@ -25,10 +25,47 @@ app.register_blueprint(dynamic_forms_bp)
 from itsdangerous import URLSafeTimedSerializer
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+import gzip
+import tempfile
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+IS_VERCEL = bool(os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'))
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+def compute_asset_version():
+    """Return a deploy/boot-stable cache-busting token for static assets."""
+    commit_sha = (os.environ.get('VERCEL_GIT_COMMIT_SHA') or os.environ.get('VERCEL_DEPLOYMENT_ID') or '').strip()
+    if commit_sha:
+        return commit_sha[:10]
+    try:
+        return str(int(os.path.getmtime(os.path.join('static', 'css', 'style.css'))))
+    except OSError:
+        return '20261126'
+
+ASSET_VERSION = compute_asset_version()
+
+@app.context_processor
+def inject_asset_version():
+    return dict(asset_version=ASSET_VERSION, is_vercel=IS_VERCEL)
+
+def resolve_upload_folder(is_vercel=None):
+    """Use OS temp directory (/tmp on Vercel) when running serverless or on read-only FS."""
+    use_tmp = IS_VERCEL if is_vercel is None else bool(is_vercel)
+    tmp_target = os.path.join(tempfile.gettempdir(), 'cbs_uploads')
+    target = tmp_target if use_tmp else os.path.join('static', 'uploads')
+    try:
+        os.makedirs(target, exist_ok=True)
+        return target
+    except OSError:
+        try:
+            os.makedirs(tmp_target, exist_ok=True)
+        except OSError:
+            pass
+        return tmp_target
+
 # Config
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
+UPLOAD_FOLDER = resolve_upload_folder()
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # --- SECURITY CONFIGURATION ---
 from flask_limiter import Limiter
@@ -39,7 +76,7 @@ from flask_talisman import Talisman
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["5000 per day", "1000 per hour"],
     storage_uri="memory://"
 )
 
@@ -62,34 +99,74 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 csrf = CSRFProtect(app)
 
 # 4. Session & Payload Security
+_is_vercel_https = os.environ.get('VERCEL_ENV') in ('production', 'preview')
+_cookie_secure = (os.environ.get('SESSION_COOKIE_SECURE', '').lower() == 'true') or _is_vercel_https
+_max_content_length = (4 * 1024 * 1024) if IS_VERCEL else (16 * 1024 * 1024)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=False, # Set to True in production (HTTPS)
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024, # 16 MB max payload defense
+    SESSION_COOKIE_SECURE=_cookie_secure,
+    MAX_CONTENT_LENGTH=_max_content_length, # 4 MB Vercel safe ceiling / 16 MB standard defense
     SEND_FILE_MAX_AGE_DEFAULT=31536000 # 1 Year Static Asset Cache
 )
 
 @app.after_request
 def add_performance_headers(response):
     if request.path.startswith('/static/'):
-        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-    response.headers['Connection'] = 'keep-alive'
+        if request.path.endswith('sw.js'):
+            response.headers['Cache-Control'] = 'no-cache, max-age=0, must-revalidate'
+        else:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    if (
+        200 <= response.status_code < 300
+        and not response.direct_passthrough
+        and 'Content-Encoding' not in response.headers
+        and 'gzip' in request.headers.get('Accept-Encoding', '').lower()
+    ):
+        ctype = (response.content_type or '').split(';')[0].strip().lower()
+        if ctype.startswith('text/') or ctype in ('application/json', 'application/javascript', 'image/svg+xml'):
+            body = response.get_data()
+            if body and len(body) >= 1024:
+                compressed = gzip.compress(body, compresslevel=6)
+                if len(compressed) < len(body):
+                    response.set_data(compressed)
+                    response.headers['Content-Encoding'] = 'gzip'
+                    response.headers['Content-Length'] = len(compressed)
+                    vary = response.headers.get('Vary', '')
+                    if 'Accept-Encoding' not in vary:
+                        response.headers['Vary'] = f"{vary}, Accept-Encoding".strip(', ')
+    if not IS_VERCEL:
+        response.headers['Connection'] = 'keep-alive'
     return response
 
-# 5. Production Structured Logging (Rotating file log)
+# 5. Production Structured Logging (Rotating file log locally, stream log on Vercel read-only FS)
 import logging
 from logging.handlers import RotatingFileHandler
 
-os.makedirs('logs', exist_ok=True)
-log_file_path = os.path.join('logs', 'cbs_portal.log')
-file_handler = RotatingFileHandler(log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
-file_handler.setFormatter(logging.Formatter(
-    '[%(asctime)s] %(levelname)s [%(module)s:%(lineno)d]: %(message)s'
-))
-file_handler.setLevel(logging.INFO)
-app.logger.addHandler(file_handler)
-app.logger.setLevel(logging.INFO)
+def configure_portal_logging(target_app, is_vercel=None):
+    """Attach rotating file handler locally or stdout stream handler on read-only serverless FS."""
+    use_stream = IS_VERCEL if is_vercel is None else bool(is_vercel)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s [%(module)s:%(lineno)d]: %(message)s')
+    if not use_stream:
+        try:
+            os.makedirs('logs', exist_ok=True)
+            log_file_path = os.path.join('logs', 'cbs_portal.log')
+            handler = RotatingFileHandler(log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
+            handler.setFormatter(formatter)
+            handler.setLevel(logging.INFO)
+            target_app.logger.addHandler(handler)
+            target_app.logger.setLevel(logging.INFO)
+            return 'file'
+        except OSError:
+            pass
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.INFO)
+    target_app.logger.addHandler(stream_handler)
+    target_app.logger.setLevel(logging.INFO)
+    return 'stream'
+
+configure_portal_logging(app)
 app.logger.info("CBS Placement Portal initialized with production-level hardening.")
 
 # Initialize DB
@@ -251,9 +328,11 @@ def validate_and_store_resume(file_obj, user_id):
     if len(file_bytes) == 0:
         return False, "The uploaded file is empty. Please upload a valid PDF document."
     
-    if len(file_bytes) > MAX_RESUME_SIZE:
+    effective_max_resume = int(3.8 * 1024 * 1024) if IS_VERCEL else MAX_RESUME_SIZE
+    if len(file_bytes) > effective_max_resume:
         mb_size = round(len(file_bytes) / (1024 * 1024), 2)
-        return False, f"File size too large ({mb_size}MB). The maximum allowed resume file size is 5MB."
+        limit_label = '3.8MB' if IS_VERCEL else '5MB'
+        return False, f"File size too large ({mb_size}MB). The maximum allowed resume file size is {limit_label}."
     
     # Check PDF magic bytes (%PDF-) within header window (allows UTF-8 BOM / whitespace)
     if b'%PDF-' not in file_bytes[:1024]:
@@ -1495,9 +1574,25 @@ def admin_dashboard():
             chart_data[status] = 0
 
     jobs = list(jobs_collection.find().sort('created_at', -1).limit(6))
-    for j in jobs:
-        j['applicant_count'] = applications_collection.count_documents({'job_id': j['_id']})
-        j['shortlisted_count'] = applications_collection.count_documents({'job_id': j['_id'], 'status': {'$in': ['Shortlisted', 'GD', 'Interview', 'Selected']}})
+    if jobs:
+        job_ids = [j['_id'] for j in jobs]
+        agg_counts = list(applications_collection.aggregate([
+            {'$match': {'job_id': {'$in': job_ids}}},
+            {'$group': {
+                '_id': '$job_id',
+                'total': {'$sum': 1},
+                'shortlisted': {
+                    '$sum': {
+                        '$cond': [{'$in': ['$status', ['Shortlisted', 'GD', 'Interview', 'Selected']]}, 1, 0]
+                    }
+                }
+            }}
+        ]))
+        counts_map = {row['_id']: row for row in agg_counts}
+        for j in jobs:
+            row = counts_map.get(j['_id'], {})
+            j['applicant_count'] = row.get('total', 0)
+            j['shortlisted_count'] = row.get('shortlisted', 0)
 
     announcements = list(announcements_collection.find().sort('created_at', -1).limit(5))
     
@@ -2537,32 +2632,49 @@ def edit_job(job_id):
 
 
 def enrich_announcements_attachments(announcements_list):
-    """Enrich announcement documents with attachment metadata (type, filename, size in KB)."""
-    from utils.db import get_fs
-    fs = None
-    for ann in announcements_list:
+    """Batch-enrich announcement documents with attachment metadata in a single fs.files query."""
+    valid_oids = []
+    oid_by_ann_idx = {}
+    for idx, ann in enumerate(announcements_list):
         att_id = ann.get('attachment_id')
-        if att_id:
-            try:
-                if fs is None:
-                    fs = get_fs()
-                f_obj = fs.get(ObjectId(str(att_id)))
-                ann['attachment_filename'] = f_obj.filename or 'Document'
-                fname_lower = (f_obj.filename or '').lower()
-                if fname_lower.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg')):
-                    ann['attachment_type'] = 'image'
-                elif fname_lower.endswith('.pdf'):
-                    ann['attachment_type'] = 'pdf'
-                else:
-                    ann['attachment_type'] = 'file'
-                ann['attachment_size_kb'] = round(f_obj.length / 1024, 1)
-            except Exception:
-                ann['attachment_filename'] = 'Attached File'
-                ann['attachment_type'] = 'file'
-                ann['attachment_size_kb'] = 0
-        else:
+        if att_id and ObjectId.is_valid(str(att_id)):
+            oid = ObjectId(str(att_id))
+            valid_oids.append(oid)
+            oid_by_ann_idx[idx] = oid
+
+    files_map = {}
+    if valid_oids:
+        try:
+            fs_docs = db['fs.files'].find(
+                {'_id': {'$in': list(set(valid_oids))}},
+                {'filename': 1, 'length': 1}
+            )
+            files_map = {d['_id']: d for d in fs_docs}
+        except Exception:
+            files_map = {}
+
+    for idx, ann in enumerate(announcements_list):
+        att_id = ann.get('attachment_id')
+        if not att_id:
             ann['attachment_type'] = None
             ann['attachment_filename'] = None
+            ann['attachment_size_kb'] = 0
+            continue
+        f_doc = files_map.get(oid_by_ann_idx.get(idx))
+        if f_doc:
+            fname = f_doc.get('filename') or 'Document'
+            ann['attachment_filename'] = fname
+            fname_lower = fname.lower()
+            if fname_lower.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg')):
+                ann['attachment_type'] = 'image'
+            elif fname_lower.endswith('.pdf'):
+                ann['attachment_type'] = 'pdf'
+            else:
+                ann['attachment_type'] = 'file'
+            ann['attachment_size_kb'] = round((f_doc.get('length') or 0) / 1024, 1)
+        else:
+            ann['attachment_filename'] = 'Attached File'
+            ann['attachment_type'] = 'file'
             ann['attachment_size_kb'] = 0
 
 @app.route('/admin/announcements/manage')
@@ -3182,8 +3294,8 @@ def _export_stages_excel_handler(job_id=None):
 @app.route('/admin/applications')
 @login_required(role='admin')
 def view_applications():
-    # Process any elapsed placed exits before viewing
-    check_and_process_placed_student_exits()
+    # Throttled periodic exit maintenance before viewing
+    run_portal_periodic_maintenance()
     # Aggregate to get student and job details
     # Add multiple application detection
     pipeline = [

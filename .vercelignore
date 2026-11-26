@@ -1,0 +1,16 @@
+# Exclude local environments, logs, test scripts, and scratch artifacts from Vercel serverless bundles
+venv/
+.venv/
+env/
+logs/
+*.log
+__pycache__/
+*.pyc
+*.pyo
+test_*.py
+tests/
+scratch/
+.git/
+.gitignore
+*.md
+!requirements.txt

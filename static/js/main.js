@@ -137,10 +137,8 @@ document.addEventListener(
   true,
 );
 
-// Initial fetch for badge
+// Background polling every 60s (initial count is SSR-rendered on load)
 if (document.getElementById("notif-badge")) {
-  fetchNotifications();
-  // Poll every minute
   setInterval(fetchNotifications, 60000);
 }
 

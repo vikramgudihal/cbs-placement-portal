@@ -1,4 +1,4 @@
-from flask import Blueprint, send_file, Response, abort
+from flask import Blueprint, send_file, Response, abort, request
 from utils.db import get_fs
 from bson.objectid import ObjectId
 import io
@@ -59,10 +59,20 @@ def view_file_inline(file_id):
         elif filename.lower().endswith('.gif'):
             content_type = 'image/gif'
             
-        return send_file(
+        etag = f'"{file_id}"'
+        if request.headers.get('If-None-Match') == etag:
+            return Response('', status=304, headers={
+                'ETag': etag,
+                'Cache-Control': 'public, max-age=604800, immutable'
+            })
+
+        resp = send_file(
             io.BytesIO(file_obj.read()),
             mimetype=content_type,
             as_attachment=False
         )
+        resp.headers['ETag'] = etag
+        resp.headers['Cache-Control'] = 'public, max-age=604800, immutable'
+        return resp
     except Exception:
         abort(404)

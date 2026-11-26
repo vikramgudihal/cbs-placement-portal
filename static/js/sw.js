@@ -1,19 +1,18 @@
-const CACHE_NAME = 'cbs-3icell-v6';
+const CACHE_NAME = 'cbs-3icell-v7';
 const STATIC_ASSETS = [
     '/',
     '/static/css/style.css',
-    '/static/css/mobile-nav.css',
-    '/static/css/dashboard-responsive.css',
+    '/static/css/app-layout.css',
+    '/static/css/responsive-suite.css',
     '/static/js/main.js',
     '/static/js/offline-notifications.js',
     '/static/images/logo1.png',
     '/static/manifest.json',
     '/offline',
-    'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css',
-    'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css',
-    'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css',
-    'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css',
-    'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap'
+    '/static/vendor/phosphor/regular/style.css',
+    '/static/vendor/phosphor/bold/style.css',
+    '/static/vendor/phosphor/fill/style.css',
+    '/static/vendor/phosphor/duotone/style.css'
 ];
 
 self.addEventListener('install', (event) => {
