@@ -77,8 +77,8 @@
 {% endif %}
 
 <!-- Filters & Search Toolbar -->
-<div class="card" style="margin-bottom: 1.25rem;">
-  <div class="card-body" style="padding: 1rem 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+<div class="card pipeline-filter-card" style="margin-bottom: 1.25rem;">
+  <div class="card-body" style="padding: 1.15rem 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
     <!-- Live Search -->
     <div style="position: relative; flex: 1 1 200px; min-width: 0;">
       <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem;"></i>
@@ -544,7 +544,7 @@
     @media (max-width: 860px) {
       .pipeline-mgmt-banner {
         padding: 1.25rem 1rem !important;
-        border-radius: 16px !important;
+        border-radius: 18px !important;
       }
       .pipeline-mgmt-banner .banner-actions {
         width: 100% !important;
@@ -554,6 +554,24 @@
         justify-content: center;
         white-space: normal;
         text-align: center;
+      }
+      .pipeline-filter-card {
+        border-radius: 16px !important;
+      }
+      .pipeline-filter-card .card-body {
+        padding: 1rem !important;
+        gap: 0.65rem !important;
+      }
+      .pipeline-table-shell {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+      .pipeline-table-shell .data-table-container {
+        padding: 0 !important;
+        overflow: visible !important;
       }
       #batchRejectionReasonInput {
         width: 100% !important;
@@ -572,10 +590,10 @@
       .applications-streamlined-table tr.app-row {
         margin-bottom: 1.15rem !important;
         border: 1.5px solid #e2e8f0 !important;
-        border-radius: 16px !important;
+        border-radius: 18px !important;
         background: #ffffff !important;
-        padding: 1rem 0.95rem !important;
-        box-shadow: 0 3px 14px -2px rgba(15, 23, 42, 0.06) !important;
+        padding: 1.3rem 1.2rem !important;
+        box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.08) !important;
         transition: transform 0.15s ease, box-shadow 0.15s ease !important;
       }
       [data-theme="dark"] .applications-streamlined-table tr.app-row {
@@ -688,7 +706,7 @@
     }
   </style>
 
-  <div class="card" style="overflow: hidden;">
+  <div class="card pipeline-table-shell" style="overflow: hidden;">
     <div class="data-table-container" style="overflow-x: auto;">
       <table class="data-table applications-streamlined-table" id="pipelineTable">
         <thead>

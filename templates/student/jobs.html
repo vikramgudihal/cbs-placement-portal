@@ -418,19 +418,34 @@
 
   @media (max-width: 640px) {
     .drives-toolbar {
-      padding: 0.85rem;
+      padding: 0.9rem;
       gap: 0.75rem;
+      flex-direction: column;
+      align-items: stretch;
     }
     .drives-search-wrap {
-      flex: 1 1 100%;
+      flex: none;
       width: 100%;
+      height: auto;
     }
     .drives-filter-group {
       width: 100%;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.65rem;
+      align-items: center;
+    }
+    .drives-view-toggle-bar {
+      grid-column: 1 / -1;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .view-switch-btn {
+      justify-content: center;
     }
     .filter-select {
-      flex: 1 1 140px;
+      width: 100%;
       min-width: 0;
     }
     .drive-card,
@@ -452,28 +467,31 @@
 {% block content %}
 <div class="drives-container">
 
-  <!-- Executive Header -->
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-        <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); background: rgba(30, 64, 175, 0.08); padding: 0.2rem 0.6rem; border-radius: 4px; text-transform: uppercase;">
-          Campus Hiring Season 2026-27
-        </span>
+  <!-- Unified Ambient Command Hero Banner (Matches Portal Standard) -->
+  <section class="portal-unified-banner">
+    <div class="portal-banner-inner">
+      <div class="portal-banner-left">
+        <div class="portal-banner-kicker">
+          <i class="ph-bold ph-briefcase"></i>
+          <span>Campus Hiring Season 2026-27</span>
+        </div>
+        <h1 class="portal-banner-title">Verified Placement Opportunities</h1>
+        <p class="portal-banner-subtitle">
+          Official drives certified by Chetan Business School (CBS 3i-Cell). Your profile CGPA: <strong style="color: #93c5fd;">{{ student.cgpa or '0.0' }}</strong>.
+        </p>
       </div>
-      <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-main); margin: 0;">Verified Placement Opportunities</h1>
-      <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
-        Official drives certified by Chetan Business School (CBS 3i-Cell). Your profile CGPA: <strong style="color: var(--primary);">{{ student.cgpa or '0.0' }}</strong>.
-      </p>
+      <div class="portal-banner-actions">
+        <a href="{{ url_for('student_applications') }}" class="btn-portal-primary">
+          <i class="ph-bold ph-kanban"></i>
+          <span>My Applications</span>
+        </a>
+        <a href="{{ url_for('student_dashboard') }}" class="btn-portal-glass">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
     </div>
-    <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
-      <a href="{{ url_for('student_dashboard') }}" class="btn-back">
-        <i class="ph-bold ph-arrow-left"></i> Dashboard
-      </a>
-      <a href="{{ url_for('student_applications') }}" class="btn-secondary">
-        <i class="ph-bold ph-kanban"></i> My Applications
-      </a>
-    </div>
-  </div>
+  </section>
 
   <!-- Operational Filter Toolbar with 2-Option View Switcher -->
   <div class="drives-toolbar">

@@ -54,7 +54,14 @@
     <div class="details-card personal-card">
       <div class="card-header">
         <div class="avatar-section">
-          <div class="avatar">{{ student.name[0] | upper }}</div>
+          {% set stu_photo = student.profile_photo_id or user.profile_photo_id %}
+          <div class="avatar" style="overflow: hidden;">
+            {% if stu_photo %}
+            <img src="{{ url_for('file_serving.view_file_inline', file_id=stu_photo) }}" alt="{{ student.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block;">
+            {% else %}
+            {{ student.name[0] | upper }}
+            {% endif %}
+          </div>
           <h3>{{ student.name }}</h3>
           <p>{{ user.email }}</p>
         </div>

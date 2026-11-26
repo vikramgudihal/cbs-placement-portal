@@ -1104,9 +1104,14 @@
   <section class="candidate-hero-banner">
     <div class="hero-banner-inner">
       <div class="candidate-meta-group">
-        <div class="candidate-avatar-disc">
+        {% set stu_photo_id = (student.profile_photo_id if student else None) or current_user_photo_id %}
+        <a href="{{ url_for('student_profile') }}" class="candidate-avatar-disc" style="overflow: hidden; text-decoration: none;" title="View Profile / Update Photo">
+          {% if stu_photo_id %}
+          <img src="{{ url_for('file_serving.view_file_inline', file_id=stu_photo_id) }}" alt="{{ student.name or 'Profile Photo' }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block;">
+          {% else %}
           {{ (student.name or 'S')[0]|upper }}
-        </div>
+          {% endif %}
+        </a>
         <div class="candidate-title-block">
           <h1>
             <span>Hello, {{ (student.name or 'Candidate').split(' ')[0] }}!</span>

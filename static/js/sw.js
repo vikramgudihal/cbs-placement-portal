@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cbs-3icell-v5';
+const CACHE_NAME = 'cbs-3icell-v6';
 const STATIC_ASSETS = [
     '/',
     '/static/css/style.css',

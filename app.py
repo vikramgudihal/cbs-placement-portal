@@ -286,6 +286,79 @@ def validate_and_store_resume(file_obj, user_id):
         app.logger.error(f"GridFS error saving resume: {str(e)}")
         return False, f"System error saving resume: {str(e)}"
 
+MAX_AVATAR_SIZE = 3 * 1024 * 1024  # 3 MB Strict Limit
+
+def validate_and_store_avatar(file_obj, user_id):
+    """
+    Hardened Profile Photo Validation & GridFS Storage:
+    Supports authentic JPG, JPEG, PNG, and WEBP images up to 3MB via magic-byte verification.
+    """
+    if not file_obj or not file_obj.filename:
+        return False, "No image selected. Please choose a JPG, PNG, or WEBP photo."
+
+    raw_name = file_obj.filename or ''
+    filename = secure_filename(raw_name) or 'avatar.jpg'
+    mimetype = (getattr(file_obj, 'mimetype', '') or '').lower()
+
+    file_bytes = file_obj.read()
+    if hasattr(file_obj, 'seek'):
+        try:
+            file_obj.seek(0)
+        except Exception:
+            pass
+
+    if len(file_bytes) == 0:
+        return False, "The uploaded image file is empty."
+
+    if len(file_bytes) > MAX_AVATAR_SIZE:
+        mb_size = round(len(file_bytes) / (1024 * 1024), 2)
+        return False, f"Image size too large ({mb_size}MB). Maximum allowed profile photo size is 3MB."
+
+    # Verify magic bytes strictly (blocks disguised scripts/SVGs)
+    detected_mime = None
+    ext = '.jpg'
+    if file_bytes[:3] == b'\xff\xd8\xff':
+        detected_mime = 'image/jpeg'
+        ext = '.jpg'
+    elif file_bytes[:8] == b'\x89PNG\r\n\x1a\n':
+        detected_mime = 'image/png'
+        ext = '.png'
+    elif file_bytes[:4] == b'RIFF' and file_bytes[8:12] == b'WEBP':
+        detected_mime = 'image/webp'
+        ext = '.webp'
+
+    if not detected_mime:
+        return False, "Invalid image format. Please upload an authentic JPG, PNG, or WEBP profile picture."
+
+    if not filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+        filename = (filename.rsplit('.', 1)[0] or 'avatar') + ext
+
+    try:
+        fs = get_fs()
+        uid = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+        try:
+            old_files = fs.find({'metadata.user_id': uid, 'metadata.type': 'avatar'})
+            for old_f in old_files:
+                fs.delete(old_f._id)
+        except Exception as cleanup_err:
+            app.logger.warning(f"Old avatar cleanup note: {cleanup_err}")
+
+        file_id = fs.put(
+            file_bytes,
+            filename=filename,
+            content_type=detected_mime,
+            metadata={
+                'user_id': uid,
+                'type': 'avatar',
+                'size_bytes': len(file_bytes),
+                'uploaded_at': datetime.datetime.now()
+            }
+        )
+        return True, file_id
+    except Exception as e:
+        app.logger.error(f"GridFS error saving profile photo: {str(e)}")
+        return False, f"System error saving profile photo: {str(e)}"
+
 # --- HELPER: REAL-TIME DYNAMIC STUDENT ATS METRICS ---
 def calculate_student_ats_score(student):
     """
@@ -454,9 +527,11 @@ def enforce_mandatory_student_onboarding():
         exempt_endpoints = {
             'complete_profile',
             'api_parse_resume',
+            'upload_profile_photo',
             'logout',
             'static',
-            'file_serving.serve_file'
+            'file_serving.serve_file',
+            'file_serving.view_file_inline'
         }
         
         endpoint = request.endpoint
@@ -478,7 +553,7 @@ def enforce_mandatory_student_onboarding():
 @app.context_processor
 def inject_notifications():
     if 'user_id' not in session:
-        return {'unread_notifications_count': 0, 'recent_notifications': []}
+        return {'unread_notifications_count': 0, 'recent_notifications': [], 'current_user_photo_id': None}
     
     try:
         user_id = ObjectId(session['user_id'])
@@ -486,9 +561,24 @@ def inject_notifications():
         count = notifications_collection.count_documents({'user_id': user_id, 'is_read': False})
         # Get recent 5
         recent = list(notifications_collection.find({'user_id': user_id}).sort('created_at', -1).limit(5))
-        return {'unread_notifications_count': count, 'recent_notifications': recent}
+
+        photo_id = session.get('profile_photo_id')
+        if photo_id is None:
+            u_doc = users_collection.find_one({'_id': user_id}, {'profile_photo_id': 1})
+            pid = u_doc.get('profile_photo_id') if u_doc else None
+            if not pid and session.get('role') == 'student':
+                s_doc = students_collection.find_one({'user_id': user_id}, {'profile_photo_id': 1})
+                pid = s_doc.get('profile_photo_id') if s_doc else None
+            photo_id = str(pid) if pid else ''
+            session['profile_photo_id'] = photo_id
+
+        return {
+            'unread_notifications_count': count,
+            'recent_notifications': recent,
+            'current_user_photo_id': photo_id or None
+        }
     except:
-        return {'unread_notifications_count': 0, 'recent_notifications': []}
+        return {'unread_notifications_count': 0, 'recent_notifications': [], 'current_user_photo_id': None}
 
 
 # --- ROUTES ---
@@ -614,6 +704,7 @@ def login_post():
         session['role'] = user['role']
         session['email'] = user['email']
         session['admin_level'] = user.get('admin_level', None)  # For admin hierarchy
+        session['profile_photo_id'] = str(user['profile_photo_id']) if user.get('profile_photo_id') else ''
         
         # Ensure name is in session
         if user['role'] == 'student':
@@ -760,6 +851,16 @@ def complete_profile():
                     return redirect(url_for('complete_profile'))
                 resume_id = res_result
 
+            # Optional Profile Photo Upload (GridFS JPG/PNG/WEBP)
+            photo_file = request.files.get('profile_photo')
+            photo_id = None
+            if photo_file and photo_file.filename != '':
+                p_ok, p_res = validate_and_store_avatar(photo_file, session['user_id'])
+                if not p_ok:
+                    flash(p_res, "error")
+                    return redirect(url_for('complete_profile'))
+                photo_id = p_res
+
             # Build update dict
             update_data = {
                 'name': name,
@@ -796,9 +897,12 @@ def complete_profile():
                     return redirect(url_for('complete_profile'))
                 update_data['student_id'] = new_student_id
             
-            # Only update resume if a new one was uploaded
+            # Only update resume / profile photo if newly uploaded
             if resume_id:
                 update_data['resume_file_id'] = resume_id
+            if photo_id:
+                update_data['profile_photo_id'] = photo_id
+                session['profile_photo_id'] = str(photo_id)
 
             # Update Student Profile
             students_collection.update_one(
@@ -808,13 +912,16 @@ def complete_profile():
             
             # Update User Status & Name
             was_approved = user.get('is_approved', False) if user else False
+            user_set = {
+                'name': name, # Sync name
+                'profile_completed': True, 
+                'is_approved': was_approved
+            }
+            if photo_id:
+                user_set['profile_photo_id'] = photo_id
             users_collection.update_one(
                 {'_id': ObjectId(session['user_id'])},
-                {'$set': {
-                    'name': name, # Sync name
-                    'profile_completed': True, 
-                    'is_approved': was_approved
-                }}
+                {'$set': user_set}
             )
             
             if was_approved:
@@ -4068,6 +4175,45 @@ def update_resume():
     
     flash("Resume verified and uploaded securely (5MB authentic PDF standard).", "success")
     return redirect(url_for('student_profile'))
+
+@app.route('/profile/upload-photo', methods=['POST'])
+@login_required()
+def upload_profile_photo():
+    """Upload or replace the user's real profile picture in GridFS (Students & Admins)."""
+    user_id = session['user_id']
+    role = session.get('role')
+    redirect_target = url_for('student_profile') if role == 'student' else (request.referrer or url_for('admin_dashboard'))
+
+    if request.form.get('action') == 'remove':
+        users_collection.update_one({'_id': ObjectId(user_id)}, {'$unset': {'profile_photo_id': ''}})
+        if role == 'student':
+            students_collection.update_one({'user_id': ObjectId(user_id)}, {'$unset': {'profile_photo_id': ''}})
+        session['profile_photo_id'] = ''
+        flash("Profile photo removed.", "info")
+        return redirect(redirect_target)
+
+    photo_file = request.files.get('profile_photo') or request.files.get('avatar')
+    if not photo_file or photo_file.filename == '':
+        flash("Please choose a JPG, PNG, or WEBP photo to upload.", "error")
+        return redirect(redirect_target)
+
+    ok, res_result = validate_and_store_avatar(photo_file, user_id)
+    if not ok:
+        flash(res_result, "error")
+        return redirect(redirect_target)
+
+    users_collection.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {'profile_photo_id': res_result, 'updated_at': datetime.datetime.now()}}
+    )
+    if role == 'student':
+        students_collection.update_one(
+            {'user_id': ObjectId(user_id)},
+            {'$set': {'profile_photo_id': res_result, 'profile_updated_at': datetime.datetime.now()}}
+        )
+    session['profile_photo_id'] = str(res_result)
+    flash("Profile picture updated successfully!", "success")
+    return redirect(redirect_target)
 
 # --- PLACED STUDENT LIFECYCLE: VOLUNTARY & ADMIN EXIT ROUTES ---
 

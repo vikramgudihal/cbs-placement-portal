@@ -1,17 +1,23 @@
 {% extends 'base.html' %} {% block title %}Student Activity - Admin{% endblock
 %} {% block content %}
-<div class="container" style="margin-top: 2rem; margin-bottom: 2rem">
-  <div class="section-header">
-    <h1>Student Activity Monitor</h1>
-    <p>Track student registration and login activity</p>
-  </div>
-
-  <a
-    href="{{ url_for('admin_dashboard') }}"
-    class="btn-back"
-    style="margin-bottom: 1.5rem"
-    >← Back to Dashboard</a
-  >
+<div class="container" style="margin-top: 1.25rem; margin-bottom: 2rem">
+  <section class="portal-unified-banner">
+    <div class="portal-banner-inner">
+      <div class="portal-banner-left">
+        <div class="portal-banner-kicker">
+          <i class="ph-bold ph-pulse"></i>
+          <span>Engagement Monitor</span>
+        </div>
+        <h1 class="portal-banner-title">Student Activity Monitor</h1>
+        <p class="portal-banner-subtitle">Track candidate registrations, last logins, and account readiness status.</p>
+      </div>
+      <div class="portal-banner-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-portal-glass">
+          <i class="ph-bold ph-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </section>
 
   <div class="glass-card-heavy" style="padding: 1.5rem">
     <div style="overflow-x: auto">

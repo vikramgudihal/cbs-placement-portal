@@ -437,5 +437,73 @@ class TestUserFixes(unittest.TestCase):
 
         print("[PASS] Student/Profile/Admin mobile overflow guards and navbar alignment verified.")
 
+    def test_unified_banners_profile_photo_toasts_and_pipeline_padding(self):
+        """Verify profile photo upload & GridFS validation, unified banners, solid toasts, search icon fix, and pipeline card padding"""
+        from unittest.mock import MagicMock, patch
+        from werkzeug.datastructures import FileStorage
+        from app import app, validate_and_store_avatar
+
+        # 1. Validate image magic-byte security checks
+        fake_svg = FileStorage(stream=io.BytesIO(b"<svg onload=alert(1)></svg>"), filename="evil.svg", content_type="image/svg+xml")
+        ok, err = validate_and_store_avatar(fake_svg, "000000000000000000000001")
+        self.assertFalse(ok)
+        self.assertIn("Invalid image format", err)
+
+        valid_png = FileStorage(stream=io.BytesIO(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"), filename="avatar.png", content_type="image/png")
+        mock_fs = MagicMock()
+        mock_fs.find.return_value = []
+        mock_fs.put.return_value = "mock_avatar_id"
+        with patch('app.get_fs', return_value=mock_fs):
+            ok_png, res_id = validate_and_store_avatar(valid_png, "000000000000000000000001")
+            self.assertTrue(ok_png)
+            self.assertEqual(res_id, "mock_avatar_id")
+
+        # 2. Check portal-wide avatar photo support across student/admin templates
+        for tpl_path in [
+            'templates/base.html',
+            'templates/student/profile.html',
+            'templates/student/dashboard.html',
+            'templates/student/complete_profile.html',
+            'templates/admin/student_details.html',
+            'templates/admin/manage_users.html',
+        ]:
+            with open(tpl_path, encoding='utf-8') as tf:
+                self.assertIn('view_file_inline', tf.read(), f"Missing inline profile photo rendering in {tpl_path}")
+
+        # 3. Unified ambient command banner across student/admin views
+        for tpl_path in [
+            'templates/student/jobs.html',
+            'templates/admin/manage_users.html',
+            'templates/admin/all_students.html',
+            'templates/admin/manage_admins.html',
+            'templates/admin/login_history.html',
+            'templates/admin/password_requests.html',
+            'templates/admin/students_activity.html',
+        ]:
+            with open(tpl_path, encoding='utf-8') as tf:
+                self.assertIn('portal-unified-banner', tf.read(), f"Missing unified hero banner in {tpl_path}")
+
+        # 4. Town Hall search icon column fix, opaque flash toast styles, and pipeline shell padding
+        with open('templates/student/announcements.html', encoding='utf-8') as f:
+            ann_html = f.read()
+        self.assertIn('height: auto;', ann_html)
+        self.assertIn('flex-wrap: wrap;', ann_html)
+
+        with open('static/css/responsive-suite.css', encoding='utf-8') as f:
+            resp_css = f.read()
+        self.assertIn('.flash-close-btn', resp_css)
+        self.assertIn('#ecfdf5 !important', resp_css)
+        self.assertIn('.portal-unified-banner', resp_css)
+
+        with open('templates/admin/applications.html', encoding='utf-8') as f:
+            apps_html = f.read()
+        self.assertIn('pipeline-table-shell', apps_html)
+        self.assertIn('padding: 1.3rem 1.2rem !important', apps_html)
+
+        # Ensure upload_profile_photo route is registered cleanly
+        rule_paths = [r.rule for r in app.url_map.iter_rules()]
+        self.assertIn('/profile/upload-photo', rule_paths)
+        print("[PASS] Profile photo GridFS upload, unified hero banners, opaque toasts, and pipeline padding verified.")
+
 if __name__ == '__main__':
     unittest.main()

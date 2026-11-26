@@ -143,3 +143,19 @@ if (document.getElementById("notif-badge")) {
   // Poll every minute
   setInterval(fetchNotifications, 60000);
 }
+
+// Auto-dismiss transient flash toasts cleanly after 5.5s
+document.addEventListener("DOMContentLoaded", () => {
+  const stack = document.getElementById("flashToastStack");
+  if (!stack) return;
+  stack.querySelectorAll(".flash-msg").forEach((toast, idx) => {
+    setTimeout(() => {
+      toast.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(-10px)";
+      setTimeout(() => {
+        try { toast.remove(); } catch (_) {}
+      }, 360);
+    }, 5500 + idx * 600);
+  });
+});
