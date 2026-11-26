@@ -506,21 +506,24 @@ class TestUserFixes(unittest.TestCase):
         print("[PASS] Profile photo GridFS upload, unified hero banners, opaque toasts, and pipeline padding verified.")
 
     def test_new_campus_photo_landing_login_and_signup(self):
-        """Verify updated crisp CBS campus image and framed photo cards in landing hero, login, and signup"""
+        """Verify updated crisp CBS campus image in landing hero, and clean backdrop without duplicate card on login/signup"""
         with open('static/images/campus.jpeg', 'rb') as f:
             header = f.read(16)
         self.assertTrue(header.startswith(b'\xff\xd8\xff'), "campus.jpeg must be a valid JPEG binary")
         self.assertGreater(os.path.getsize('static/images/campus.jpeg'), 50000)
 
-        for path, marker in [
-            ('templates/landing.html', 'object-position: center 22%'),
-            ('templates/login.html', 'auth-campus-photo-card'),
-            ('templates/signup.html', 'auth-campus-photo-card'),
-        ]:
+        with open('templates/landing.html', encoding='utf-8') as tf:
+            landing = tf.read()
+        self.assertIn('object-position: center 22%', landing)
+        self.assertIn('campus.jpeg', landing)
+        self.assertIn('?v=20261126', landing)
+
+        for path in ['templates/login.html', 'templates/signup.html']:
             with open(path, encoding='utf-8') as tf:
                 content = tf.read()
-            self.assertIn(marker, content, f"Missing {marker} in {path}")
+            self.assertNotIn('auth-campus-photo-card', content, f"Duplicate foreground photo card must stay removed in {path}")
             self.assertIn('campus.jpeg', content)
+            self.assertIn('?v=20261126', content)
         print("[PASS] Updated campus photo framing verified across home hero, login, and signup.")
 
 if __name__ == '__main__':
